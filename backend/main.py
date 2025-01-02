@@ -1,4 +1,6 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
+from database import get_all_tasks, create_task, get_one_task
+from models import Task
 
 app = FastAPI()
 
@@ -8,23 +10,37 @@ def welcome():
 
 # Routes with parameters must go first
 @app.get('/api/tasks/{id}')
-async def get_task(id: int): # We declare id as parameter
+async def get_task():
     return 'single task'
 
 @app.put('/api/tasks/{id}')
-async def update_task(id: int): # We declare id as parameter
+async def update_task():
     return 'updating task'
 
 @app.delete('/api/tasks/{id}')
-async def delete_tasks(id: int): # We declare id as parameter
+async def delete_tasks():
     return 'delete task'
 
 # Routes without parameters must go after
 @app.get('/api/tasks')
 async def get_tasks():
-    return 'all tasks'
+    tasks = await get_all_tasks()
+    return tasks
 
-@app.post('/api/tasks')
-async def create_task():
-    return 'create task'
+@app.post('/api/tasks', response_model=Task)
+async def save_task(task: Task):
+    # Check if a task with the same title already exists
+    taskFound = await get_one_task(task.title)
+    if taskFound:
+        # If a task with the same title exists, raise an HTTP 409 Conflict exception
+        raise HTTPException(409, "Task already exists")
+
+    # Create a new task in the database
+    response = await create_task(task.dict())
+    if response:
+        # If the task is successfully created, return the created task
+        return response
+    
+    # If something goes wrong, raise an HTTP 400 Bad Request exception
+    raise HTTPException(400, 'Something went wrong')
 

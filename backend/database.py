@@ -5,13 +5,18 @@ from models import Task
 
 # We have created a connection to the MongoDB database and a reference to the tasks collection.
 client = AsyncIOMotorClient('mongodb://localhost')
-database = client.taskdatabase
+database = client.taskdb
 collection = database.tasks
 
 # Function to get a single task by its ID
-async def get_one_task_id(id:str):
+async def get_one_task_id(id):
     # Find one document in the collection with the specified ID
-    task = await collection.find_one({'id':id})
+    task = await collection.find_one({'_id':id})
+    return task
+
+async def get_one_task(title):
+    # Find one document in the collection with the specified title
+    task = await collection.find_one({'title': title})
     return task
 
 # Function to get all tasks from the collection
@@ -23,7 +28,7 @@ async def get_all_tasks():
     async for document in cursor:
         # Append each document to the tasks list as a Task object
         tasks.append(Task(**document))
-        return tasks
+    return tasks
 
 # Function to create a new task in the collection
 async def create_task(task):
@@ -31,7 +36,8 @@ async def create_task(task):
     new_task = await collection.insert_one(task)
     # Find the newly created task by its inserted ID
     created_task = await collection.find_one({'_id': new_task.inserted_id})
-    return created_task
+    # Return the created task as a Task object
+    return Task(**created_task)
 
 # Function to update an existing task by its ID
 async def update_task(id: str, task):
@@ -46,6 +52,4 @@ async def delete_task(id: str):
     # Delete the document with the specified ID
     await collection.delete_one({'_id': id})
     return True
-    
-
 
