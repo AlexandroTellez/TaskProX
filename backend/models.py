@@ -45,3 +45,15 @@ class Task(BaseModel):
         populate_by_name = True
         json_encoders = {ObjectId: str}
         arbitrary_types_allowed = True
+
+# UpdateTask class representing the fields that can be updated in a task.
+class UpdateTask(BaseModel):
+    title: Optional [str] = None
+    description: Optional [str] = None
+    completed: Optional [bool] = None
+
+    class Config:
+        from_attributes = True
+        populate_by_name = True
+        json_encoders = {ObjectId: str}
+        arbitrary_types_allowed = True
