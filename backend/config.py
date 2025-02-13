@@ -1,0 +1,1 @@
+FRONTEND_URL = "http://localhost:5173" # The URL of the frontend application
