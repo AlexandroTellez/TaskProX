@@ -1,12 +1,12 @@
 /**
  * App component that sets up the routing for the application.
- * 
+ *
  * This component uses `react-router-dom` to define routes for the application.
- * 
+ *
  * Routes:
  * - `/` renders the `Homepage` component.
  * - `/tasks/new` renders the `TaskForm` component.
- * 
+ *
  * @component
  * @example
  * return (
