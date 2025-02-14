@@ -1,17 +1,14 @@
 /**
- * App component that sets up the routing for the application.
+ * App component that sets up the routing for the application using react-router-dom.
  *
- * This component uses `react-router-dom` to define routes for the application.
+ * The component uses BrowserRouter to enable client-side routing.
  *
  * Routes:
- * - `/` renders the `Homepage` component.
- * - `/tasks/new` renders the `TaskForm` component.
+ * - "/" renders the Homepage component.
+ * - "/tasks/:id" renders the TaskForm component for editing a task with a specific ID.
+ * - "/tasks/new" renders the TaskForm component for creating a new task.
  *
  * @component
- * @example
- * return (
- *   <App />
- * )
  */
 import {BrowserRouter, Routes, Route} from 'react-router-dom';
 import Homepage from './pages/HomePage';
@@ -23,6 +20,7 @@ function App (){
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Homepage />} />
+        <Route path="/tasks/:id" element={<TaskForm />} />
         <Route path="/tasks/new" element={<TaskForm />} />
       </Routes>
 
