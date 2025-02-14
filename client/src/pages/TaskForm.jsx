@@ -1,16 +1,32 @@
 /**
- * TaskForm component that renders a form for creating or editing a task.
- *
- * The form includes fields for the task title and description, and a save button.
- * It is styled using Tailwind CSS classes for layout and appearance.
+ * TaskForm component allows users to create a new task by submitting a form.
+ * It uses React's useState hook to manage the state of the form inputs.
  *
  * @component
  * @example
  * return (
  *   <TaskForm />
  * )
+ *
+ * @returns {JSX.Element} The rendered component.
+ *
+ * @function handleSubmit
+ * Handles the form submission, sends a POST request to the server with the task data,
+ * and resets the form.
+ *
+ * @param {Object} e - The event object.
+ *
+ * @function setTitle
+ * Updates the state of the title input.
+ *
+ * @param {Object} e - The event object.
+ *
+ * @function setDescription
+ * Updates the state of the description input.
+ *
+ * @param {Object} e - The event object.
  */
-import {useState}from 'react'
+import { useState } from 'react'
 import axios from 'axios'
 
 function TaskForm(){
@@ -37,6 +53,7 @@ function TaskForm(){
                     placeholder="title"
                     className="block py-2 px-3 mb-4 w-full text-black"
                     onChange={(e) => setTitle(e.target.value)}
+                    autoFocus
                 />
                 <textarea
                 placeholder="description"
