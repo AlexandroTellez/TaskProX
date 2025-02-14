@@ -18,26 +18,42 @@
  * @returns {JSX.Element} The rendered TaskForm component.
  */
 import { useState, useEffect } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 
 function TaskForm() {
     const [title, setTitle] = useState('')
     const [description, setDescription] = useState('')
     const params = useParams()
+    const navigate = useNavigate()
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        const res = await axios.post('http://localhost:8000/api/tasks', {
-            title,
-            description
-        })
-
-        console.log(res)
+        try {
+            // If there is no id in the URL parameters, create a new task
+            if (!params.id) {
+                const res = await axios.post('http://localhost:8000/api/tasks', {
+                    title,
+                    description
+                });
+                console.log(res);
+            } else {
+                // If there is an id in the URL parameters, update the existing task
+                const res = await axios.put(`http://localhost:8000/api/tasks/${params.id}`, {
+                    title,
+                    description
+                })
+                console.log(res);
+            }
+            navigate('/');
+        } catch (error) {
+            console.error(error);
+        }
 
         e.target.reset();
-    };
+
+    }
 
     useEffect(() => {
         if (params.id) {
