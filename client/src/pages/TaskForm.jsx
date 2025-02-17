@@ -61,34 +61,52 @@ function TaskForm() {
         }
 
         async function fetchTask() {
-            const res = await axios.get(`http://localhost:8000/api/tasks/${params.id}`)
-            setTitle(res.data.title)
-            setDescription(res.data.description)
+            const res = await axios.get(`http://localhost:8000/api/tasks/${params.id}`);
+            setTitle(res.data.title);
+            setDescription(res.data.description);
         }
-    }, [])
+    }, []);
 
     return (
         <div className="flex items-center justify-center h-[calc(100vh-10rem)]">
-            <form className="bg-zinc-950 p-10" onSubmit={handleSubmit}>
-                <input
-                    type="text"
-                    placeholder="title"
-                    className="block py-2 px-3 mb-4 w-full text-black"
-                    onChange={(e) => setTitle(e.target.value)}
-                    value={title}
-                    autoFocus
-                />
-                <textarea
-                    placeholder="description"
-                    rows={3}
-                    className="block py-2 px-3 mb-4 w-full text-black"
-                    onChange={(e) => setDescription(e.target.value)}
-                    value={description}
-                ></textarea>
-                <button>
-                    {params.id ? "Update Task" : "Create Task"}
-                </button>
-            </form>
+            <div>
+                <form className="bg-zinc-950 p-10" onSubmit={handleSubmit}>
+                    <input
+                        type="text"
+                        placeholder="title"
+                        className="block py-2 px-3 mb-4 w-full text-black"
+                        onChange={(e) => setTitle(e.target.value)}
+                        value={title}
+                        autoFocus
+                    />
+                    <textarea
+                        placeholder="description"
+                        rows={3}
+                        className="block py-2 px-3 mb-4 w-full text-black"
+                        onChange={(e) => setDescription(e.target.value)}
+                        value={description}
+                    ></textarea>
+                    <button>
+                        {params.id ? "Update Task" : "Create Task"}
+                    </button>
+                </form>
+                {params.id && (
+                    <button
+                        className="bg-red-500 hover:bg-red-400 text-white font-bold py-2 px-4 rounded mt-4"
+                        onClick={async () => {
+                            try {
+                                const res = await axios.delete(`http://localhost:8000/api/tasks/${params.id}`);
+                                console.log(res);
+                                navigate('/');
+                            } catch (error) {
+                                console.error(error);
+                            }
+                        }}
+                    >
+                        Delete
+                    </button>
+                )}
+            </div>
         </div>
     )
 }
