@@ -10,20 +10,23 @@
  *
  * @component
  */
-import {BrowserRouter, Routes, Route} from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Homepage from './pages/HomePage';
 import TaskForm from './pages/TaskForm';
+import Navbar from './components/Navbar'
 
-
-function App (){
+function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Homepage />} />
-        <Route path="/tasks/:id" element={<TaskForm />} />
-        <Route path="/tasks/new" element={<TaskForm />} />
-      </Routes>
+      <div className="container mx-auto px-10">
+        <Navbar />
 
+        <Routes>
+          <Route path="/" element={<Homepage />} />
+          <Route path="/tasks/:id" element={<TaskForm />} />
+          <Route path="/tasks/new" element={<TaskForm />} />
+        </Routes>
+      </div>
     </BrowserRouter>
   )
 }
