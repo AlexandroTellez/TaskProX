@@ -16,26 +16,21 @@
  * passed as a prop to the `TaskList` component for rendering.
  */
 import { useEffect, useState } from "react";
-import axios from "axios";
-import TaskList from '../components/TaskList'
+import TaskList from "../components/TaskList";
+import { fetchTasks } from "../api/tasks";
 
 function Homepage() {
     const [tasks, setTasks] = useState([]);
 
     useEffect(() => {
-        async function fetchTasks() {
-            const res = await axios.get("http://localhost:8000/api/tasks");
-            setTasks(res.data);
-        }
-        fetchTasks();
+        fetchTasks()
+            .then((res) => {
+                setTasks(res.data);
+            })
+            .catch((err) => console.log(err));
     }, []);
 
-    return (
-        <>
-            <h1 className="text-3xl font-bold">Home page</h1>
-            <TaskList tasks={tasks} />
-        </>
-    );
+    return <TaskList tasks={tasks} />
 }
 
-export default Homepage
+export default Homepage;
