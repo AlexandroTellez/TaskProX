@@ -2,7 +2,20 @@
 @tailwind components;
 @tailwind utilities;
 
-Body {
-    background:#202020;
+:root {
+    font-family: "Helvetica", sans-serif;
+}
+
+.logo {
+    filter: brightness(0) invert(1); /* Convierte negro a blanco */
+}
+
+body {
+    background: #1a1a1a;
     color: white;
+}
+
+
+html {
+    scroll-behavior: smooth;
 }
