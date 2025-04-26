@@ -51,7 +51,6 @@ function TaskForm() {
         e.preventDefault();
 
         try {
-            // If there is no id in the URL parameters, create a new task
             if (!params.id) {
                 const res = await createTask({ title, description })
                 console.log(res);
@@ -65,7 +64,6 @@ function TaskForm() {
         }
 
         e.target.reset();
-
     }
 
     useEffect(() => {
@@ -80,37 +78,36 @@ function TaskForm() {
     }, []);
 
     return (
-        <div className="flex items-center justify-center h-[calc(100vh-10rem)]">
-            <div>
-                <form className="bg-zinc-950 p-10" onSubmit={handleSubmit}>
-                    <h1
-                        className="text-3xl font-bold my-4">
+        <div className="flex items-top justify-center min-h-screen w-full">
+            <div className="w-full max-w-2xl p-8">
+                <form className="bg-white/5 backdrop-blur-md p-8 rounded-xl shadow-md" onSubmit={handleSubmit}>
+                    <h1 className="text-4xl font-bold mb-6 text-center">
                         {params.id ? "Update Task" : "Create Task"}
                     </h1>
                     <input
                         type="text"
-                        placeholder="title"
-                        className="block py-2 px-3 mb-4 w-full text-black"
+                        placeholder="Title"
+                        className="block py-3 px-4 mb-6 w-full bg-neutral-800 text-neutral-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-600"
                         onChange={(e) => setTitle(e.target.value)}
                         value={title}
                         autoFocus
                     />
                     <textarea
-                        placeholder="description"
-                        rows={3}
-                        className="block py-2 px-3 mb-4 w-full text-black"
+                        placeholder="Description"
+                        rows={5}
+                        className="block py-3 px-4 mb-6 w-full bg-neutral-800 text-neutral-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-600"
                         onChange={(e) => setDescription(e.target.value)}
                         value={description}
                     ></textarea>
                     <button
-                        className="bg-white hover:bg-slate-800 hover:text-white text-slate-800 font-bold py-2 px-4 rounded"
+                        className="w-full bg-yellow-600 hover:text-slate-900 text-neutral-100 font-bold py-3 rounded-lg transition duration-300"
                     >
                         {params.id ? "Update Task" : "Create Task"}
                     </button>
                 </form>
                 {params.id && (
                     <button
-                        className="bg-red-500 hover:bg-red-400 text-white font-bold py-2 px-4 rounded mt-4"
+                        className="w-full bg-red-600 hover:text-slate-900 text-white font-bold py-3 rounded-lg mt-6 transition duration-300"
                         onClick={async () => {
                             try {
                                 const res = await deleteTask(params.id);

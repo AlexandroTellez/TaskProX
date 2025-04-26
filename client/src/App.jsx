@@ -17,14 +17,16 @@ import Navbar from './components/Navbar'
 
 function App() {
   return (
+
     <BrowserRouter>
       <div className="container mx-auto px-10">
         <Navbar />
 
         <Routes>
           <Route path="/" element={<Homepage />} />
-          <Route path="/tasks/:id" element={<TaskForm />} />
-          <Route path="/tasks/new" element={<TaskForm />} />
+          <Route path="/tasks/new" element={<TaskForm mode="create" />} />
+          <Route path="/tasks/:id" element={<TaskForm mode="view" />} />
+          <Route path="/tasks/:id/edit" element={<TaskForm mode="edit" />} />
         </Routes>
       </div>
     </BrowserRouter>
