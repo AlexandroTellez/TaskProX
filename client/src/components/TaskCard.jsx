@@ -79,7 +79,7 @@ function TaskCard({ task }) {
                         navigate('/tasks/new');
                     }}
                 >
-                    Create
+                    Crear
                 </button>
                 <button
                     className={`${buttonClasses} bg-blue-600 text-neutral-100`}
@@ -88,7 +88,7 @@ function TaskCard({ task }) {
                         navigate(`/tasks/${task._id}`); // Navigate to the task detail page
                     }}
                 >
-                    Update
+                    Editar
                 </button>
                 <button
                     className={`${buttonClasses} bg-red-600 text-neutral-100`}
@@ -97,7 +97,7 @@ function TaskCard({ task }) {
                         await handleDelete(task._id);
                     }}
                 >
-                    Delete
+                    Borrar
                 </button>
             </div>
         </div>

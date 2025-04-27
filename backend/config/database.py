@@ -1,11 +1,16 @@
 # This file is used to connect to the MongoDB database using the motor library.
 # Import the necessary libraries and modules
 from motor. motor_asyncio import AsyncIOMotorClient
-from models import Task
+from models.models import Task
 from bson import ObjectId
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+# Load environment variables from .env file
 
 # We have created a connection to the MongoDB database and a reference to the tasks collection.
-client = AsyncIOMotorClient('mongodb://localhost')
+client = AsyncIOMotorClient('mongodb+srv://alextellezyanes:WICQnkiiQHDFT7m9@cluster0.znd5ghq.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0')
 database = client.taskdb
 collection = database.tasks
 

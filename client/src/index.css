@@ -7,7 +7,7 @@
 }
 
 .logo {
-    filter: brightness(0) invert(1); /* Convierte negro a blanco */
+    filter: brightness(0) invert(1);
 }
 
 body {

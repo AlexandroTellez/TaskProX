@@ -18,7 +18,7 @@ Routes:
 from fastapi import FastAPI
 from routes.task import task
 from fastapi.middleware.cors import CORSMiddleware
-import config
+import config.config as config
 
 app = FastAPI()
 
