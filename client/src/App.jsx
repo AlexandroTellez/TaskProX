@@ -12,7 +12,7 @@
  */
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Homepage from './pages/HomePage';
-import TaskForm from './pages/TaskForm';
+import TaskForm from './components/TaskForm';
 import Navbar from './components/Navbar'
 
 function App() {

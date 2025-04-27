@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
-from database import get_all_tasks, create_task, get_one_task, get_one_task_id, delete_task, update_task
-from models import Task, UpdateTask
+from config.database import get_all_tasks, create_task, get_one_task, get_one_task_id, delete_task, update_task
+from models.models import Task, UpdateTask
 
 task = APIRouter()
 
