@@ -36,7 +36,7 @@ app.add_middleware(
 
 @app.get('/')
 def welcome():
-    return{'message':'Welcome to the FastAPI API!'}
+    return{'message':'Bienvenido a TaskProX!'}
 
 # Include the task router
 app.include_router(task)

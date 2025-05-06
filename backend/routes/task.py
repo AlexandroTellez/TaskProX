@@ -13,7 +13,7 @@ async def get_task(id: str):
         # If the task is found, return it
         return task
     # If the task is not found, raise an HTTP 404 Not Found exception
-    raise HTTPException(404, f'Task with id {id} not found')
+    raise HTTPException(404, f'Tarea con id {id} no encontrado')
 
 @task.put('/api/tasks/{id}', response_model=Task)
 async def put_task(id: str, task: UpdateTask):
@@ -23,7 +23,7 @@ async def put_task(id: str, task: UpdateTask):
         # If the task is successfully updated, return the updated task
         return response
     # If the task is not found, raise an HTTP 404 Not Found exception
-    raise HTTPException(404, f"Task with id {id} not found")
+    raise HTTPException(404, f"Tarea con id {id} no encontrado")
 
 @task.delete('/api/tasks/{id}')
 async def remove_task(id: str):
@@ -31,9 +31,9 @@ async def remove_task(id: str):
     response = await delete_task(id)
     if response:
         # If the task is successfully deleted, return a success message
-        return "Successfully deleted task"
+        return "Tarea eliminada correctamente"
     # If the task is not found, raise an HTTP 404 Not Found exception
-    raise HTTPException(404, f'Task with id {id} not found')
+    raise HTTPException(404, f'Tarea con id {id} no encontrado')
 
 # Routes without parameters must go after
 @task.get('/api/tasks')
@@ -47,7 +47,7 @@ async def save_task(task: Task):
     taskFound = await get_one_task(task.title)
     if taskFound:
         # If a task with the same title exists, raise an HTTP 409 Conflict exception
-        raise HTTPException(409, "Task already exists")
+        raise HTTPException(409, "La tarea ya existe")
 
     # Create a new task in the database
     response = await create_task(task.dict())
@@ -55,4 +55,4 @@ async def save_task(task: Task):
         # If the task is successfully created, return the created task
         return response
     # If something goes wrong, raise an HTTP 400 Bad Request exception
-    raise HTTPException(400, 'Something went wrong')
+    raise HTTPException(400, 'Algo salió mal')

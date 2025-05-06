@@ -27,22 +27,22 @@ function Navbar() {
                     Dashboard
                 </Link>
                 <Link
-                    to="/projects"
+                    to="/proyectos"
                     className="text-neutral-300 hover:text-yellow-400 transition-colors font-semibold text-sm sm:text-base"
                 >
                     Proyectos
                 </Link>
                 <Link
-                    to="/calendar"
+                    to="/calendario"
                     className="text-neutral-300 hover:text-yellow-400 transition-colors font-semibold text-sm sm:text-base"
                 >
                     Calendario
                 </Link>
                 <Link
-                    to="/settings"
+                    to="/cuenta"
                     className="text-neutral-300 hover:text-yellow-400 transition-colors font-semibold text-sm sm:text-base"
                 >
-                     Cuenta
+                    Cuenta
                 </Link>
             </nav>
 

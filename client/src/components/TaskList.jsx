@@ -9,7 +9,7 @@ function TaskList({ tasks }) {
             {/* Botón para crear nueva tarea */}
             <button
                 onClick={() => navigate('/tasks/new')}
-                className="self-start bg-yellow-600 hover:bg-neutral-400 text-black font-semibold py-2 px-4 rounded-md"
+                className="self-start bg-yellow-600 hover:bg-neutral-300 text-black font-medium py-2 px-4 rounded-md"
             >
                 Crear Nueva Tarea
             </button>

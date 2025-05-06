@@ -82,32 +82,32 @@ function TaskForm() {
             <div className="w-full max-w-2xl p-8">
                 <form className="bg-white/5 backdrop-blur-md p-8 rounded-xl shadow-md" onSubmit={handleSubmit}>
                     <h1 className="text-4xl font-bold mb-6 text-center">
-                        {params.id ? "Update Task" : "Create Task"}
+                        {params.id ? "Actualizar Tarea" : "Crear Tarea"}
                     </h1>
                     <input
                         type="text"
-                        placeholder="Title"
+                        placeholder="Título"
                         className="block py-3 px-4 mb-6 w-full bg-neutral-800 text-neutral-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-600"
                         onChange={(e) => setTitle(e.target.value)}
                         value={title}
                         autoFocus
                     />
                     <textarea
-                        placeholder="Description"
+                        placeholder="Descripción"
                         rows={5}
                         className="block py-3 px-4 mb-6 w-full bg-neutral-800 text-neutral-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-600"
                         onChange={(e) => setDescription(e.target.value)}
                         value={description}
                     ></textarea>
                     <button
-                        className="w-full bg-yellow-600 hover:text-slate-900 text-neutral-100 font-bold py-3 rounded-lg transition duration-300"
+                        className="w-full bg-yellow-600 text-neutral-900 hover:text-slate-100 font-bold py-3 rounded-lg transition duration-300"
                     >
-                        {params.id ? "Update Task" : "Create Task"}
+                        {params.id ? "Actualizar Tarea" : "Crear Tarea"}
                     </button>
                 </form>
                 {params.id && (
                     <button
-                        className="w-full bg-red-600 hover:text-slate-900 text-white font-bold py-3 rounded-lg mt-6 transition duration-300"
+                        className="w-full  bg-neutral-900 text-yellow-600 hover:text-slate-100 font-bold py-3 rounded-lg mt-6 transition duration-300"
                         onClick={async () => {
                             try {
                                 const res = await deleteTask(params.id);
@@ -118,7 +118,7 @@ function TaskForm() {
                             }
                         }}
                     >
-                        Delete
+                        Borrar
                     </button>
                 )}
             </div>
