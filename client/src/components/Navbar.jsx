@@ -4,7 +4,7 @@ import { MenuOutlined } from '@ant-design/icons';
 
 function Navbar() {
     return (
-        <header className="flex justify-between items-center py-4 px-5 sm:px-10 bg-white/5 backdrop-blur-md rounded-full border border-white/10 shadow-md my-6 mx-4">
+        <header className="flex justify-between items-center py-10 px- sm:px-10 ">
 
             {/* Logo */}
             <Link to="/" className="flex items-center gap-2 group transition-transform hover:scale-105">
@@ -42,7 +42,7 @@ function Navbar() {
                     to="/settings"
                     className="text-neutral-300 hover:text-yellow-400 transition-colors font-semibold text-sm sm:text-base"
                 >
-                    Configuración
+                     Cuenta
                 </Link>
             </nav>
 

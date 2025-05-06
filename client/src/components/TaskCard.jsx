@@ -1,19 +1,3 @@
-/**
- * TaskCard component renders a task card with dynamic styling based on its completion status.
- * When clicked, navigates to the task's detail page. Includes an interactive button to toggle task completion.
- *
- * @component
- * @param {Object} props - The props object.
- * @param {Object} props.task - The task object containing task details.
- * @param {string} props.task._id - The unique identifier of the task.
- * @param {string} props.task.title - The title of the task.
- * @param {string} props.task.description - The description of the task.
- * @param {boolean} props.task.completed - Indicates whether the task is completed.
- *
- * @example
- * const task = { _id: '1', title: 'Sample Task', description: 'This is a sample task description', completed: false };
- * <TaskCard task={task} />
- */
 import { useNavigate } from 'react-router-dom'
 import { updateTask, deleteTask } from '../api/tasks'
 
@@ -30,7 +14,7 @@ function TaskCard({ task }) {
 
     const buttonClasses = `
         px-3 py-1 rounded-md text-sm font-semibold transition-colors
-        hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-offset-2
+        hover:text-slate-100 focus:outline-none focus:ring-2 focus:ring-offset-2
     `;
 
     const handleDelete = async (id) => {
@@ -68,30 +52,21 @@ function TaskCard({ task }) {
                     </svg>
                 </button>
             </div>
+
             <p className="text-neutral-300 mb-4">{task.description}</p>
-            
-            {/* Botones de acciones */}
+
             <div className="flex gap-2 mt-auto" onClick={(e) => e.stopPropagation()}>
                 <button
-                    className={`${buttonClasses} bg-yellow-600 text-neutral-100`}
+                    className={`${buttonClasses} bg-yellow-600 text-neutral-900 font-medium`}
                     onClick={(e) => {
                         e.stopPropagation();
-                        navigate('/tasks/new');
-                    }}
-                >
-                    Crear
-                </button>
-                <button
-                    className={`${buttonClasses} bg-blue-600 text-neutral-100`}
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        navigate(`/tasks/${task._id}`); // Navigate to the task detail page
+                        navigate(`/tasks/${task._id}`);
                     }}
                 >
                     Editar
                 </button>
                 <button
-                    className={`${buttonClasses} bg-red-600 text-neutral-100`}
+                    className={`${buttonClasses} bg-neutral-900 text-yellow-600 font-medium`}
                     onClick={async (e) => {
                         e.stopPropagation();
                         await handleDelete(task._id);
