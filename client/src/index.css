@@ -3,19 +3,42 @@
 @tailwind utilities;
 
 :root {
-    font-family: "Helvetica", sans-serif;
+    font-family: 'Inter', 'Helvetica', sans-serif;
+    --primary-color: #FED36A;
+    --secondary-color: #1A1A1A;
+    --bg-light: #FFFFFF;
+    --text-dark: #1A1A1A;
+    --text-muted: #64748B;
+    --border-color: #E2E8F0;
 }
 
-.logo {
-    filter: brightness(0) invert(1);
+/* Garantiza que los elementos raíz ocupen toda la pantalla */
+html,
+body,
+#root {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
 }
 
-body {
-    background: #1a1a1a;
-    color: white;
+/* Estructura principal de la aplicación */
+#root {
+    display: flex;
+    flex-direction: column;
 }
 
+/* Clase para páginas de autenticación (login/register) */
+.auth-layout {
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 
-html {
-    scroll-behavior: smooth;
+/* Clase para el contenido principal */
+.main-layout {
+    width: 100%;
+    flex: 1;
 }

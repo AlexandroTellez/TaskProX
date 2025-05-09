@@ -1,36 +1,61 @@
-/**
- * App component that sets up the routing for the application using react-router-dom.
- *
- * The component uses BrowserRouter to enable client-side routing.
- *
- * Routes:
- * - "/" renders the Homepage component.
- * - "/tasks/:id" renders the TaskForm component for editing a task with a specific ID.
- * - "/tasks/new" renders the TaskForm component for creating a new task.
- *
- * @component
- */
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import Homepage from './pages/HomePage';
-import TaskForm from './components/TaskForm';
-import Navbar from './components/Navbar'
+import { useEffect } from 'react';
+import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom';
+
+import TaskForm from './components/task/TaskForm';
+import Dashboard from './pages/dashboard/Dashboard';
+import Privacy from './pages/legal/Privacy';
+import Terms from './pages/legal/Terms';
+import Login from './pages/login/Login';
+import Register from './pages/registro/Register';
+import DashboardLayout from '../src/layout/DashboardLayout';
+
+function AppContent() {
+  const location = useLocation();
+  const hiddenLayoutRoutes = [
+    '/',
+    '/login',
+    '/register',
+    '/legal/terminos',
+    '/legal/privacidad',
+  ];
+
+  const isAuthPage = hiddenLayoutRoutes.includes(location.pathname);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location]);
+
+  return (
+    <div className="min-h-screen flex flex-col">
+      <div className={`flex-1 w-full ${isAuthPage ? '' : 'max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8'}`}>
+        <Routes>
+          {/* Páginas públicas (sin layout) */}
+          <Route path="/" element={<Login />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/legal/terminos" element={<Terms />} />
+          <Route path="/legal/privacidad" element={<Privacy />} />
+
+          {/* Páginas protegidas con layout */}
+          <Route element={<DashboardLayout />}>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/tasks/new" element={<TaskForm mode="create" />} />
+            <Route path="/tasks/:id" element={<TaskForm mode="view" />} />
+            <Route path="/tasks/:id/edit" element={<TaskForm mode="edit" />} />
+            {/* Agrega aquí otras páginas como proyectos, calendario, cuenta, etc. */}
+          </Route>
+        </Routes>
+      </div>
+    </div>
+  );
+}
 
 function App() {
   return (
-
     <BrowserRouter>
-      <div className="container mx-auto px-10">
-        <Navbar />
-
-        <Routes>
-          <Route path="/" element={<Homepage />} />
-          <Route path="/tasks/new" element={<TaskForm mode="create" />} />
-          <Route path="/tasks/:id" element={<TaskForm mode="view" />} />
-          <Route path="/tasks/:id/edit" element={<TaskForm mode="edit" />} />
-        </Routes>
-      </div>
+      <AppContent />
     </BrowserRouter>
-  )
+  );
 }
 
 export default App;
