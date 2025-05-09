@@ -3,17 +3,17 @@ import axios from "axios";
 const URL = "http://localhost:8000";
 const endpoint = `${URL}/api/tasks`;
 
-// This is the function of fetch tasks used to obtain all the tasks
+// Obtener todas las tareas
 export const fetchTasks = () => axios.get(endpoint);
 
-// This is the function of fetch task uesed to obtain a specific task
-export const fetchTask = (id) => axios.get(`/${endpoint}/${id}`);
+// Obtener una tarea específica
+export const fetchTask = (id) => axios.get(`${endpoint}/${id}`);
 
-// This is the function of create task used to create a new task
+// Crear una nueva tarea
 export const createTask = (newTask) => axios.post(endpoint, newTask);
 
-// This is the function of update task used to update a task
+// Actualizar una tarea
 export const updateTask = (id, task) => axios.put(`${endpoint}/${id}`, task);
 
-// This is the function of delete task used to delete a task
+// Borrar una tarea
 export const deleteTask = (id) => axios.delete(`${endpoint}/${id}`);
