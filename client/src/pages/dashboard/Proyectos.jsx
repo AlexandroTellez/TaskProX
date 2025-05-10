@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Typography, Empty, Button } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import ProjectSelector from '../../components/project/ProjectSelector';
-import CreateProjectButton from '../../components/project/CreateProjectButton';
+import CreateProjectButton from '../../components/project/ProjectButton';
 import TaskList from '../../components/task/TaskList';
 import { fetchTasksByProject } from '../../api/tasks';
 import { fetchProjects } from '../../api/projects';
+import { PlusOutlined } from '@ant-design/icons';
 
 const { Title } = Typography;
 
@@ -39,18 +40,27 @@ const Proyectos = () => {
     }, []);
 
     useEffect(() => {
-        if (selectedProject?.id) {
-            loadTasks(selectedProject.id);
+        if (selectedProject?._id) {
+            loadTasks(selectedProject._id);
         } else {
             setTasks([]);
         }
     }, [selectedProject]);
 
     return (
-        <div className="p-6 bg-white rounded-lg shadow-md">
+        <div className="p-6 bg-white text-black rounded-lg shadow-md">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-                <Title level={3} className="!mb-0">Gestión de Proyectos</Title>
-                <CreateProjectButton onProjectCreated={loadProjects} />
+                <Title level={3} className="!mb-0 text-black">Gestión de Proyectos</Title>
+                <CreateProjectButton
+                    selectedProject={selectedProject}
+                    onProjectCreated={loadProjects}
+                    onProjectUpdated={loadProjects}
+                    onProjectDeleted={() => {
+                        setSelectedProject(null);
+                        loadProjects();
+                        setTasks([]);
+                    }}
+                />
             </div>
 
             <div className="mb-6">
@@ -63,13 +73,19 @@ const Proyectos = () => {
 
             {selectedProject ? (
                 <>
-                    <div className="flex justify-between items-center mb-4">
-                        <Typography.Text className="italic text-gray-600">
-                            Tareas del proyecto: <strong>{selectedProject.name}</strong>
-                        </Typography.Text>
+                    <div className="mb-4">
+                        {selectedProject.description && (
+                            <Typography.Paragraph className="italic text-sm text-neutral-700 mt-1">
+                                <span className="underline font-medium">Descripción del proyecto:</span> {selectedProject.description}
+                            </Typography.Paragraph>
+                        )}
+                    </div>
+
+                    <div className="flex justify-end mb-4">
                         <Button
                             type="primary"
-                            onClick={() => navigate(`/tasks/new?projectId=${selectedProject.id}`)}
+                            icon={<PlusOutlined />}
+                            onClick={() => navigate(`/tasks/new?projectId=${selectedProject._id}`)}
                             style={{
                                 backgroundColor: '#FED36A',
                                 borderColor: '#FED36A',
@@ -82,7 +98,11 @@ const Proyectos = () => {
                     </div>
 
                     {tasks.length > 0 ? (
-                        <TaskList tasks={tasks} projectId={selectedProject.id} />
+                        <TaskList
+                            tasks={tasks}
+                            projectId={selectedProject._id}
+                            onTaskChanged={() => loadTasks(selectedProject._id)}
+                        />
                     ) : (
                         <Empty description="Este proyecto no tiene tareas aún" />
                     )}

@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { createTask, deleteTask, fetchTask, updateTask } from '../../api/tasks';
-import { DatePicker, Input, Select, Slider } from 'antd';
+import { DatePicker, Input, Select, Slider, Button, Popconfirm, message } from 'antd';
+import dayjs from 'dayjs';
 
 const { TextArea } = Input;
 const { Option } = Select;
@@ -32,7 +33,9 @@ function TaskForm() {
         try {
             const dataToSend = {
                 ...taskData,
-                projectId,
+                projectId: projectId || null,
+                startDate: taskData.startDate ? dayjs(taskData.startDate).toISOString() : null,
+                deadline: taskData.deadline ? dayjs(taskData.deadline).toISOString() : null,
             };
 
             if (!params.id) {
@@ -41,9 +44,10 @@ function TaskForm() {
                 await updateTask(params.id, dataToSend);
             }
 
-            navigate(`/proyectos`);
+            navigate(`/proyectos?projectId=${projectId}`);
         } catch (error) {
             console.error(error);
+            message.error('Error al guardar la tarea');
         }
     };
 
@@ -51,20 +55,24 @@ function TaskForm() {
         if (params.id) {
             fetchTask(params.id)
                 .then((res) => {
-                    setTaskData(res.data);
+                    setTaskData({
+                        ...res.data,
+                        startDate: res.data.startDate ? dayjs(res.data.startDate) : null,
+                        deadline: res.data.deadline ? dayjs(res.data.deadline) : null,
+                    });
                 })
                 .catch((err) => console.log(err));
         }
-    }, []);
+    }, [params.id]);
 
     return (
         <div className="flex items-start justify-center min-h-screen w-full bg-white px-4">
             <div className="w-full max-w-2xl py-10">
                 <form
-                    className="bg-white border border-neutral-200 p-8 rounded-xl shadow-md space-y-6"
+                    className="bg-neutral-900 border border-neutral-800 p-8 rounded-xl shadow-md space-y-6 text-white"
                     onSubmit={handleSubmit}
                 >
-                    <h1 className="text-3xl sm:text-4xl font-bold text-center text-neutral-900">
+                    <h1 className="text-3xl sm:text-4xl font-bold text-center">
                         {params.id ? 'Actualizar Tarea' : 'Crear Tarea'}
                     </h1>
 
@@ -92,14 +100,14 @@ function TaskForm() {
                         <DatePicker
                             style={{ width: '100%' }}
                             placeholder="Fecha de inicio"
-                            value={taskData.startDate ? dayjs(taskData.startDate) : null}
-                            onChange={(date, dateString) => handleChange('startDate', dateString)}
+                            value={taskData.startDate}
+                            onChange={(date) => handleChange('startDate', date)}
                         />
                         <DatePicker
                             style={{ width: '100%' }}
                             placeholder="Fecha límite"
-                            value={taskData.deadline ? dayjs(taskData.deadline) : null}
-                            onChange={(date, dateString) => handleChange('deadline', dateString)}
+                            value={taskData.deadline}
+                            onChange={(date) => handleChange('deadline', date)}
                         />
                     </div>
 
@@ -119,31 +127,58 @@ function TaskForm() {
                         <Slider
                             value={taskData.progress}
                             onChange={(value) => handleChange('progress', value)}
+                            trackStyle={{ backgroundColor: '#FED36A' }}
+                            handleStyle={{
+                                borderColor: '#FED36A',
+                                backgroundColor: '#FED36A',
+                            }}
                         />
+
                     </div>
 
-                    <button
-                        type="submit"
-                        className="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-semibold py-3 rounded-lg transition duration-300"
+                    <Button
+                        htmlType="submit"
+                        block
+                        style={{
+                            backgroundColor: '#FED36A',
+                            borderColor: '#FED36A',
+                            color: '#FFFFFF',
+                            fontWeight: 'semibold',
+                        }}
                     >
                         {params.id ? 'Actualizar Tarea' : 'Crear Tarea'}
-                    </button>
+                    </Button>
                 </form>
 
                 {params.id && (
-                    <button
-                        className="w-full bg-red-500 hover:bg-red-600 text-white font-semibold py-3 rounded-lg mt-6 transition duration-300"
-                        onClick={async () => {
+                    <Popconfirm
+                        title="¿Seguro que deseas eliminar esta tarea?"
+                        onConfirm={async () => {
                             try {
                                 await deleteTask(params.id);
-                                navigate('/proyectos');
+                                navigate(`/proyectos?projectId=${projectId}`);
                             } catch (error) {
                                 console.error(error);
+                                message.error('Error al eliminar la tarea');
                             }
                         }}
+                        okText="Sí"
+                        cancelText="No"
                     >
-                        Borrar
-                    </button>
+                        <Button
+                            danger
+                            block
+                            className="mt-6"
+                            style={{
+                                fontWeight: 'bold',
+                                backgroundColor: '#ff4d4f',
+                                borderColor: '#ff4d4f',
+                                color: 'white',
+                            }}
+                        >
+                            Borrar Tarea
+                        </Button>
+                    </Popconfirm>
                 )}
             </div>
         </div>

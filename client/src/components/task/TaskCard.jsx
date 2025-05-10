@@ -6,31 +6,25 @@ function TaskCard({ task }) {
 
     const cardClasses = `
         flex flex-col p-6 rounded-xl shadow-md transition-all duration-300 cursor-pointer
-        hover:scale-105 border
-        ${task.completed
-            ? 'bg-green-50 border-green-200'
-            : 'bg-white border-neutral-200'}
+        hover:scale-105 border bg-white border-neutral-200 text-black
     `;
 
     const buttonClasses = `
-        px-3 py-1 rounded-md text-sm font-semibold transition-colors
+        px-4 py-2 rounded-md text-sm font-semibold transition-colors
         focus:outline-none focus:ring-2 focus:ring-offset-2
     `;
 
     const handleDelete = async (id) => {
         if (window.confirm('¿Estás seguro de eliminar esta tarea?')) {
             await deleteTask(id);
-            window.location.reload(); // Refresca la lista tras eliminar
+            window.location.reload();
         }
     };
 
     return (
-        <div
-            className={cardClasses}
-            onClick={() => navigate(`/tasks/${task._id}`)}
-        >
+        <div className={cardClasses} onClick={() => navigate(`/tasks/${task._id}`)}>
             <div className="flex justify-between items-start mb-4">
-                <h2 className="font-bold text-xl text-neutral-900">{task.title}</h2>
+                <h2 className="font-bold text-xl">{task.title}</h2>
                 <button
                     onClick={async (e) => {
                         e.stopPropagation();
