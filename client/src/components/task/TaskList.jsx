@@ -10,7 +10,7 @@ const getStatusTag = (status) => {
         case 'Completado': color = 'green'; break;
         case 'En proceso': color = 'gold'; break;
         case 'Pendiente':
-        case 'At risk': color = 'red'; break;
+        case 'En peligro': color = 'red'; break;
         default: color = 'gray';
     }
     return <Tag color={color}>{status || 'Sin estado'}</Tag>;
