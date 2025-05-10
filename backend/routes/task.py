@@ -1,58 +1,49 @@
-from fastapi import APIRouter, HTTPException
-from config.database import get_all_tasks, create_task, get_one_task, get_one_task_id, delete_task, update_task
+from fastapi import APIRouter, HTTPException, Request
+from config.database import (
+    get_all_tasks,
+    create_task,
+    get_one_task_id,
+    delete_task,
+    update_task
+)
 from models.models import Task, UpdateTask
 
 task = APIRouter()
 
-# Routes with parameters must go first
+# ===================== RUTAS CON PARÁMETROS =====================
+
 @task.get('/api/tasks/{id}', response_model=Task)
 async def get_task(id: str):
-    # Find a task by its ID
-    task = await get_one_task_id(id)
-    if task:
-        # If the task is found, return it
-        return task
-    # If the task is not found, raise an HTTP 404 Not Found exception
-    raise HTTPException(404, f'Tarea con id {id} no encontrado')
+    tarea = await get_one_task_id(id)
+    if tarea:
+        return tarea
+    raise HTTPException(404, f'Tarea con id {id} no encontrada')
 
 @task.put('/api/tasks/{id}', response_model=Task)
 async def put_task(id: str, task: UpdateTask):
-    # Update a task by its ID
-    response = await update_task(id, task)
-    if response:
-        # If the task is successfully updated, return the updated task
-        return response
-    # If the task is not found, raise an HTTP 404 Not Found exception
-    raise HTTPException(404, f"Tarea con id {id} no encontrado")
+    updated = await update_task(id, task)
+    if updated:
+        return updated
+    raise HTTPException(404, f'Tarea con id {id} no encontrada')
 
 @task.delete('/api/tasks/{id}')
 async def remove_task(id: str):
-    # Delete a task by its ID
-    response = await delete_task(id)
-    if response:
-        # If the task is successfully deleted, return a success message
-        return "Tarea eliminada correctamente"
-    # If the task is not found, raise an HTTP 404 Not Found exception
-    raise HTTPException(404, f'Tarea con id {id} no encontrado')
+    deleted = await delete_task(id)
+    if deleted:
+        return {"message": "Tarea eliminada correctamente"}
+    raise HTTPException(404, f'Tarea con id {id} no encontrada')
 
-# Routes without parameters must go after
+# ===================== RUTAS SIN PARÁMETROS =====================
+
 @task.get('/api/tasks')
-async def get_tasks():
-    tasks = await get_all_tasks()
+async def get_tasks(request: Request):
+    project_id = request.query_params.get("projectId")
+    tasks = await get_all_tasks(project_id=project_id)
     return tasks
 
 @task.post('/api/tasks', response_model=Task)
 async def save_task(task: Task):
-    # Check if a task with the same title already exists
-    taskFound = await get_one_task(task.title)
-    if taskFound:
-        # If a task with the same title exists, raise an HTTP 409 Conflict exception
-        raise HTTPException(409, "La tarea ya existe")
-
-    # Create a new task in the database
-    response = await create_task(task.dict())
-    if response:
-        # If the task is successfully created, return the created task
-        return response
-    # If something goes wrong, raise an HTTP 400 Bad Request exception
-    raise HTTPException(400, 'Algo salió mal')
+    nueva_tarea = await create_task(task.dict())
+    if nueva_tarea:
+        return nueva_tarea
+    raise HTTPException(400, 'Algo salió mal al crear la tarea')
