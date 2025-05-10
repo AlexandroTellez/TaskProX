@@ -8,6 +8,7 @@ import Terms from './pages/legal/Terms';
 import Login from './pages/login/Login';
 import Register from './pages/registro/Register';
 import DashboardLayout from '../src/layout/DashboardLayout';
+import Proyectos from './pages/dashboard/Proyectos';
 
 function AppContent() {
   const location = useLocation();
@@ -39,6 +40,7 @@ function AppContent() {
           {/* Páginas protegidas con layout */}
           <Route element={<DashboardLayout />}>
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/proyectos" element={<Proyectos/>} />
             <Route path="/tasks/new" element={<TaskForm mode="create" />} />
             <Route path="/tasks/:id" element={<TaskForm mode="view" />} />
             <Route path="/tasks/:id/edit" element={<TaskForm mode="edit" />} />

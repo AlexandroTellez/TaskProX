@@ -4,7 +4,7 @@ import logo from "../../assets/images/logo.png";
 
 const Sidebar = () => {
     return (
-        <aside className="w-64 bg-white shadow-md flex flex-col justify-between">
+        <aside className="w-64 bg-white shadow-xl flex flex-col justify-between">
             <div>
                 <div className="flex items-center gap-2 px-6 py-4">
                     <img src={logo} alt="TaskProX Logo" className="h-8 w-8" />

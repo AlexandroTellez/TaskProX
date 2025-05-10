@@ -17,3 +17,8 @@ export const updateTask = (id, task) => axios.put(`${endpoint}/${id}`, task);
 
 // Borrar una tarea
 export const deleteTask = (id) => axios.delete(`${endpoint}/${id}`);
+
+//
+export const fetchTasksByProject = (projectId) =>
+    axios.get(`http://localhost:8000/api/tasks?projectId=${projectId}`);
+

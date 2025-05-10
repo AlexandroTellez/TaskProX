@@ -17,8 +17,10 @@ Routes:
 """
 from fastapi import FastAPI
 from routes.task import task
+from routes.project import project
 from fastapi.middleware.cors import CORSMiddleware
 import config.config as config
+
 
 app = FastAPI()
 
@@ -41,3 +43,5 @@ def welcome():
 # Include the task router
 app.include_router(task)
 
+# Include the project router
+app.include_router(project)
