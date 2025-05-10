@@ -2,12 +2,13 @@ from pydantic import BaseModel, Field
 from typing import Optional
 from bson import ObjectId
 
-# Custom ObjectId class for Pydantic validation
+# ================== VALIDADOR DE OBJECTID ==================
+
 class PyObjectId(ObjectId):
     @classmethod
     def __get_validators__(cls):
         yield cls.validate
-    
+
     @classmethod
     def validate(cls, v, *args, **kwargs):
         if isinstance(v, ObjectId):
@@ -16,9 +17,10 @@ class PyObjectId(ObjectId):
             return ObjectId(v)
         raise ValueError("Invalid ObjectId")
 
-# Modelo principal de Tarea
+# ================== MODELO DE TAREA ==================
+
 class Task(BaseModel):
-    id: Optional[PyObjectId] = Field(default=None, alias='_id')
+    id: Optional[PyObjectId] = Field(default=None, alias="_id")
     title: str
     description: Optional[str] = None
     completed: bool = False
@@ -27,14 +29,16 @@ class Task(BaseModel):
     deadline: Optional[str] = None
     status: Optional[str] = "Pendiente"
     progress: Optional[int] = 0
+    projectId: Optional[PyObjectId] = None
 
     class Config:
         from_attributes = True
         populate_by_name = True
-        json_encoders = {ObjectId: str}
         arbitrary_types_allowed = True
+        json_encoders = {ObjectId: str}
 
-# Modelo para actualizar una tarea
+# ================== MODELO DE ACTUALIZACIÓN DE TAREA ==================
+
 class UpdateTask(BaseModel):
     title: Optional[str] = None
     description: Optional[str] = None
@@ -44,21 +48,23 @@ class UpdateTask(BaseModel):
     deadline: Optional[str] = None
     status: Optional[str] = None
     progress: Optional[int] = None
+    projectId: Optional[PyObjectId] = None
 
     class Config:
         from_attributes = True
         populate_by_name = True
-        json_encoders = {ObjectId: str}
         arbitrary_types_allowed = True
+        json_encoders = {ObjectId: str}
 
-# Modelo principal de Proyectos
+# ================== MODELO DE PROYECTO ==================
+
 class Project(BaseModel):
-    id: Optional[PyObjectId] = Field(default=None, alias='_id')
+    id: Optional[PyObjectId] = Field(default=None, alias="_id")
     name: str
     description: Optional[str] = None
 
     class Config:
         from_attributes = True
         populate_by_name = True
-        json_encoders = {ObjectId: str}
         arbitrary_types_allowed = True
+        json_encoders = {ObjectId: str}

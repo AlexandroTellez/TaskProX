@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Table, Tag, Progress, Button, Popconfirm, message } from 'antd';
-import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
+import { Table, Tag, Progress, Button, Popconfirm, message, Space } from 'antd';
+import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { deleteTask } from '../../api/tasks';
 
 const getStatusTag = (status) => {
@@ -16,14 +16,21 @@ const getStatusTag = (status) => {
     return <Tag color={color}>{status || 'Sin estado'}</Tag>;
 };
 
-const TaskList = ({ tasks, projectId }) => {
+// Formato dd/mm/yyyy
+const formatDate = (dateString) => {
+    if (!dateString) return 'Sin fecha';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('es-ES');
+};
+
+const TaskList = ({ tasks, projectId, onTaskChanged }) => {
     const navigate = useNavigate();
 
     const handleDelete = async (id) => {
         try {
             await deleteTask(id);
             message.success('Tarea eliminada');
-            window.location.reload(); // Idealmente se reemplazaría por una actualización del estado
+            if (onTaskChanged) onTaskChanged();
         } catch (error) {
             message.error('Error al eliminar la tarea');
         }
@@ -34,8 +41,8 @@ const TaskList = ({ tasks, projectId }) => {
         id: task._id,
         name: task.title || 'Sin título',
         creator: task.creator || 'Desconocido',
-        startDate: task.startDate || 'Sin fecha',
-        deadline: task.deadline || 'Sin fecha',
+        startDate: formatDate(task.startDate),
+        deadline: formatDate(task.deadline),
         status: task.status || '',
         progress: task.progress ?? 0,
     }));
@@ -65,10 +72,16 @@ const TaskList = ({ tasks, projectId }) => {
             title: 'Acciones',
             key: 'acciones',
             render: (_, record) => (
-                <div className="flex gap-2">
+                <Space>
                     <Button
                         icon={<EditOutlined />}
                         onClick={() => navigate(`/tasks/${record.id}/edit?projectId=${projectId}`)}
+                        style={{
+                            backgroundColor: '#FED36A',
+                            borderColor: '#FED36A',
+                            color: '#1A1A1A',
+                            fontWeight: 'bold',
+                        }}
                     >
                         Editar
                     </Button>
@@ -78,32 +91,25 @@ const TaskList = ({ tasks, projectId }) => {
                         okText="Sí"
                         cancelText="No"
                     >
-                        <Button icon={<DeleteOutlined />} danger>
+                        <Button
+                            danger
+                            style={{
+                                borderColor: '#ff4d4f',
+                                color: '#ff4d4f',
+                                fontWeight: 'bold',
+                            }}
+                            icon={<DeleteOutlined />}
+                        >
                             Borrar
                         </Button>
                     </Popconfirm>
-                </div>
+                </Space>
             ),
         },
     ];
 
     return (
         <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex justify-end mb-4">
-                <Button
-                    type="primary"
-                    icon={<PlusOutlined />}
-                    onClick={() => navigate(`/tasks/new?projectId=${projectId}`)}
-                    style={{
-                        backgroundColor: '#FED36A',
-                        borderColor: '#FED36A',
-                        color: '#1A1A1A',
-                        fontWeight: 'bold',
-                    }}
-                >
-                    Crear Nueva Tarea
-                </Button>
-            </div>
             <Table
                 columns={columns}
                 dataSource={tableData}
