@@ -11,6 +11,20 @@ client = AsyncIOMotorClient(
 )
 database = client.taskdb
 collection = database.tasks
+project_collection = database.projects
+
+# ================== UTILIDAD ==================
+
+def normalize_status(status):
+    status = str(status).strip().lower()
+    if status == "completado":
+        return "Completado"
+    elif status == "en proceso":
+        return "En proceso"
+    elif status == "pendiente":
+        return "Pendiente"
+    else:
+        return "Pendiente"  # Valor por defecto si es inválido
 
 # ================== TAREAS ==================
 
@@ -24,7 +38,7 @@ async def get_all_tasks(project_id=None):
         try:
             query["projectId"] = ObjectId(project_id)
         except:
-            pass  # si no es un ObjectId válido, no filtra
+            pass  # Si no es un ObjectId válido, no filtra
     tasks = []
     cursor = collection.find(query)
     async for document in cursor:
@@ -37,17 +51,34 @@ async def create_task(task):
             task["projectId"] = ObjectId(task["projectId"])
         except:
             raise ValueError("projectId inválido")
-    new_task = await collection.insert_one(task)
+
+    if "status" in task:
+        task["status"] = normalize_status(task["status"])
+
+    task_data = dict(task)
+    if "deadline" not in task_data:
+        task_data["deadline"] = None
+
+    new_task = await collection.insert_one(task_data)
     created_task = await collection.find_one({'_id': new_task.inserted_id})
     return Task(**created_task)
 
 async def update_task(id: str, data):
     task_data = {k: v for k, v in data.dict().items() if v is not None}
+
     if "projectId" in task_data and isinstance(task_data["projectId"], str):
         try:
             task_data["projectId"] = ObjectId(task_data["projectId"])
         except:
             raise ValueError("projectId inválido")
+
+    if "status" in task_data:
+        task_data["status"] = normalize_status(task_data["status"])
+
+    # Aseguramos que deadline esté presente aunque sea None
+    if "deadline" not in task_data:
+        task_data["deadline"] = None
+
     await collection.update_one({'_id': ObjectId(id)}, {'$set': task_data})
     document = await collection.find_one({'_id': ObjectId(id)})
     return document
@@ -57,8 +88,6 @@ async def delete_task(id: str):
     return True
 
 # ================== PROYECTOS ==================
-
-project_collection = database.projects
 
 async def get_all_projects():
     projects = []
@@ -83,3 +112,35 @@ async def update_project(id: str, data):
 async def delete_project(id: str):
     await project_collection.delete_one({'_id': ObjectId(id)})
     return True
+
+async def get_projects_with_progress():
+    projects_cursor = project_collection.find({})
+    projects = []
+
+    async for project in projects_cursor:
+        project_id = project["_id"]
+        task_cursor = collection.find({"projectId": project_id})
+        total_tasks = 0
+        completed_tasks = 0
+
+        async for task in task_cursor:
+            total_tasks += 1
+            task_status = normalize_status(task.get("status", ""))
+            if task_status == "Completado":
+                completed_tasks += 1
+
+        if total_tasks == 0:
+            status = "Pendiente"
+        elif completed_tasks == total_tasks:
+            status = "Completado"
+        else:
+            status = "En proceso"
+
+        projects.append({
+            "_id": str(project_id),
+            "name": project.get("name"),
+            "description": project.get("description", "No hay descripción disponible"),
+            "status": status
+        })
+
+    return projects
