@@ -45,3 +45,11 @@ body,
     flex: 1;
 }
 
+/* Personaliza el día seleccionado del calendario de Ant Design */
+.ant-picker-cell-selected .ant-picker-cell-inner,
+.ant-picker-cell-selected:hover .ant-picker-cell-inner {
+    background-color: var(--primary-color) !important;
+    color: var(--secondary-color) !important;
+    font-weight: 600;
+    border-radius: 4px;
+}
