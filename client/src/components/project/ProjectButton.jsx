@@ -9,12 +9,15 @@ import {
     Popconfirm,
     ConfigProvider,
 } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, DeleteOutlined, CopyOutlined } from '@ant-design/icons';
 import {
     createProject,
     updateProject,
     deleteProject,
 } from '../../api/projects';
+import { fetchTasksByProject, createTask } from '../../api/tasks';
+
+
 
 const ProjectButton = ({
     selectedProject,
@@ -52,9 +55,10 @@ const ProjectButton = ({
     const handleSubmit = async (values) => {
         try {
             if (isEditing && selectedProject) {
-                await updateProject(selectedProject._id || selectedProject.id, values);
+                const id = selectedProject._id || selectedProject.id;
+                await updateProject(id, values);
                 message.success('Proyecto actualizado');
-                onProjectUpdated?.();
+                onProjectUpdated?.(id); // ✅ se pasa el ID actualizado
             } else {
                 await createProject(values);
                 message.success('Proyecto creado');
@@ -67,6 +71,49 @@ const ProjectButton = ({
             console.error(error);
         }
     };
+
+    const handleDuplicate = async () => {
+        try {
+            if (!selectedProject) {
+                return message.warning('Selecciona un proyecto para duplicar');
+            }
+
+            // 1. Crear nuevo proyecto
+            const duplicatedProject = {
+                name: `${selectedProject.name} (copia)`,
+                description: selectedProject.description || '',
+            };
+
+            const { data: newProject } = await createProject(duplicatedProject);
+            message.success('Proyecto duplicado');
+
+            // 2. Obtener tareas del proyecto original
+            const { data: tasks } = await fetchTasksByProject(selectedProject._id || selectedProject.id);
+
+            // 3. Duplicar cada tarea asociándola al nuevo proyecto
+            for (const task of tasks) {
+                const duplicatedTask = {
+                    title: `${task.title} (copia)`,
+                    description: task.description,
+                    creator: task.creator,
+                    startDate: task.startDate,
+                    deadline: task.deadline,
+                    status: task.status || 'Pendiente',
+                    projectId: newProject._id || newProject.id,
+                };
+                await createTask(duplicatedTask);
+            }
+
+            message.success('Tareas duplicadas correctamente');
+            onProjectCreated?.(); // recargar la lista de proyectos
+
+        } catch (error) {
+            console.error(error);
+            message.error('Error al duplicar el proyecto y sus tareas');
+        }
+    };
+
+
 
     const handleDelete = async () => {
         try {
@@ -99,6 +146,19 @@ const ProjectButton = ({
                 <Button icon={<EditOutlined />} onClick={showEditModal} style={yellowStyle}>
                     Editar Proyecto
                 </Button>
+                <Button
+                    onClick={handleDuplicate}
+                    icon={<CopyOutlined />}
+                    style={{
+                        borderColor: '#FED36A',
+                        color: '#1A1A1A',
+                        fontWeight: 'bold',
+                    }}
+                >
+                    Duplicar Proyecto
+                </Button>
+
+
 
                 <Popconfirm
                     title="¿Seguro que deseas eliminar este proyecto?"
@@ -111,9 +171,10 @@ const ProjectButton = ({
                         danger
                         style={{
                             ...yellowStyle,
-                            backgroundColor: '#ff4d4f',
+                            background: '#FFFFFF',
                             borderColor: '#ff4d4f',
-                            color: '#fff',
+                            color: '#ff4d4f',
+                            fontWeight: 'bold',
                         }}
                     >
                         Borrar Proyecto

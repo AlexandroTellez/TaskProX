@@ -20,8 +20,10 @@ const Proyectos = () => {
         try {
             const res = await fetchProjects();
             setProjects(res.data);
+            return res.data;
         } catch (err) {
             console.error('Error al cargar proyectos:', err);
+            return [];
         }
     };
 
@@ -48,13 +50,17 @@ const Proyectos = () => {
     }, [selectedProject]);
 
     return (
-        <div className="p-6 bg-white text-black rounded-lg shadow-md">
+        <div className="p-6 bg-white rounded-lg shadow-md">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-                <Title level={3} className="!mb-0 text-black">Gestión de Proyectos</Title>
+                <Title level={3} className="!mb-0">Gestión de Proyectos</Title>
                 <CreateProjectButton
                     selectedProject={selectedProject}
                     onProjectCreated={loadProjects}
-                    onProjectUpdated={loadProjects}
+                    onProjectUpdated={async (updatedId) => {
+                        const updatedProjects = await loadProjects();
+                        const updatedProject = updatedProjects.find(p => p._id === updatedId);
+                        if (updatedProject) setSelectedProject(updatedProject);
+                    }}
                     onProjectDeleted={() => {
                         setSelectedProject(null);
                         loadProjects();
@@ -74,11 +80,13 @@ const Proyectos = () => {
             {selectedProject ? (
                 <>
                     <div className="mb-4">
-                        {selectedProject.description && (
-                            <Typography.Paragraph className="italic text-sm text-neutral-700 mt-1">
-                                <span className="underline font-medium">Descripción del proyecto:</span> {selectedProject.description}
-                            </Typography.Paragraph>
-                        )}
+                        <Typography.Text>
+                            {selectedProject.description && (
+                                <Typography.Paragraph className="italic text-sm text-neutral-700 mt-1">
+                                    <span className="underline font-medium">Descripción del proyecto:</span> {selectedProject.description}
+                                </Typography.Paragraph>
+                            )}
+                        </Typography.Text>
                     </div>
 
                     <div className="flex justify-end mb-4">
@@ -91,6 +99,8 @@ const Proyectos = () => {
                                 borderColor: '#FED36A',
                                 color: '#1A1A1A',
                                 fontWeight: 'bold',
+                                display: 'flex',
+                                alignItems: 'center',
                             }}
                         >
                             Crear Tarea

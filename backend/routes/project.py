@@ -4,8 +4,10 @@ from config.database import (
     get_project_by_id,
     create_project,
     update_project,
-    delete_project
+    delete_project,
+    get_projects_with_progress
 )
+
 from models.models import Project
 from bson import ObjectId
 
@@ -36,3 +38,8 @@ async def remove_project(id: str):
     if deleted:
         return {"message": "Proyecto eliminado"}
     raise HTTPException(404, f"Proyecto con id {id} no encontrado")
+
+@project.get("/api/projects/summary")
+async def list_projects_with_summary():
+    # Devuelve todos los proyectos con su estado calculado
+    return await get_projects_with_progress()

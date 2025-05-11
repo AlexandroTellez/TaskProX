@@ -1,28 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { fetchProjects } from "../../api/projects";
-import { Typography, Table, Progress, Tag, Button } from "antd";
-import { FolderOpenOutlined } from "@ant-design/icons";
+import { Typography, Table, Button } from "antd";
+import { FolderOpenOutlined, FileTextOutlined, FolderOutlined } from "@ant-design/icons";
 
 const { Title } = Typography;
-
-const getStatusTag = (status) => {
-    let color;
-    switch (status) {
-        case 'Completado': color = 'green'; break;
-        case 'En proceso': color = 'gold'; break;
-        case 'Pendiente':
-        case 'En peligro': color = 'red'; break;
-        default: color = 'gray';
-    }
-    return <Tag color={color}>{status || 'Sin estado'}</Tag>;
-};
-
-const formatDate = (dateStr) => {
-    if (!dateStr) return 'Sin fecha';
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('es-ES');
-};
 
 function Dashboard() {
     const [projects, setProjects] = useState([]);
@@ -31,36 +13,34 @@ function Dashboard() {
     useEffect(() => {
         fetchProjects()
             .then((res) => setProjects(res.data))
-            .catch((err) => console.log(err));
+            .catch((err) => console.error("Error al obtener proyectos:", err));
     }, []);
 
     const dataSource = projects.map((p, index) => ({
         key: p._id || index,
         id: p._id || p.id,
         name: p.name,
-        creator: p.creator || 'Desconocido',
-        deadline: formatDate(p.deadline),
-        status: p.status || 'Pendiente',
-        progress: p.progress ?? 0,
+        description: p.description || 'No hay descripción disponible',
     }));
 
     const columns = [
-        { title: 'Nombre Proyecto', dataIndex: 'name', key: 'name' },
-        { title: 'Creador', dataIndex: 'creator', key: 'creator' },
-        { title: 'Fecha límite', dataIndex: 'deadline', key: 'deadline' },
         {
-            title: 'Estado',
-            dataIndex: 'status',
-            key: 'status',
-            render: (status) => getStatusTag(status),
+            title: (
+                <span>
+                    <FolderOutlined className="mr-1" /> Nombre Proyecto
+                </span>
+            ),
+            dataIndex: 'name',
+            key: 'name',
         },
         {
-            title: 'Progreso',
-            dataIndex: 'progress',
-            key: 'progress',
-            render: (progress) => (
-                <Progress percent={progress} size="small" strokeColor="#FED36A" />
+            title: (
+                <span>
+                    <FileTextOutlined className="mr-1" /> Descripción
+                </span>
             ),
+            dataIndex: 'description',
+            key: 'description',
         },
         {
             title: '',
@@ -86,7 +66,7 @@ function Dashboard() {
     return (
         <div className="p-6 bg-white text-black rounded-lg shadow-md">
             <Title level={3}>Mis Proyectos</Title>
-            <p className="text-sm text-neutral-600 mb-4">Resumen -  Proyectos </p>
+            <p className="text-sm text-neutral-600 mb-4">Resumen - Proyectos</p>
 
             <Table
                 columns={columns}

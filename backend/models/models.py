@@ -28,7 +28,6 @@ class Task(BaseModel):
     startDate: Optional[str] = None
     deadline: Optional[str] = None
     status: Optional[str] = "Pendiente"
-    progress: Optional[int] = 0
     projectId: Optional[PyObjectId] = None
 
     class Config:
@@ -47,7 +46,6 @@ class UpdateTask(BaseModel):
     startDate: Optional[str] = None
     deadline: Optional[str] = None
     status: Optional[str] = None
-    progress: Optional[int] = None
     projectId: Optional[PyObjectId] = None
 
     class Config:

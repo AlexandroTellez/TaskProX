@@ -47,7 +47,11 @@ function TaskCard({ task }) {
                 </button>
             </div>
 
-            <p className="text-neutral-700 mb-4">{task.description}</p>
+            {/* Mostrar HTML enriquecido */}
+            <div
+                className="text-neutral-700 mb-4 prose max-w-none"
+                dangerouslySetInnerHTML={{ __html: task.description }}
+            />
 
             <div className="flex gap-2 mt-auto" onClick={(e) => e.stopPropagation()}>
                 <button
