@@ -24,7 +24,12 @@ function TaskCard({ task }) {
     return (
         <div className={cardClasses} onClick={() => navigate(`/tasks/${task._id}`)}>
             <div className="flex justify-between items-start mb-4">
-                <h2 className="font-bold text-xl">{task.title}</h2>
+                <div>
+                    <h2 className="font-bold text-xl">{task.title}</h2>
+                    {task.creator_name && (
+                        <p className="text-sm text-neutral-500">Creado por: {task.creator_name}</p>
+                    )}
+                </div>
                 <button
                     onClick={async (e) => {
                         e.stopPropagation();
@@ -64,7 +69,7 @@ function TaskCard({ task }) {
                     Editar
                 </button>
                 <button
-                    className={`${buttonClasses} bg-red-500 text-white hover:bg-red-600`}
+                    className={`${buttonClasses} bg-red-500 text-white hover:bg-red-600 `}
                     onClick={async (e) => {
                         e.stopPropagation();
                         await handleDelete(task._id);

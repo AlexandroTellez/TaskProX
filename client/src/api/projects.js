@@ -1,19 +1,24 @@
-import axios from 'axios';
+import api from './axiosConfig';
 
-const API_URL = 'http://localhost:8000/api/projects';
+const endpoint = '/api/projects';
 
-// Obtener todos los proyectos
-export const fetchProjects = () => axios.get(API_URL);
+// PETICIONES A /api/projects
 
-// Obtener un proyecto por su ID
-export const fetchProjectById = (id) => axios.get(`${API_URL}/${id}`);
+// Obtener todos los proyectos del usuario autenticado
+export const fetchProjects = () => api.get(endpoint);
 
-// Crear un nuevo proyecto
-export const createProject = (project) => axios.post(API_URL, project);
+// Obtener detalles de un proyecto específico
+export const fetchProjectById = (id) => api.get(`${endpoint}/${id}`);
 
-// Actualizar un proyecto existente
+// Crear un nuevo proyecto asociado al usuario
+export const createProject = (project) => api.post(endpoint, project);
+
+// Actualizar un proyecto existente por ID
 export const updateProject = (id, updatedProject) =>
-    axios.put(`${API_URL}/${id}`, updatedProject);
+    api.put(`${endpoint}/${id}`, updatedProject);
 
-// Eliminar un proyecto por su ID
-export const deleteProject = (id) => axios.delete(`${API_URL}/${id}`);
+// Eliminar un proyecto por ID
+export const deleteProject = (id) => api.delete(`${endpoint}/${id}`);
+
+// Obtener resumen de progreso (pendiente, en proceso, completado)
+export const fetchProjectSummary = () => api.get(`${endpoint}/summary`);

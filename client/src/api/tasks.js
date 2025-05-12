@@ -1,24 +1,24 @@
-import axios from "axios";
+import api from './axiosConfig';
 
-const URL = "http://localhost:8000";
-const endpoint = `${URL}/api/tasks`;
+const endpoint = '/api/tasks';
 
-// Obtener todas las tareas
-export const fetchTasks = () => axios.get(endpoint);
+// PETICIONES A /api/tasks
 
-// Obtener una tarea específica
-export const fetchTask = (id) => axios.get(`${endpoint}/${id}`);
+// Obtener todas las tareas del usuario (opcionalmente filtradas por proyecto)
+export const fetchTasks = () => api.get(endpoint);
 
-// Crear una nueva tarea
-export const createTask = (newTask) => axios.post(endpoint, newTask);
-
-// Actualizar una tarea
-export const updateTask = (id, task) => axios.put(`${endpoint}/${id}`, task);
-
-// Borrar una tarea
-export const deleteTask = (id) => axios.delete(`${endpoint}/${id}`);
-
-//
+// Obtener tareas filtradas por ID de proyecto
 export const fetchTasksByProject = (projectId) =>
-    axios.get(`http://localhost:8000/api/tasks?projectId=${projectId}`);
+    api.get(`${endpoint}?projectId=${projectId}`);
 
+// Obtener una tarea por su ID
+export const fetchTask = (id) => api.get(`${endpoint}/${id}`);
+
+// Crear una nueva tarea asociada al usuario
+export const createTask = (newTask) => api.post(endpoint, newTask);
+
+// Actualizar una tarea existente
+export const updateTask = (id, task) => api.put(`${endpoint}/${id}`, task);
+
+// Eliminar una tarea por ID
+export const deleteTask = (id) => api.delete(`${endpoint}/${id}`);

@@ -1,8 +1,10 @@
 """
-This module sets up a FastAPI application with CORS middleware and includes task routes.
+This module sets up a FastAPI application with CORS middleware and includes task, project, and auth routes.
 Modules:
     fastapi: The FastAPI framework.
     routes.task: The task routes to be included in the application.
+    routes.project: The project routes.
+    routes.auth: The authentication routes.
     fastapi.middleware.cors: Middleware for handling Cross-Origin Resource Sharing (CORS).
     config: Configuration module for application settings.
 Attributes:
@@ -13,35 +15,37 @@ Functions:
 Middleware:
     CORSMiddleware: Middleware to handle CORS with specified origins, credentials, methods, and headers.
 Routes:
-    The task router is included in the application to handle task-related endpoints.
+    The task, project, and auth routers are included in the application.
 """
+
 from fastapi import FastAPI
 from routes.task import task
 from routes.project import project
+from routes.auth import router as auth
 from fastapi.middleware.cors import CORSMiddleware
 import config.config as config
 
-
 app = FastAPI()
 
-origins= [
+origins = [
     config.FRONTEND_URL,
-    ]
+]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=['*'],
-    allow_headers=['*']
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
-@app.get('/')
+
+@app.get("/")
 def welcome():
-    return{'message':'Bienvenido a TaskProX!'}
+    return {"message": "Bienvenido a TaskProX!"}
 
-# Include the task router
+
+# Routers
+app.include_router(auth)
 app.include_router(task)
-
-# Include the project router
 app.include_router(project)
