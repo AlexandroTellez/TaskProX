@@ -16,6 +16,9 @@ const Proyectos = () => {
     const [tasks, setTasks] = useState([]);
     const navigate = useNavigate();
 
+    // ✅ Obtener email desde localStorage
+    const currentUserEmail = JSON.parse(localStorage.getItem('user'))?.email || '';
+
     const loadProjects = async () => {
         try {
             const res = await fetchProjects();
@@ -63,8 +66,8 @@ const Proyectos = () => {
                     }}
                     onProjectDeleted={() => {
                         setSelectedProject(null);
-                        loadProjects();
                         setTasks([]);
+                        loadProjects();
                     }}
                 />
             </div>
@@ -79,15 +82,11 @@ const Proyectos = () => {
 
             {selectedProject ? (
                 <>
-                    <div className="mb-4">
-                        <Typography.Text>
-                            {selectedProject.description && (
-                                <Typography.Paragraph className="italic text-sm text-neutral-700 mt-1">
-                                    <span className="underline font-medium">Descripción del proyecto:</span> {selectedProject.description}
-                                </Typography.Paragraph>
-                            )}
-                        </Typography.Text>
-                    </div>
+                    {selectedProject.description && (
+                        <Typography.Paragraph className="italic text-sm text-neutral-700 mb-4">
+                            <span className="underline font-medium">Descripción del proyecto:</span> {selectedProject.description}
+                        </Typography.Paragraph>
+                    )}
 
                     <div className="flex justify-end mb-4">
                         <Button
@@ -112,6 +111,7 @@ const Proyectos = () => {
                             tasks={tasks}
                             projectId={selectedProject._id}
                             onTaskChanged={() => loadTasks(selectedProject._id)}
+                            currentUserEmail={currentUserEmail} // ✅ Aquí se pasa el email
                         />
                     ) : (
                         <Empty description="Este proyecto no tiene tareas aún" />

@@ -13,12 +13,11 @@ dist/
 *.egg-info/
 *.egg
 
-# Virtual environment
+# Virtual environments
 venv/
+env/
 
 # PyInstaller
-# Usually these files are written by a python script from a template
-# before PyInstaller builds the exe, so as to inject date/other infos into it.
 *.manifest
 *.spec
 
@@ -36,28 +35,26 @@ test-results/
 *.mo
 *.pot
 
-# Django stuff:
+# Django
 *.log
 local_settings.py
 
-# Flask stuff:
+# Flask
 instance/
 .webassets-cache
 
-# Scrapy stuff:
+# Scrapy
 .scrapy
 
 # Sphinx documentation
 docs/_build/
 
-env/
+# Jupyter Notebooks
+.ipynb_checkpoints
 
 # PyCharm
 .idea/
 *.iml
-
-# Jupyter Notebook
-.ipynb_checkpoints
 
 # VSCode
 .vscode/
@@ -74,6 +71,9 @@ $RECYCLE.BIN/
 # Linux
 *.~
 
-# Logs and databases
+# General logs and databases
 *.log
 *.sqlite3
+
+# ===== ENVIRONMENT SECRETS =====
+backend/.env

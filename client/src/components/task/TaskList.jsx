@@ -14,11 +14,7 @@ import esES from 'antd/es/locale/es_ES';
 dayjs.extend(localeData);
 dayjs.extend(updateLocale);
 dayjs.locale('es');
-
-// Semana empieza el lunes (día 1)
-dayjs.updateLocale('es', {
-    weekStart: 1
-});
+dayjs.updateLocale('es', { weekStart: 1 });
 
 const { Option } = Select;
 const { RangePicker } = DatePicker;
@@ -40,9 +36,18 @@ const formatDate = (dateString) => {
     return isNaN(date.getTime()) ? 'Sin fecha límite' : date.toLocaleDateString('es-ES');
 };
 
+const getPermission = (task, userFullName, userEmail) => {
+    if (task.creator_name === userFullName) return 'admin';
+    const match = task.collaborators?.find(col => col.email === userEmail);
+    return match?.permission || 'none';
+};
+
 const TaskList = ({ tasks, projectId, onTaskChanged }) => {
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
+    const user = JSON.parse(localStorage.getItem('user'));
+    const userFullName = `${user?.nombre} ${user?.apellidos}`;
+    const userEmail = user?.email;
 
     const [filters, setFilters] = useState({
         title: searchParams.get('title') || '',
@@ -112,12 +117,12 @@ const TaskList = ({ tasks, projectId, onTaskChanged }) => {
 
     const filteredTasks = useMemo(() => {
         return tasks.filter((task) => {
-            const { title, creator, status, startDate } = task;
+            const { title, creator_name, status, startDate } = task;
             const matchesTitle = filters.title
                 ? title?.toLowerCase().includes(filters.title.toLowerCase())
                 : true;
             const matchesCreator = filters.creator
-                ? creator?.toLowerCase().includes(filters.creator.toLowerCase())
+                ? creator_name?.toLowerCase().includes(filters.creator.toLowerCase())
                 : true;
             const matchesStatus = filters.status
                 ? status === filters.status
@@ -132,67 +137,112 @@ const TaskList = ({ tasks, projectId, onTaskChanged }) => {
     }, [tasks, filters]);
 
     const columns = [
-        { title: 'Título', dataIndex: 'title', key: 'title' },
-        { title: 'Creador', dataIndex: 'creator', key: 'creator' },
-        { title: 'Fecha Inicio', dataIndex: 'startDate', key: 'startDate' },
-        { title: 'Fecha Límite', dataIndex: 'deadline', key: 'deadline' },
+        {
+            title: 'Título',
+            dataIndex: 'title',
+            key: 'title',
+            render: (text) => <strong>{text}</strong>
+        },
+        {
+            title: 'Creador',
+            dataIndex: 'creator_name',
+            key: 'creator_name',
+            render: (creatorName) => (
+                <span className="text-black">{creatorName || 'Sin creador'}</span>
+            )
+        },
+        {
+            title: 'Colaboradores',
+            dataIndex: 'collaborators',
+            key: 'collaborators',
+            render: (collaborators) => {
+                if (!collaborators || collaborators.length === 0) return 'Ninguno';
+                return collaborators.map((col, index) => (
+                    <Tag key={index} color={
+                        col.permission === 'admin' ? 'red' :
+                            col.permission === 'write' ? 'blue' : 'default'
+                    }>
+                        {col.email} ({col.permission})
+                    </Tag>
+                ));
+            }
+        },
+        {
+            title: 'Fecha Inicio',
+            dataIndex: 'startDate',
+            key: 'startDate'
+        },
+        {
+            title: 'Fecha Límite',
+            dataIndex: 'deadline',
+            key: 'deadline'
+        },
         {
             title: 'Estado',
             dataIndex: 'status',
             key: 'status',
-            render: (status) => getStatusTag(status),
+            render: (status) => getStatusTag(status)
         },
         {
             title: 'Acciones',
             key: 'acciones',
-            render: (_, record) => (
-                <Space>
-                    <Button
-                        icon={<EditOutlined />}
-                        onClick={() => navigate(`/tasks/${record.id}/edit?projectId=${projectId}`)}
-                        style={{
-                            backgroundColor: '#FED36A',
-                            borderColor: '#FED36A',
-                            color: '#1A1A1A',
-                            fontWeight: 'bold',
-                        }}
-                    >
-                        Editar
-                    </Button>
+            render: (_, record) => {
+                const permission = getPermission(record, userFullName, userEmail);
+                return (
+                    <Space>
+                        {(permission === 'write' || permission === 'admin') && (
+                            <Button
+                                icon={<EditOutlined />}
+                                onClick={() => navigate(`/tasks/${record.id}/edit?projectId=${projectId}`)}
+                                style={{
+                                    backgroundColor: '#FED36A',
+                                    borderColor: '#FED36A',
+                                    color: '#1A1A1A',
+                                    fontWeight: 'bold',
+                                }}
+                            >
+                                Editar
+                            </Button>
+                        )}
 
-                    <Button
-                        onClick={handleDuplicate}
-                        icon={<CopyOutlined />}
-                        style={{
-                            borderColor: '#FED36A',
-                            color: '#1A1A1A',
-                            fontWeight: 'bold',
-                        }}
-                    >
-                        Duplicar
-                    </Button>
+                        {['read', 'write', 'admin'].includes(permission) && (
+                            <Button
+                                onClick={() => handleDuplicate(record)}
+                                icon={<CopyOutlined />}
+                                style={{
+                                    borderColor: '#FED36A',
+                                    color: '#1A1A1A',
+                                    fontWeight: 'bold',
+                                }}
+                            >
+                                Duplicar
+                            </Button>
+                        )}
 
-                    <Popconfirm
-                        title="¿Estás seguro de borrar esta tarea?"
-                        onConfirm={() => handleDelete(record.id)}
-                        okText="Sí"
-                        cancelText="No"
-                    >
-                        <Button
-                            danger
-                            style={{
-                                borderColor: '#ff4d4f',
-                                color: '#ff4d4f',
-                                fontWeight: 'bold',
-                            }}
-                            icon={<DeleteOutlined />}
-                        >
-                            Borrar
-                        </Button>
-                    </Popconfirm>
-                </Space>
-            ),
-        },
+                        {permission === 'admin' && (
+                            <Popconfirm
+                                title="¿Estás seguro de borrar esta tarea?"
+                                onConfirm={() => handleDelete(record.id)}
+                                okText="Sí"
+                                cancelText="No"
+                            >
+                                <Button
+                                    danger
+                                    style={{
+                                        borderColor: '#ff4d4f',
+                                        color: '#ff4d4f',
+                                        fontWeight: 'bold',
+                                    }}
+                                    icon={<DeleteOutlined />}
+                                >
+                                    Borrar
+                                </Button>
+                            </Popconfirm>
+                        )}
+                    </Space>
+                );
+            }
+        }
     ];
 
     const tableData = filteredTasks.map((task) => ({
@@ -200,10 +250,11 @@ const TaskList = ({ tasks, projectId, onTaskChanged }) => {
         id: task._id,
         title: task.title || 'Sin título',
         description: task.description || '',
-        creator: task.creator || 'Desconocido',
+        creator_name: task.creator_name || 'Desconocido',
         startDate: formatDate(task.startDate),
         deadline: formatDate(task.deadline),
         status: task.status || '',
+        collaborators: task.collaborators || []
     }));
 
     return (

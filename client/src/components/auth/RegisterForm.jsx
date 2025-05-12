@@ -1,6 +1,7 @@
 import { useState } from "react";
 import logo from "../../assets/images/Logo.png";
 import { message } from "antd";
+import { EyeOutlined, EyeInvisibleOutlined } from "@ant-design/icons";
 
 function RegisterForm({ onSubmit }) {
     const [form, setForm] = useState({
@@ -15,6 +16,10 @@ function RegisterForm({ onSubmit }) {
         privacidad: false,
     });
 
+    const [loading, setLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+    const [showRepeatPassword, setShowRepeatPassword] = useState(false);
+
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
         setForm({
@@ -23,11 +28,11 @@ function RegisterForm({ onSubmit }) {
         });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         const {
             nombre, apellidos, direccion, codigoPostal, email,
-            password, terminos, privacidad
+            password, repetirPassword, terminos, privacidad
         } = form;
 
         if (!nombre || !apellidos || !direccion || !codigoPostal || !email || !password || !repetirPassword) {
@@ -42,8 +47,17 @@ function RegisterForm({ onSubmit }) {
             return message.warning('Debes aceptar los términos y la política de privacidad');
         }
 
-        const { repetirPassword, ...dataToSend } = form;
-        onSubmit(dataToSend);
+        const { repetirPassword: _, ...dataToSend } = form;
+
+        try {
+            setLoading(true);
+            await onSubmit(dataToSend);
+        } catch (err) {
+            const msg = err.detail || err.message || 'Error al registrar usuario';
+            message.error(msg);
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -74,101 +88,72 @@ function RegisterForm({ onSubmit }) {
 
                     <form onSubmit={handleSubmit} className="space-y-4 lg:space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <input
-                                name="nombre"
-                                placeholder="Nombre"
-                                value={form.nombre}
-                                onChange={handleChange}
-                                className="p-3 lg:p-4 bg-transparent border border-gray-400 rounded text-white"
-                                required
-                            />
-                            <input
-                                name="apellidos"
-                                placeholder="Apellidos"
-                                value={form.apellidos}
-                                onChange={handleChange}
-                                className="p-3 lg:p-4 bg-transparent border border-gray-400 rounded text-white"
-                                required
-                            />
-                            <input
-                                name="direccion"
-                                placeholder="Dirección"
-                                value={form.direccion}
-                                onChange={handleChange}
-                                className="p-3 lg:p-4 bg-transparent border border-gray-400 rounded text-white md:col-span-2"
-                                required
-                            />
-                            <input
-                                name="codigoPostal"
-                                placeholder="Código Postal"
-                                value={form.codigoPostal}
-                                onChange={handleChange}
-                                className="p-3 lg:p-4 bg-transparent border border-gray-400 rounded text-white"
-                                required
-                            />
+                            <input name="nombre" placeholder="Nombre" value={form.nombre} onChange={handleChange} className="p-3 lg:p-4 bg-transparent border border-gray-400 rounded text-white" required />
+                            <input name="apellidos" placeholder="Apellidos" value={form.apellidos} onChange={handleChange} className="p-3 lg:p-4 bg-transparent border border-gray-400 rounded text-white" required />
+                            <input name="direccion" placeholder="Dirección" value={form.direccion} onChange={handleChange} className="p-3 lg:p-4 bg-transparent border border-gray-400 rounded text-white md:col-span-2" required />
+                            <input name="codigoPostal" placeholder="Código Postal" value={form.codigoPostal} onChange={handleChange} className="p-3 lg:p-4 bg-transparent border border-gray-400 rounded text-white" required />
                         </div>
 
-                        <input
-                            name="email"
-                            type="email"
-                            placeholder="Correo electrónico"
-                            value={form.email}
-                            onChange={handleChange}
-                            className="w-full p-3 lg:p-4 bg-transparent border border-gray-400 rounded text-white"
-                            required
-                        />
-                        <input
-                            name="password"
-                            type="password"
-                            placeholder="Contraseña"
-                            value={form.password}
-                            onChange={handleChange}
-                            className="w-full p-3 lg:p-4 bg-transparent border border-gray-400 rounded text-white"
-                            required
-                        />
-                        <input
-                            name="repetirPassword"
-                            type="password"
-                            placeholder="Repetir contraseña"
-                            value={form.repetirPassword}
-                            onChange={handleChange}
-                            className="w-full p-3 lg:p-4 bg-transparent border border-gray-400 rounded text-white"
-                            required
-                        />
+                        <input name="email" type="email" placeholder="Correo electrónico" value={form.email} onChange={handleChange} className="w-full p-3 lg:p-4 bg-transparent border border-gray-400 rounded text-white" required />
+
+                        {/* Contraseña */}
+                        <div className="relative">
+                            <input
+                                name="password"
+                                type={showPassword ? "text" : "password"}
+                                placeholder="Contraseña"
+                                value={form.password}
+                                onChange={handleChange}
+                                className="w-full p-3 lg:p-4 bg-transparent border border-gray-400 rounded text-white pr-12"
+                                required
+                            />
+                            <span
+                                className="absolute top-1/2 right-4 transform -translate-y-1/2 text-xl text-gray-300 cursor-pointer"
+                                onClick={() => setShowPassword(!showPassword)}
+                            >
+                                {showPassword ? <EyeInvisibleOutlined /> : <EyeOutlined />}
+                            </span>
+                        </div>
+
+                        {/* Repetir contraseña */}
+                        <div className="relative">
+                            <input
+                                name="repetirPassword"
+                                type={showRepeatPassword ? "text" : "password"}
+                                placeholder="Repetir contraseña"
+                                value={form.repetirPassword}
+                                onChange={handleChange}
+                                className="w-full p-3 lg:p-4 bg-transparent border border-gray-400 rounded text-white pr-12"
+                                required
+                            />
+                            <span
+                                className="absolute top-1/2 right-4 transform -translate-y-1/2 text-xl text-gray-300 cursor-pointer"
+                                onClick={() => setShowRepeatPassword(!showRepeatPassword)}
+                            >
+                                {showRepeatPassword ? <EyeInvisibleOutlined /> : <EyeOutlined />}
+                            </span>
+                        </div>
 
                         <div className="flex items-start gap-2">
-                            <input
-                                type="checkbox"
-                                name="terminos"
-                                checked={form.terminos}
-                                onChange={handleChange}
-                                className="mt-0.5"
-                            />
+                            <input type="checkbox" name="terminos" checked={form.terminos} onChange={handleChange} className="mt-0.5" />
                             <label className="text-xs sm:text-sm lg:text-base">
-                                He leído y acepto los <span className="text-yellow-400">{" "}
-                                    <a href="/legal/terminos" target="_blank" className="text-yellow-400 underline">Términos y Condiciones</a></span>
+                                He leído y acepto los <a href="/legal/terminos" target="_blank" className="text-yellow-400 underline">Términos y Condiciones</a>
                             </label>
                         </div>
 
                         <div className="flex items-start gap-2">
-                            <input
-                                type="checkbox"
-                                name="privacidad"
-                                checked={form.privacidad}
-                                onChange={handleChange}
-                                className="mt-0.5"
-                            />
+                            <input type="checkbox" name="privacidad" checked={form.privacidad} onChange={handleChange} className="mt-0.5" />
                             <label className="text-xs sm:text-sm lg:text-base">
-                                He leído y acepto la <span className="text-yellow-400">{" "}
-                                    <a href="/legal/privacidad" target="_blank" className="text-yellow-400 underline">Política de Privacidad</a></span>
+                                He leído y acepto la <a href="/legal/privacidad" target="_blank" className="text-yellow-400 underline">Política de Privacidad</a>
                             </label>
                         </div>
 
                         <button
                             type="submit"
+                            disabled={loading}
                             className="w-full py-3 lg:py-5 text-sm sm:text-base lg:text-lg rounded bg-yellow-300 text-black font-medium"
                         >
-                            Registrarse
+                            {loading ? "Registrando..." : "Registrarse"}
                         </button>
 
                         <p className="text-center text-xs sm:text-sm lg:text-base">
