@@ -121,7 +121,7 @@ function Dashboard() {
                             key={project._id}
                             className="border border-[#FED36A] bg-white p-4 rounded-lg shadow-md flex flex-col justify-between"
                         >
-                            <p className="text-lg font-bold break-words whitespace-normal mb-2">
+                            <p className="text-lg font-bold  break-words whitespace-normal mb-2">
                                 {project.name}
                             </p>
 
@@ -216,9 +216,9 @@ function Dashboard() {
             <div className="mt-4 text-center text-sm text-gray-600">
                 <span>📅 <strong>Nota:</strong> Los números indican la cantidad de tareas con fecha límite ese día.</span>
             </div>
-
+            <br/>
             <div className="w-full mb-4">
-                <Title level={4} className="text-black">
+                <Title level={4} className="text-black underline">
                     Tareas para el {selectedDate.format('DD/MM/YYYY')}
                 </Title>
                 {selectedDayTasks.length > 0 ? (

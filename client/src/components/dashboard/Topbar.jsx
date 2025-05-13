@@ -7,7 +7,7 @@ import { MenuOutlined } from '@ant-design/icons';
 const Topbar = ({ setSidebarOpen }) => {
     const [usuario, setUsuario] = useState(null);
     const navigate = useNavigate();
-    const location = useLocation(); // Detectar cambios de ruta
+    const location = useLocation();
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -29,7 +29,11 @@ const Topbar = ({ setSidebarOpen }) => {
         };
 
         fetchUser();
-    }, [location.pathname]); // 🔁 Se vuelve a ejecutar al cambiar de página
+    }, [location.pathname]);
+
+    const handleGoToAccount = () => {
+        navigate('/cuenta');
+    };
 
     return (
         <header className="flex justify-between items-center px-6 py-4 bg-white">
@@ -44,7 +48,10 @@ const Topbar = ({ setSidebarOpen }) => {
 
             {/* Usuario */}
             {usuario && (
-                <div className="flex items-center gap-3 ml-auto">
+                <div
+                    className="flex items-center gap-3 ml-auto cursor-pointer"
+                    onClick={handleGoToAccount}
+                >
                     <span className="font-medium text-gray-800">{usuario.nombre}</span>
                     <Avatar src={usuario.avatar} />
                 </div>
