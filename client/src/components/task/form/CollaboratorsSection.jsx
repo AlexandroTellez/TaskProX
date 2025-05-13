@@ -35,7 +35,7 @@ const CollaboratorsSection = ({
                         dropdownStyle={{ zIndex: 1300 }}
                     >
                         <Option value="read"><EyeOutlined /> Ver</Option>
-                        <Option value="write"><EditOutlined /> Ver y editar</Option>
+                        <Option value="write"><EditOutlined /> Editar</Option>
                         <Option value="admin"><ToolOutlined /> Administrador</Option>
                     </Select>
                     <Button
@@ -67,7 +67,7 @@ const CollaboratorsSection = ({
                                     dropdownStyle={{ zIndex: 1300 }}
                                 >
                                     <Option value="read"><EyeOutlined /> Ver</Option>
-                                    <Option value="write"><EditOutlined /> Ver y editar</Option>
+                                    <Option value="write"><EditOutlined /> Editar</Option>
                                     <Option value="admin"><ToolOutlined /> Administrador</Option>
                                 </Select>
                             </div>

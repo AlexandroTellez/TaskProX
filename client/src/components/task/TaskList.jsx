@@ -51,7 +51,7 @@ const TaskList = ({ tasks, projectId, onTaskChanged }) => {
         setSearchParams(params);
     }, [filters, setSearchParams]);
 
-    // ✅ Parseamos fechas para asegurarnos que son objetos dayjs válidos
+    //  Parseamos fechas para asegurarnos que son objetos dayjs válidos
     const parsedTasks = useMemo(() => {
         return tasks.map((task) => ({
             ...task,
