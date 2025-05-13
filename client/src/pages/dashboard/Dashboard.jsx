@@ -9,18 +9,18 @@ import {
     Calendar,
     ConfigProvider,
     Divider,
-    Collapse
+    Collapse,
 } from "antd";
 import {
     FolderOpenOutlined,
     FileTextOutlined,
     FolderOutlined,
     CalendarOutlined,
-    ArrowRightOutlined
+    ArrowRightOutlined,
+    FieldTimeOutlined,
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import esES from "antd/es/locale/es_ES";
-import { FieldTimeOutlined } from "@ant-design/icons";
 
 const { Title } = Typography;
 const { Panel } = Collapse;
@@ -88,35 +88,132 @@ function Dashboard() {
         },
     ];
 
-    const getTasksForDate = (date) => {
-        return tasks.filter(task =>
+    const getTasksForDate = (date) =>
+        tasks.filter(task =>
             task.deadline && dayjs(task.deadline).isSame(date, 'day')
         );
-    };
 
     const selectedDayTasks = getTasksForDate(selectedDate);
-
-    const handleToday = () => {
-        setSelectedDate(dayjs());
-    };
+    const handleToday = () => setSelectedDate(dayjs());
 
     return (
-        <div className="p-6 bg-white text-black rounded-lg shadow-md">
+        <div className="w-full bg-white text-black">
             <Title level={3}>Mis Proyectos</Title>
             <p className="text-sm text-neutral-600 mb-4">Resumen - Proyectos</p>
 
-            <Table
-                columns={columns}
-                dataSource={dataSource}
-                pagination={false}
-                bordered
-            />
+            {/* Vista de TABLA para escritorio */}
+            <div className="hidden sm:block">
+                <Table
+                    columns={[
+                        {
+                            title: (
+                                <span>
+                                    <FolderOutlined className="mr-1" /> Nombre Proyecto
+                                </span>
+                            ),
+                            dataIndex: 'name',
+                            key: 'name',
+                            render: (text) => <strong className="whitespace-normal break-words">{text}</strong>,
+                        },
+                        {
+                            title: (
+                                <span>
+                                    <FileTextOutlined className="mr-1" /> Descripción
+                                </span>
+                            ),
+                            dataIndex: 'description',
+                            key: 'description',
+                            render: (desc) => {
+                                const plainDesc = desc || 'No hay descripción disponible';
+                                const isLong = plainDesc.length > 120;
+
+                                return isLong ? (
+                                    <Collapse ghost>
+                                        <Panel header="Ver descripción" key="1" className="text-sm font-medium">
+                                            <p className="text-sm text-neutral-600 whitespace-pre-wrap break-words">
+                                                {plainDesc}
+                                            </p>
+                                        </Panel>
+                                    </Collapse>
+                                ) : (
+                                    <p className="text-sm text-neutral-800 whitespace-pre-wrap break-words">
+                                        {plainDesc}
+                                    </p>
+                                );
+                            },
+                        },
+                        {
+                            title: '',
+                            key: 'ver',
+                            render: (_, record) => (
+                                <Button
+                                    size="small"
+                                    icon={<FolderOpenOutlined />}
+                                    onClick={() => navigate(`/proyectos?projectId=${record.id}`)}
+                                    className="font-bold bg-[#FED36A] text-black border-none"
+                                    style={{
+                                        backgroundColor: '#FED36A',
+                                        color: '#1A1A1A',
+                                        fontWeight: 'bold',
+                                        border: 'none',
+                                    }}
+                                >
+                                    Ver Proyecto
+                                </Button>
+                            ),
+                        },
+                    ]}
+                    dataSource={projects.map((p, index) => ({
+                        key: p._id || index,
+                        id: p._id,
+                        name: p.name,
+                        description: p.description,
+                    }))}
+                    pagination={false}
+                    bordered
+                />
+            </div>
+
+            {/* Vista de CARDS solo para móvil */}
+            <div className="block sm:hidden mt-4">
+                <div className="flex flex-col gap-4">
+                    {projects.map((project) => (
+                        <div
+                            key={project._id}
+                            className="border border-[#FED36A] bg-white p-4 rounded-lg shadow-md flex flex-col justify-between"
+                        >
+                            <p className="text-lg font-bold break-words whitespace-normal mb-2">
+                                {project.name}
+                            </p>
+
+                            <Collapse ghost>
+                                <Panel header="Descripción" key="desc" className="text-sm font-medium">
+                                    <p className="text-sm text-neutral-600 whitespace-pre-wrap break-words">
+                                        {project.description || 'No hay descripción disponible'}
+                                    </p>
+                                </Panel>
+                            </Collapse>
+
+                            <div className="mt-4">
+                                <Button
+                                    size="small"
+                                    icon={<FolderOpenOutlined />}
+                                    onClick={() => navigate(`/proyectos?projectId=${project._id}`)}
+                                    className="font-bold bg-[#FED36A] text-black border-none hover:bg-[#fcd670]"
+                                >
+                                    Ver Proyecto
+                                </Button>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
 
             <Divider className="my-8" />
 
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
                 <Title level={3} className="m-0">Calendario</Title>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                     <Button
                         size="middle"
                         icon={<FieldTimeOutlined />}
@@ -147,7 +244,6 @@ function Dashboard() {
                     </Button>
                 </div>
             </div>
-
 
             <p className="text-sm text-neutral-600 mb-4">Resumen - Calendario de tareas</p>
 
@@ -190,7 +286,14 @@ function Dashboard() {
                                         size="small"
                                         type="default"
                                         icon={<CalendarOutlined />}
-                                        onClick={() => navigate('/calendario')}
+                                        onClick={() => {
+                                            if (task.deadline) {
+                                                const formattedDate = dayjs(task.deadline).format('YYYY-MM-DD');
+                                                navigate(`/calendario?date=${formattedDate}`);
+                                            } else {
+                                                navigate('/calendario');
+                                            }
+                                        }}
                                         style={{
                                             backgroundColor: '#FED36A',
                                             color: '#1A1A1A',

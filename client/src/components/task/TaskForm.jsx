@@ -140,11 +140,12 @@ function TaskForm() {
                         {/* Título */}
                         <div className="space-y-2">
                             <h2 className="text-xl font-semibold">Título</h2>
-                            <Input
+                            <Input.TextArea
                                 placeholder="Título"
                                 value={taskData.title}
                                 onChange={(e) => handleChange('title', e.target.value)}
-                                size="large"
+                                autoSize={{ minRows: 1, maxRows: 3 }}
+                                className="break-words whitespace-normal resize-none"
                             />
                         </div>
 
@@ -325,18 +326,35 @@ function TaskForm() {
                             </Select>
                         </div>
 
-                        <Button
-                            htmlType="submit"
-                            block
-                            style={{
-                                backgroundColor: '#FED36A',
-                                borderColor: '#FED36A',
-                                color: '#1A1A1A',
-                                fontWeight: 'bold',
-                            }}
-                        >
-                            {params.id ? 'Actualizar Tarea' : 'Crear Tarea'}
-                        </Button>
+                        <div className="flex flex-col sm:flex-row justify-between gap-4">
+
+                            <Button
+                                htmlType="submit"
+                                block
+                                style={{
+                                    backgroundColor: '#FED36A',
+                                    borderColor: '#FED36A',
+                                    color: '#1A1A1A',
+                                    fontWeight: 'bold',
+                                }}
+                            >
+                                {params.id ? 'Actualizar Tarea' : 'Crear Tarea'}
+                            </Button>
+                            <Button
+                                type="default"
+                                onClick={() => navigate(`/proyectos?projectId=${projectId}`)}
+                                block
+                                style={{
+                                    backgroundColor: 'white',
+                                    color: 'black',
+                                    border: '1px solid #D1D5DB', // gray-300
+                                    fontWeight: 'bold',
+                                }}
+                            >
+                                Cancelar
+                            </Button>
+
+                        </div>
                     </form>
 
                     {params.id && (
