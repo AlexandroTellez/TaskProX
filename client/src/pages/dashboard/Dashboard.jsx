@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { fetchProjects } from "../../api/projects";
 import { fetchTasks } from "../../api/tasks";
@@ -10,6 +10,7 @@ import {
     ConfigProvider,
     Divider,
     Collapse,
+    Badge,
 } from "antd";
 import {
     FolderOpenOutlined,
@@ -93,7 +94,8 @@ function Dashboard() {
             task.deadline && dayjs(task.deadline).isSame(date, 'day')
         );
 
-    const selectedDayTasks = getTasksForDate(selectedDate);
+    const selectedDayTasks = useMemo(() => getTasksForDate(selectedDate), [tasks, selectedDate]);
+
     const handleToday = () => setSelectedDate(dayjs());
 
     return (
@@ -104,71 +106,8 @@ function Dashboard() {
             {/* Vista de TABLA para escritorio */}
             <div className="hidden sm:block">
                 <Table
-                    columns={[
-                        {
-                            title: (
-                                <span>
-                                    <FolderOutlined className="mr-1" /> Nombre Proyecto
-                                </span>
-                            ),
-                            dataIndex: 'name',
-                            key: 'name',
-                            render: (text) => <strong className="whitespace-normal break-words">{text}</strong>,
-                        },
-                        {
-                            title: (
-                                <span>
-                                    <FileTextOutlined className="mr-1" /> Descripción
-                                </span>
-                            ),
-                            dataIndex: 'description',
-                            key: 'description',
-                            render: (desc) => {
-                                const plainDesc = desc || 'No hay descripción disponible';
-                                const isLong = plainDesc.length > 120;
-
-                                return isLong ? (
-                                    <Collapse ghost>
-                                        <Panel header="Ver descripción" key="1" className="text-sm font-medium">
-                                            <p className="text-sm text-neutral-600 whitespace-pre-wrap break-words">
-                                                {plainDesc}
-                                            </p>
-                                        </Panel>
-                                    </Collapse>
-                                ) : (
-                                    <p className="text-sm text-neutral-800 whitespace-pre-wrap break-words">
-                                        {plainDesc}
-                                    </p>
-                                );
-                            },
-                        },
-                        {
-                            title: '',
-                            key: 'ver',
-                            render: (_, record) => (
-                                <Button
-                                    size="small"
-                                    icon={<FolderOpenOutlined />}
-                                    onClick={() => navigate(`/proyectos?projectId=${record.id}`)}
-                                    className="font-bold bg-[#FED36A] text-black border-none"
-                                    style={{
-                                        backgroundColor: '#FED36A',
-                                        color: '#1A1A1A',
-                                        fontWeight: 'bold',
-                                        border: 'none',
-                                    }}
-                                >
-                                    Ver Proyecto
-                                </Button>
-                            ),
-                        },
-                    ]}
-                    dataSource={projects.map((p, index) => ({
-                        key: p._id || index,
-                        id: p._id,
-                        name: p.name,
-                        description: p.description,
-                    }))}
+                    columns={columns}
+                    dataSource={dataSource}
                     pagination={false}
                     bordered
                 />
@@ -252,11 +191,31 @@ function Dashboard() {
             <ConfigProvider locale={esES}>
                 <Calendar
                     fullscreen={false}
-                    className="bg-white rounded-md border shadow mb-6"
+                    className="bg-white rounded-md border shadow mb-2"
                     value={selectedDate}
                     onSelect={(date) => setSelectedDate(date)}
+                    dateCellRender={(date) => {
+                        const dayTasks = getTasksForDate(date);
+                        return dayTasks.length > 0 ? (
+                            <div className="flex justify-center items-center">
+                                <Badge
+                                    count={dayTasks.length}
+                                    style={{
+                                        backgroundColor: '#FED36A',
+                                        color: '#1A1A1A',
+                                        fontWeight: 'bold',
+                                    }}
+                                />
+                            </div>
+                        ) : null;
+                    }}
                 />
             </ConfigProvider>
+
+            {/* Leyenda */}
+            <div className="mt-4 text-center text-sm text-gray-600">
+                <span>📅 <strong>Nota:</strong> Los números indican la cantidad de tareas con fecha límite ese día.</span>
+            </div>
 
             <div className="w-full mb-4">
                 <Title level={4} className="text-black">

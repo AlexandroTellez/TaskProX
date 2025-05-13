@@ -5,7 +5,8 @@ import {
     Empty,
     ConfigProvider,
     Button,
-    Collapse
+    Collapse,
+    Badge
 } from 'antd';
 import { ArrowRightOutlined, FieldTimeOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
@@ -15,7 +16,6 @@ import updateLocale from 'dayjs/plugin/updateLocale';
 import esES from 'antd/es/locale/es_ES';
 import { fetchTasks } from '../../api/tasks';
 import { useSearchParams } from 'react-router-dom';
-
 
 const { Title } = Typography;
 const { Panel } = Collapse;
@@ -44,7 +44,6 @@ function Calendario() {
     };
 
     const handlePanelChange = (date) => {
-        // Cambiar al primer día visible del mes seleccionado
         setSelectedDate(date.startOf('month'));
     };
 
@@ -54,6 +53,15 @@ function Calendario() {
 
     const handleToday = () => {
         setSelectedDate(dayjs());
+    };
+
+    const dateCellRender = (date) => {
+        const dayTasks = getTasksForDate(date);
+        return dayTasks.length > 0 ? (
+            <div className="flex justify-center items-center">
+                <Badge count={dayTasks.length} style={{ backgroundColor: '#FED36A', color: '#1A1A1A', fontWeight: 'bold' }} />
+            </div>
+        ) : null;
     };
 
     const selectedDayTasks = getTasksForDate(selectedDate);
@@ -81,7 +89,13 @@ function Calendario() {
                     value={selectedDate}
                     onSelect={handleSelect}
                     onPanelChange={handlePanelChange}
+                    dateCellRender={dateCellRender}
                 />
+
+                {/* Leyenda */}
+                <div className="mt-4 text-center text-sm text-gray-600">
+                    <span> 📅<strong> Nota:</strong> Los números corresponden a tareas por fecha límite.</span>
+                </div>
 
                 {/* Lista de tareas */}
                 <div className="w-full mt-8">
