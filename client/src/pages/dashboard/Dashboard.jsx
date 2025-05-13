@@ -212,7 +212,11 @@ function Dashboard() {
             <Divider className="my-8" />
 
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
-                <Title level={3} className="m-0">Calendario</Title>
+                <div className="flex flex-col">
+                    <Title level={3} className="m-0">Calendario</Title>
+                    <p className="text-sm text-neutral-600 mt-1">Resumen - Calendario de tareas</p>
+                </div>
+
                 <div className="flex flex-wrap gap-2">
                     <Button
                         size="middle"
@@ -244,8 +248,6 @@ function Dashboard() {
                     </Button>
                 </div>
             </div>
-
-            <p className="text-sm text-neutral-600 mb-4">Resumen - Calendario de tareas</p>
 
             <ConfigProvider locale={esES}>
                 <Calendar
