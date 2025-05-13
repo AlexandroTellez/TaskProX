@@ -11,11 +11,9 @@ export const loginUser = async (credentials) => {
 
         localStorage.setItem('token', access_token);
 
-        // Pedir info del usuario
         const meResponse = await api.get('/auth/me');
         const { first_name, last_name, email } = meResponse.data;
 
-        // Si no hay nombre/apellidos, fallback
         localStorage.setItem('user', JSON.stringify({
             nombre: first_name || '',
             apellidos: last_name || '',
@@ -63,5 +61,35 @@ export const resetPassword = async (token, password) => {
         return res.data;
     } catch (error) {
         throw error.response?.data || { message: 'Error al restablecer la contraseña.' };
+    }
+};
+
+// ========== ACTUALIZAR PERFIL ==========
+export const updateProfile = async (data) => {
+    const formData = new FormData();
+
+    Object.entries(data).forEach(([key, value]) => {
+        if (key === 'profileImage' && value instanceof File) {
+            formData.append('profileImage', value);
+        } else if (value !== undefined && value !== null && value !== '') {
+            formData.append(key, value);
+        }
+    });
+
+    try {
+        const res = await api.put('/auth/profile', formData);
+        return res.data;
+    } catch (error) {
+        throw error.response?.data || { message: 'Error al actualizar el perfil.' };
+    }
+};
+
+// ========== ELIMINAR CUENTA ==========
+export const deleteAccount = async () => {
+    try {
+        const res = await api.delete('/auth/delete');
+        return res.data;
+    } catch (error) {
+        throw error.response?.data || { message: 'Error al eliminar la cuenta.' };
     }
 };

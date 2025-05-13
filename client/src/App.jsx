@@ -18,6 +18,7 @@ import ResetPassword from './pages/auth/ResetPassword';
 import DashboardLayout from './layout/DashboardLayout';
 import Proyectos from './pages/dashboard/Proyectos';
 import Calendario from './pages/dashboard/Calendario';
+import Cuenta from './pages/dashboard/Cuenta'; // ✅ nueva importación
 import PrivateRoute from './components/auth/PrivateRoute';
 
 function AppContent() {
@@ -60,6 +61,7 @@ function AppContent() {
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/proyectos" element={<Proyectos />} />
               <Route path="/calendario" element={<Calendario />} />
+              <Route path="/cuenta" element={<Cuenta />} />
               <Route path="/tasks/new" element={<TaskForm mode="create" />} />
               <Route path="/tasks/:id" element={<TaskForm mode="view" />} />
               <Route path="/tasks/:id/edit" element={<TaskForm mode="edit" />} />

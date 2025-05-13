@@ -112,6 +112,7 @@ class UserLogin(BaseModel):
 
 class UserOut(UserBase):
     id: Optional[PyObjectId] = Field(default=None, alias="_id")
+    profile_image: Optional[str] = None  # Soporte para imagen base64
 
     class Config:
         from_attributes = True

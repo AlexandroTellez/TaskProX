@@ -8,8 +8,7 @@ import {
     Popconfirm,
     message,
     Checkbox,
-    ConfigProvider,
-    Space
+    ConfigProvider
 } from 'antd';
 import { createTask, updateTask, deleteTask, fetchTask } from '../../api/tasks';
 import dayjs from 'dayjs';
@@ -25,6 +24,9 @@ import {
     ToolOutlined
 } from '@ant-design/icons';
 
+const { Option } = Select;
+
+// Configuración de dayjs para el idioma español y el inicio de semana
 dayjs.extend(localeData);
 dayjs.extend(updateLocale);
 dayjs.locale('es');
@@ -32,8 +34,6 @@ dayjs.updateLocale('es', { weekStart: 1 });
 
 const user = JSON.parse(localStorage.getItem('user'));
 const userFullName = `${user?.nombre || ''} ${user?.apellidos || ''}`.trim();
-
-const { Option } = Select;
 
 function TaskForm() {
     const [taskData, setTaskData] = useState({
@@ -65,8 +65,8 @@ function TaskForm() {
             const dataToSend = {
                 ...taskData,
                 projectId: projectId || null,
-                startDate: taskData.startDate ? dayjs(taskData.startDate).toISOString() : null,
-                deadline: noDeadline ? null : (taskData.deadline ? dayjs(taskData.deadline).toISOString() : null),
+                startDate: taskData.startDate && dayjs(taskData.startDate).isValid() ? dayjs(taskData.startDate).toISOString() : null,
+                deadline: noDeadline ? null : (taskData.deadline && dayjs(taskData.deadline).isValid() ? dayjs(taskData.deadline).toISOString() : null),
             };
 
             if (!params.id) {
@@ -120,7 +120,6 @@ function TaskForm() {
                 })
                 .catch((err) => console.log(err));
         } else {
-            // Al crear tarea, guardar el nombre del usuario
             setTaskData((prev) => ({ ...prev, creator_name: userFullName }));
         }
     }, [params.id]);
@@ -128,7 +127,7 @@ function TaskForm() {
     return (
         <ConfigProvider locale={esES}>
             <div className="flex items-start justify-center min-h-screen w-full bg-white px-4">
-                <div className="w-full max-w-2xl py-10">
+                <div className="w-full max-w-4xl py-10">
                     <form
                         className="bg-neutral-900 border border-neutral-800 p-8 rounded-xl shadow-md space-y-6 text-white"
                         onSubmit={handleSubmit}
@@ -137,7 +136,6 @@ function TaskForm() {
                             {params.id ? 'Actualizar Tarea' : 'Crear Tarea'}
                         </h1>
 
-                        {/* Título */}
                         <div className="space-y-2">
                             <h2 className="text-xl font-semibold">Título</h2>
                             <Input.TextArea
@@ -149,7 +147,6 @@ function TaskForm() {
                             />
                         </div>
 
-                        {/* Descripción */}
                         <div className="space-y-2">
                             <h2 className="text-xl font-semibold">Descripción</h2>
                             <div className="bg-white rounded text-black">
@@ -170,7 +167,6 @@ function TaskForm() {
                             </div>
                         </div>
 
-                        {/* Creador */}
                         <div className="space-y-2">
                             <h2 className="text-xl font-semibold">Creador</h2>
                             <Input
@@ -179,17 +175,15 @@ function TaskForm() {
                                 className="bg-neutral-800 text-white border border-gray-600 pointer-events-none focus:outline-none focus:ring-0 focus:border-transparent"
                             />
                         </div>
-                        {/* Colaboradores */}
+
                         <div className="space-y-2">
                             <h2 className="text-xl font-semibold">Colaboradores</h2>
-
                             <div className="flex flex-col gap-2">
                                 <Input
                                     placeholder="Correo del colaborador"
                                     value={newCollaborator}
                                     onChange={(e) => setNewCollaborator(e.target.value)}
                                 />
-
                                 <div className="flex gap-2 items-center">
                                     <Select
                                         value={newPermission}
@@ -197,24 +191,13 @@ function TaskForm() {
                                         className="flex-1"
                                         dropdownStyle={{ zIndex: 1300 }}
                                     >
-                                        <Option value="read">
-                                            <EyeOutlined className="mr-1" /> Ver
-                                        </Option>
-                                        <Option value="write">
-                                            <EditOutlined className="mr-1" /> Ver y editar
-                                        </Option>
-                                        <Option value="admin">
-                                            <ToolOutlined className="mr-1" /> Administrador
-                                        </Option>
+                                        <Option value="read"><EyeOutlined /> Ver</Option>
+                                        <Option value="write"><EditOutlined /> Ver y editar</Option>
+                                        <Option value="admin"><ToolOutlined /> Administrador</Option>
                                     </Select>
                                     <Button
                                         onClick={addCollaborator}
-                                        style={{
-                                            backgroundColor: '#FED36A',
-                                            borderColor: '#FED36A',
-                                            color: '#1A1A1A',
-                                            fontWeight: 'bold',
-                                        }}
+                                        style={{ backgroundColor: '#FED36A', borderColor: '#FED36A', color: '#1A1A1A', fontWeight: 'bold' }}
                                     >
                                         Añadir
                                     </Button>
@@ -228,12 +211,9 @@ function TaskForm() {
                             ) : (
                                 <ul className="mt-2 space-y-2">
                                     {taskData.collaborators.map((col, idx) => (
-                                        <li
-                                            key={idx}
-                                            className="flex flex-col sm:flex-row sm:justify-between sm:items-center bg-neutral-800 p-2 rounded gap-2"
-                                        >
+                                        <li key={idx} className="flex flex-col sm:flex-row sm:justify-between sm:items-center bg-neutral-800 p-2 rounded gap-2">
                                             <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full">
-                                                <span className="text-white">{col.email}</span>
+                                                <span>{col.email}</span>
                                                 <Select
                                                     value={col.permission}
                                                     onChange={(newPerm) => {
@@ -245,26 +225,12 @@ function TaskForm() {
                                                     className="flex-1 sm:w-48"
                                                     dropdownStyle={{ zIndex: 1300 }}
                                                 >
-                                                    <Option value="read">
-                                                        <EyeOutlined className="mr-1" /> Ver
-                                                    </Option>
-                                                    <Option value="write">
-                                                        <EditOutlined className="mr-1" /> Ver y editar
-                                                    </Option>
-                                                    <Option value="admin">
-                                                        <ToolOutlined className="mr-1" /> Administrador
-                                                    </Option>
+                                                    <Option value="read"><EyeOutlined /> Ver</Option>
+                                                    <Option value="write"><EditOutlined /> Ver y editar</Option>
+                                                    <Option value="admin"><ToolOutlined /> Administrador</Option>
                                                 </Select>
                                             </div>
-                                            <Button
-                                                danger
-                                                size="small"
-                                                onClick={() => removeCollaborator(col.email)}
-                                                className="self-end sm:self-auto"
-                                                style={{
-                                                    fontWeight: 'bold',
-                                                }}
-                                            >
+                                            <Button danger size="small" onClick={() => removeCollaborator(col.email)} className="self-end sm:self-auto" style={{ fontWeight: 'bold' }}>
                                                 Eliminar
                                             </Button>
                                         </li>
@@ -273,7 +239,6 @@ function TaskForm() {
                             )}
                         </div>
 
-                        {/* Fechas */}
                         <div className="space-y-2">
                             <h2 className="text-xl font-semibold">Fechas</h2>
                             <div className="flex flex-col gap-2">
@@ -312,7 +277,6 @@ function TaskForm() {
                             </div>
                         </div>
 
-                        {/* Estado */}
                         <div className="space-y-2">
                             <h2 className="text-xl font-semibold">Estado</h2>
                             <Select
@@ -323,20 +287,16 @@ function TaskForm() {
                                 <Option value="Pendiente">Pendiente</Option>
                                 <Option value="En proceso">En proceso</Option>
                                 <Option value="Completado">Completado</Option>
+                                <Option value="Cancelado">Cancelado</Option>
+                                <Option value="En espera">En espera</Option>
                             </Select>
                         </div>
 
                         <div className="flex flex-col sm:flex-row justify-between gap-4">
-
                             <Button
                                 htmlType="submit"
                                 block
-                                style={{
-                                    backgroundColor: '#FED36A',
-                                    borderColor: '#FED36A',
-                                    color: '#1A1A1A',
-                                    fontWeight: 'bold',
-                                }}
+                                style={{ backgroundColor: '#FED36A', borderColor: '#FED36A', color: '#1A1A1A', fontWeight: 'bold' }}
                             >
                                 {params.id ? 'Actualizar Tarea' : 'Crear Tarea'}
                             </Button>
@@ -344,16 +304,10 @@ function TaskForm() {
                                 type="default"
                                 onClick={() => navigate(`/proyectos?projectId=${projectId}`)}
                                 block
-                                style={{
-                                    backgroundColor: 'white',
-                                    color: 'black',
-                                    border: '1px solid #D1D5DB', // gray-300
-                                    fontWeight: 'bold',
-                                }}
+                                style={{ backgroundColor: 'white', color: 'black', border: '1px solid #D1D5DB', fontWeight: 'bold' }}
                             >
                                 Cancelar
                             </Button>
-
                         </div>
                     </form>
 
@@ -376,12 +330,7 @@ function TaskForm() {
                                 danger
                                 block
                                 className="mt-6"
-                                style={{
-                                    fontWeight: 'bold',
-                                    backgroundColor: '#ff4d4f',
-                                    borderColor: '#ff4d4f',
-                                    color: 'white',
-                                }}
+                                style={{ fontWeight: 'bold', backgroundColor: '#ff4d4f', borderColor: '#ff4d4f', color: 'white' }}
                             >
                                 Borrar Tarea
                             </Button>
