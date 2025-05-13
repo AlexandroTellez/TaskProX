@@ -1,27 +1,27 @@
-
 import { Button, Tag, Popconfirm } from 'antd';
 import { EditOutlined, CopyOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { getPermission, getStatusTag, formatDate } from './utils.jsx';
 
-
-const TaskMobileCard = ({ tasks, userFullName, userEmail, onDuplicate, onDelete, projectId }) => {
+const TaskMobileCard = ({ tasks, userEmail, onDuplicate, onDelete, projectId }) => {
     const navigate = useNavigate();
 
     return (
         <div className="space-y-4">
             {tasks.map((task) => {
-                const permission = getPermission(task, userFullName, userEmail);
+                const permission = getPermission(task, userEmail);
 
                 return (
-                    <div key={task.id} className="border p-4 rounded-md shadow bg-white text-black">
+                    <div key={task.id || task._id} className="border p-4 rounded-md shadow bg-white text-black">
                         <p className="font-bold text-lg mb-2">{task.title}</p>
+
                         <p className="text-sm mb-1">
-                            <strong>Creador:</strong> {task.creator_name}
+                            <strong>Creador:</strong> {task.creator_name || 'Desconocido'}
                         </p>
+
                         <p className="text-sm mb-1">
                             <strong>Colaboradores:</strong>{' '}
-                            {task.collaborators.length > 0 ? (
+                            {task.collaborators?.length > 0 ? (
                                 task.collaborators.map((c, i) => (
                                     <Tag
                                         key={i}
@@ -40,12 +40,15 @@ const TaskMobileCard = ({ tasks, userFullName, userEmail, onDuplicate, onDelete,
                                 'Ninguno'
                             )}
                         </p>
+
                         <p className="text-sm mb-1">
                             <strong>Fecha de inicio:</strong> {formatDate(task.startDate)}
                         </p>
+
                         <p className="text-sm mb-1">
                             <strong>Fecha límite:</strong> {formatDate(task.deadline)}
                         </p>
+
                         <p className="text-sm mb-2">
                             <strong>Estado:</strong> {getStatusTag(task.status)}
                         </p>
@@ -64,7 +67,7 @@ const TaskMobileCard = ({ tasks, userFullName, userEmail, onDuplicate, onDelete,
                             {(permission === 'write' || permission === 'admin') && (
                                 <Button
                                     icon={<EditOutlined />}
-                                    onClick={() => navigate(`/tasks/${task.id}/edit?projectId=${projectId}`)}
+                                    onClick={() => navigate(`/tasks/${task.id || task._id}/edit?projectId=${projectId}`)}
                                     style={{
                                         backgroundColor: '#FED36A',
                                         borderColor: '#FED36A',
@@ -75,6 +78,7 @@ const TaskMobileCard = ({ tasks, userFullName, userEmail, onDuplicate, onDelete,
                                     Editar
                                 </Button>
                             )}
+
                             {['read', 'write', 'admin'].includes(permission) && (
                                 <Button
                                     onClick={() => onDuplicate(task)}
@@ -88,10 +92,11 @@ const TaskMobileCard = ({ tasks, userFullName, userEmail, onDuplicate, onDelete,
                                     Duplicar
                                 </Button>
                             )}
+
                             {permission === 'admin' && (
                                 <Popconfirm
                                     title="¿Estás seguro de borrar esta tarea?"
-                                    onConfirm={() => onDelete(task.id)}
+                                    onConfirm={() => onDelete(task.id || task._id)}
                                     okText="Sí"
                                     cancelText="No"
                                 >

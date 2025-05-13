@@ -1,13 +1,11 @@
-
 import { Button, Popconfirm, Space } from 'antd';
 import { EditOutlined, DeleteOutlined, CopyOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { getPermission } from './utils.jsx';
 
-
-const TaskActions = ({ task, userFullName, userEmail, projectId, onDuplicate, onDelete }) => {
+const TaskActions = ({ task, userEmail, projectId, onDuplicate, onDelete }) => {
     const navigate = useNavigate();
-    const permission = getPermission(task, userFullName, userEmail);
+    const permission = getPermission(task, userEmail);
 
     return (
         <Space>
@@ -15,7 +13,12 @@ const TaskActions = ({ task, userFullName, userEmail, projectId, onDuplicate, on
                 <Button
                     icon={<EditOutlined />}
                     onClick={() => navigate(`/tasks/${task.id}/edit?projectId=${projectId}`)}
-                    style={{ backgroundColor: '#FED36A', borderColor: '#FED36A', color: '#1A1A1A', fontWeight: 'bold' }}
+                    style={{
+                        backgroundColor: '#FED36A',
+                        borderColor: '#FED36A',
+                        color: '#1A1A1A',
+                        fontWeight: 'bold',
+                    }}
                 >
                     Editar
                 </Button>
@@ -25,7 +28,11 @@ const TaskActions = ({ task, userFullName, userEmail, projectId, onDuplicate, on
                 <Button
                     onClick={() => onDuplicate(task)}
                     icon={<CopyOutlined />}
-                    style={{ borderColor: '#FED36A', color: '#1A1A1A', fontWeight: 'bold' }}
+                    style={{
+                        borderColor: '#FED36A',
+                        color: '#1A1A1A',
+                        fontWeight: 'bold',
+                    }}
                 >
                     Duplicar
                 </Button>
@@ -41,7 +48,11 @@ const TaskActions = ({ task, userFullName, userEmail, projectId, onDuplicate, on
                     <Button
                         danger
                         icon={<DeleteOutlined />}
-                        style={{ borderColor: '#ff4d4f', color: '#ff4d4f', fontWeight: 'bold' }}
+                        style={{
+                            borderColor: '#ff4d4f',
+                            color: '#ff4d4f',
+                            fontWeight: 'bold',
+                        }}
                     >
                         Borrar
                     </Button>

@@ -89,6 +89,7 @@ class Project(BaseModel):
     description: Optional[str] = None
     user_id: Optional[str] = None
     user_email: Optional[EmailStr] = None
+    collaborators: Optional[List[Collaborator]] = []
 
     class Config:
         from_attributes = True

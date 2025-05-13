@@ -16,8 +16,6 @@ const Proyectos = () => {
     const [tasks, setTasks] = useState([]);
     const navigate = useNavigate();
 
-    const currentUserEmail = JSON.parse(localStorage.getItem('user'))?.email || '';
-
     const loadProjects = async () => {
         try {
             const res = await fetchProjects();
@@ -32,7 +30,11 @@ const Proyectos = () => {
     const loadTasks = async (projectId) => {
         try {
             const res = await fetchTasksByProject(projectId);
-            setTasks(res.data);
+            if (Array.isArray(res.data)) {
+                setTasks(res.data);
+            } else {
+                setTasks([]);
+            }
         } catch (err) {
             console.error('Error al obtener tareas:', err);
             setTasks([]);
@@ -107,16 +109,11 @@ const Proyectos = () => {
                         </Button>
                     </div>
 
-                    {tasks.length > 0 ? (
-                        <TaskList
-                            tasks={tasks}
-                            projectId={selectedProject._id}
-                            onTaskChanged={() => loadTasks(selectedProject._id)}
-                            currentUserEmail={currentUserEmail}
-                        />
-                    ) : (
-                        <Empty description="Este proyecto no tiene tareas aún" />
-                    )}
+                    <TaskList
+                        tasks={tasks}
+                        projectId={selectedProject._id}
+                        onTaskChanged={() => loadTasks(selectedProject._id)}
+                    />
                 </>
             ) : (
                 <Empty description="Selecciona un proyecto para ver sus tareas" className="mt-12" />

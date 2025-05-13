@@ -28,6 +28,7 @@ __all__ = ["pwd_context", "user_collection"]
 
 # ================== UTILIDADES ==================
 
+
 def normalize_status(status):
     status = str(status).strip().lower()
     if status == "completado":
@@ -54,6 +55,7 @@ def parse_date_safe(date_str):
 
 # ================== TAREAS ==================
 
+
 async def get_one_task_id(id):
     return await collection.find_one({"_id": ObjectId(id)})
 
@@ -61,18 +63,51 @@ async def get_one_task_id(id):
 async def get_all_tasks(filters: dict):
     query = {}
 
-    if filters.get("project_id"):
-        try:
-            query["projectId"] = ObjectId(filters["project_id"])
-        except:
-            pass
+    user_id = filters.get("user_id")
+    user_email = filters.get("user_email")
+    project_id = filters.get("project_id")
 
-    if filters.get("user_id") and filters.get("user_email"):
-        query["$or"] = [
-            {"user_id": filters["user_id"]},
-            {"collaborators": {"$elemMatch": {"email": filters["user_email"]}}},
+    project_permissions = {}  # project_id -> permission
+    project_ids = []
+
+    # ====== Obtener proyectos donde el usuario es owner o colaborador ======
+    project_query = {
+        "$or": [
+            {"user_id": user_id},
+            {"collaborators": {"$elemMatch": {"email": user_email}}},
         ]
+    }
 
+    cursor = project_collection.find(project_query)
+    async for project in cursor:
+        pid = project["_id"]
+        project_ids.append(pid)
+
+        if project["user_id"] == user_id:
+            project_permissions[str(pid)] = "admin"
+        else:
+            for col in project.get("collaborators", []):
+                if col["email"] == user_email:
+                    project_permissions[str(pid)] = col["permission"]
+
+    # ====== Query base para ver tareas ======
+    base_conditions = [
+        {"creator": user_email},  # siempre incluir tareas creadas por el usuario
+        {"collaborators": {"$elemMatch": {"email": user_email}}},
+        {"projectId": {"$in": project_ids}},
+    ]
+
+    if project_id:
+        try:
+            project_oid = ObjectId(project_id)
+            query["$and"] = [{"projectId": project_oid}, {"$or": base_conditions}]
+        except Exception as e:
+            print(f"[ERROR] ID de proyecto inválido: {project_id} -> {e}")
+            query["$or"] = base_conditions
+    else:
+        query["$or"] = base_conditions
+
+    # ====== Filtros adicionales ======
     if filters.get("title"):
         query["title"] = {"$regex": filters["title"], "$options": "i"}
 
@@ -83,33 +118,47 @@ async def get_all_tasks(filters: dict):
         query["status"] = normalize_status(filters["status"])
 
     if filters.get("startDate"):
-        try:
-            start_date = parse_date_safe(filters["startDate"])
-            if start_date:
-                query["startDate"] = {
-                    "$gte": start_date,
-                    "$lt": start_date + timedelta(days=1),
-                }
-        except Exception as e:
-            print(f" Error al parsear startDate: {filters['startDate']} -> {e}")
+        start_date = parse_date_safe(filters["startDate"])
+        if start_date:
+            query["startDate"] = {
+                "$gte": start_date,
+                "$lt": start_date + timedelta(days=1),
+            }
 
     if filters.get("deadline"):
-        try:
-            deadline = parse_date_safe(filters["deadline"])
-            if deadline:
-                query["deadline"] = {
-                    "$gte": deadline,
-                    "$lt": deadline + timedelta(days=1),
-                }
-        except Exception as e:
-            print(f" Error al parsear deadline: {filters['deadline']} -> {e}")
+        deadline = parse_date_safe(filters["deadline"])
+        if deadline:
+            query["deadline"] = {
+                "$gte": deadline,
+                "$lt": deadline + timedelta(days=1),
+            }
 
+    # ====== Recuperar tareas y asignar permisos ======
     tasks = []
     cursor = collection.find(query)
     async for document in cursor:
-        for date_field in ["startDate", "deadline"]:
-            if date_field in document and isinstance(document[date_field], str):
-                document[date_field] = parse_date_safe(document[date_field])
+        project_id_str = str(document.get("projectId"))
+        permission = None
+
+        if document.get("creator") == user_email:
+            permission = "admin"
+        elif project_id_str in project_permissions:
+            permission = project_permissions[project_id_str]
+        else:
+            for col in document.get("collaborators", []):
+                if col["email"] == user_email:
+                    permission = col.get("permission", "read")
+                    break
+
+        if not permission:
+            continue  # seguridad adicional
+
+        document["effective_permission"] = permission
+
+        # Garantizar campo `id` para frontend
+        if "_id" in document and "id" not in document:
+            document["id"] = str(document["_id"])
+
         tasks.append(Task(**document))
 
     return tasks
@@ -165,6 +214,7 @@ async def update_task(id: str, data):
     document = await collection.find_one({"_id": ObjectId(id)})
     return document
 
+
 async def delete_task(id: str):
     await collection.delete_one({"_id": ObjectId(id)})
     return True
@@ -172,32 +222,60 @@ async def delete_task(id: str):
 
 # ================== PROYECTOS ==================
 
-async def get_all_projects(user_id: str = None):
-    query = {"user_id": user_id} if user_id else {}
+
+async def get_all_projects(filters: dict = None):
+    filters = filters or {}
+    query = {}
+
+    user_id = filters.get("user_id")
+    user_email = filters.get("user_email")
+
+    # Mostrar proyectos donde sea propietario o colaborador
+    if user_id and user_email:
+        query["$or"] = [
+            {"user_id": user_id},
+            {"collaborators": {"$elemMatch": {"email": user_email}}},
+        ]
+
+    if filters.get("name"):
+        query["name"] = {"$regex": filters["name"], "$options": "i"}
+
+    if filters.get("description"):
+        query["description"] = {"$regex": filters["description"], "$options": "i"}
+
     projects = []
     cursor = project_collection.find(query)
     async for document in cursor:
         projects.append(Project(**document))
     return projects
 
+
 async def get_project_by_id(id: str):
     return await project_collection.find_one({"_id": ObjectId(id)})
 
 
 async def create_project(data):
-    new = await project_collection.insert_one(data)
-    created = await project_collection.find_one({"_id": new.inserted_id})
+    if "collaborators" not in data or data["collaborators"] is None:
+        data["collaborators"] = []
+
+    result = await project_collection.insert_one(data)
+    created = await project_collection.find_one({"_id": result.inserted_id})
     return Project(**created)
 
 
 async def update_project(id: str, data):
+    if isinstance(data, Project):
+        data = data.dict(exclude_none=True)
+
     await project_collection.update_one({"_id": ObjectId(id)}, {"$set": data})
     updated = await project_collection.find_one({"_id": ObjectId(id)})
     return Project(**updated)
 
+
 async def delete_project(id: str):
     await project_collection.delete_one({"_id": ObjectId(id)})
     return True
+
 
 async def get_projects_with_progress(user_id: str = None):
     query = {"user_id": user_id} if user_id else {}
@@ -238,6 +316,7 @@ async def get_projects_with_progress(user_id: str = None):
 
 
 # ================== USUARIOS ==================
+
 
 async def get_user_by_email(email: str):
     return await user_collection.find_one({"email": email})

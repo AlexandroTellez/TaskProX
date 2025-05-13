@@ -8,16 +8,17 @@ import {
     Space,
     Popconfirm,
     ConfigProvider,
+    Select,
+    Row,
+    Col
 } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, CopyOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, DeleteOutlined, CopyOutlined, MinusCircleOutlined } from '@ant-design/icons';
 import {
     createProject,
     updateProject,
     deleteProject,
 } from '../../api/projects';
 import { fetchTasksByProject, createTask } from '../../api/tasks';
-
-
 
 const ProjectButton = ({
     selectedProject,
@@ -40,10 +41,13 @@ const ProjectButton = ({
             message.warning('Selecciona un proyecto para editar');
             return;
         }
+
         form.setFieldsValue({
             name: selectedProject.name,
             description: selectedProject.description,
+            collaborators: selectedProject.collaborators || [],
         });
+
         setIsEditing(true);
         setIsModalOpen(true);
     };
@@ -58,7 +62,7 @@ const ProjectButton = ({
                 const id = selectedProject._id || selectedProject.id;
                 await updateProject(id, values);
                 message.success('Proyecto actualizado');
-                onProjectUpdated?.(id); // ✅ se pasa el ID actualizado
+                onProjectUpdated?.(id);
             } else {
                 await createProject(values);
                 message.success('Proyecto creado');
@@ -78,19 +82,17 @@ const ProjectButton = ({
                 return message.warning('Selecciona un proyecto para duplicar');
             }
 
-            // 1. Crear nuevo proyecto
             const duplicatedProject = {
                 name: `${selectedProject.name} (copia)`,
                 description: selectedProject.description || '',
+                collaborators: selectedProject.collaborators || [],
             };
 
             const { data: newProject } = await createProject(duplicatedProject);
             message.success('Proyecto duplicado');
 
-            // 2. Obtener tareas del proyecto original
             const { data: tasks } = await fetchTasksByProject(selectedProject._id || selectedProject.id);
 
-            // 3. Duplicar cada tarea asociándola al nuevo proyecto
             for (const task of tasks) {
                 const duplicatedTask = {
                     title: `${task.title} (copia)`,
@@ -105,15 +107,13 @@ const ProjectButton = ({
             }
 
             message.success('Tareas duplicadas correctamente');
-            onProjectCreated?.(); // recargar la lista de proyectos
+            onProjectCreated?.();
 
         } catch (error) {
             console.error(error);
             message.error('Error al duplicar el proyecto y sus tareas');
         }
     };
-
-
 
     const handleDelete = async () => {
         try {
@@ -142,7 +142,6 @@ const ProjectButton = ({
                 <Button icon={<PlusOutlined />} onClick={showCreateModal} style={yellowStyle}>
                     Crear Proyecto
                 </Button>
-
                 <Button icon={<EditOutlined />} onClick={showEditModal} style={yellowStyle}>
                     Editar Proyecto
                 </Button>
@@ -157,9 +156,6 @@ const ProjectButton = ({
                 >
                     Duplicar Proyecto
                 </Button>
-
-
-
                 <Popconfirm
                     title="¿Seguro que deseas eliminar este proyecto?"
                     onConfirm={handleDelete}
@@ -217,9 +213,57 @@ const ProjectButton = ({
                         >
                             <Input placeholder="Ej. TaskProX" />
                         </Form.Item>
+
                         <Form.Item label="Descripción" name="description">
                             <Input.TextArea rows={3} placeholder="Describe el proyecto..." />
                         </Form.Item>
+
+                        <Form.List name="collaborators">
+                            {(fields, { add, remove }) => (
+                                <>
+                                    <label className="block text-sm font-medium mb-2">
+                                        Colaboradores
+                                    </label>
+                                    {fields.map(({ key, name, ...restField }) => (
+                                        <Row gutter={8} key={key} className="mb-2">
+                                            <Col span={14}>
+                                                <Form.Item
+                                                    {...restField}
+                                                    name={[name, 'email']}
+                                                    rules={[{ required: true, message: 'Email requerido' }]}
+                                                >
+                                                    <Input placeholder="Email del colaborador" />
+                                                </Form.Item>
+                                            </Col>
+                                            <Col span={8}>
+                                                <Form.Item
+                                                    {...restField}
+                                                    name={[name, 'permission']}
+                                                    rules={[{ required: true, message: 'Permiso requerido' }]}
+                                                >
+                                                    <Select placeholder="Permiso">
+                                                        <Select.Option value="read">Ver</Select.Option>
+                                                        <Select.Option value="write">Editar</Select.Option>
+                                                        <Select.Option value="admin">Administrador</Select.Option>
+                                                    </Select>
+                                                </Form.Item>
+                                            </Col>
+                                            <Col span={2}>
+                                                <MinusCircleOutlined
+                                                    onClick={() => remove(name)}
+                                                    className="text-red-500 mt-2 cursor-pointer"
+                                                />
+                                            </Col>
+                                        </Row>
+                                    ))}
+                                    <Form.Item>
+                                        <Button type="dashed" onClick={() => add()} block>
+                                            + Añadir colaborador
+                                        </Button>
+                                    </Form.Item>
+                                </>
+                            )}
+                        </Form.List>
                     </Form>
                 </Modal>
             </ConfigProvider>

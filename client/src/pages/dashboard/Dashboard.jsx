@@ -11,6 +11,7 @@ import {
     Divider,
     Collapse,
     Badge,
+    Tooltip
 } from "antd";
 import {
     FolderOpenOutlined,
@@ -19,6 +20,7 @@ import {
     CalendarOutlined,
     ArrowRightOutlined,
     FieldTimeOutlined,
+    UserOutlined
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import esES from "antd/es/locale/es_ES";
@@ -47,6 +49,7 @@ function Dashboard() {
         id: p._id || p.id,
         name: p.name,
         description: p.description || 'No hay descripción disponible',
+        collaborators: p.collaborators || [],
     }));
 
     const columns = [
@@ -67,6 +70,29 @@ function Dashboard() {
             ),
             dataIndex: 'description',
             key: 'description',
+        },
+        {
+            title: (
+                <span>
+                    <UserOutlined className="mr-1" /> Colaboradores
+                </span>
+            ),
+            dataIndex: 'collaborators',
+            key: 'collaborators',
+            render: (collaborators) =>
+                collaborators.length > 0 ? (
+                    <ul className="list-disc list-inside text-sm text-gray-700">
+                        {collaborators.map((col, idx) => (
+                            <li key={idx}>
+                                <Tooltip title={`Permiso: ${col.permission}`}>
+                                    {col.email}
+                                </Tooltip>
+                            </li>
+                        ))}
+                    </ul>
+                ) : (
+                    <span className="text-neutral-500 italic">Sin colaboradores</span>
+                ),
         },
         {
             title: '',
@@ -216,7 +242,7 @@ function Dashboard() {
             <div className="mt-4 text-center text-sm text-gray-600">
                 <span>📅 <strong>Nota:</strong> Los números indican la cantidad de tareas con fecha límite ese día.</span>
             </div>
-            <br/>
+            <br />
             <div className="w-full mb-4">
                 <Title level={4} className="text-black underline">
                     Tareas para el {selectedDate.format('DD/MM/YYYY')}

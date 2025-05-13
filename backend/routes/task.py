@@ -16,11 +16,19 @@ task = APIRouter()
 
 
 def get_permission(task: dict, user_email: str) -> str:
+    # 1. El creador tiene permisos completos
     if task.get("creator") == user_email:
         return "admin"
+
+    # 2. Permisos desde el proyecto (ya evaluados en effective_permission)
+    if "effective_permission" in task:
+        return task["effective_permission"]
+
+    # 3. Buscar en colaboradores individuales de la tarea
     for collaborator in task.get("collaborators", []):
         if collaborator.get("email") == user_email:
             return collaborator.get("permission", "read")
+
     return "none"
 
 
@@ -33,9 +41,17 @@ async def get_task(id: str, user: dict = Depends(get_current_user)):
     if not tarea:
         raise HTTPException(404, f"Tarea con id {id} no encontrada")
 
+    # Calcular permiso manual si viene de find_one
     permission = get_permission(tarea, user["email"])
     if permission == "none":
         raise HTTPException(403, "No tienes acceso a esta tarea")
+
+    # Añadir campo de permiso efectivo si no está
+    tarea["effective_permission"] = permission
+
+    # Asegurar que tenga un campo 'id' para el frontend
+    if "_id" in tarea and "id" not in tarea:
+        tarea["id"] = str(tarea["_id"])
 
     return tarea
 

@@ -17,9 +17,6 @@ import FormActions from './form/FormActions';
 
 import { createTask, updateTask, deleteTask, fetchTask } from '../../api/tasks';
 
-const user = JSON.parse(localStorage.getItem('user'));
-const userFullName = `${user?.nombre || ''} ${user?.apellidos || ''}`.trim();
-
 dayjs.extend(localeData);
 dayjs.extend(updateLocale);
 dayjs.locale('es');
@@ -33,6 +30,8 @@ function TaskForm() {
         deadline: null,
         status: 'Pendiente',
         collaborators: [],
+        creator: '',
+        creator_name: '',
     });
 
     const [noDeadline, setNoDeadline] = useState(false);
@@ -45,37 +44,38 @@ function TaskForm() {
     const queryParams = new URLSearchParams(location.search);
     const projectId = queryParams.get('projectId');
 
+    const user = JSON.parse(localStorage.getItem('user')) || {};
+    const userFullName = `${user.nombre || ''} ${user.apellidos || ''}`.trim();
+    const userEmail = user.email || '';
+
     const handleChange = (field, value) => {
         setTaskData((prev) => ({ ...prev, [field]: value }));
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        const dataToSend = {
+            ...taskData,
+            startDate: taskData.startDate ? dayjs(taskData.startDate).toISOString() : null,
+            deadline: noDeadline ? null : (taskData.deadline ? dayjs(taskData.deadline).toISOString() : null),
+            projectId: projectId || null,
+            creator: userEmail,
+            creator_name: userFullName,
+        };
+
         try {
-            const dataToSend = {
-                ...taskData,
-                projectId: projectId || null,
-                startDate: taskData.startDate
-                    ? dayjs(taskData.startDate).format('YYYY-MM-DD')
-                    : null,
-                deadline: noDeadline
-                    ? null
-                    : (taskData.deadline ? dayjs(taskData.deadline).format('YYYY-MM-DD') : null),
-            };
-
-            if (!params.id) {
-                await createTask(dataToSend);
-            } else {
+            if (params.id) {
                 await updateTask(params.id, dataToSend);
+            } else {
+                await createTask(dataToSend);
             }
-
             navigate(`/proyectos?projectId=${projectId}`);
         } catch (err) {
             console.error(err);
             message.error('Error al guardar la tarea');
         }
     };
-
 
     const handleDelete = async () => {
         try {
@@ -119,13 +119,18 @@ function TaskForm() {
                         deadline: res.data.deadline ? dayjs(res.data.deadline) : null,
                         status: res.data.status || 'Pendiente',
                         collaborators: res.data.collaborators || [],
+                        creator: res.data.creator || userEmail,
                         creator_name: res.data.creator_name || userFullName,
                     });
                     setNoDeadline(!res.data.deadline);
                 })
                 .catch(console.error);
         } else {
-            setTaskData((prev) => ({ ...prev, creator_name: userFullName }));
+            setTaskData((prev) => ({
+                ...prev,
+                creator: userEmail,
+                creator_name: userFullName,
+            }));
         }
     }, [params.id]);
 
@@ -169,10 +174,7 @@ function TaskForm() {
                             setNoDeadline={setNoDeadline}
                         />
 
-                        <StatusSelector
-                            value={taskData.status}
-                            onChange={(val) => handleChange('status', val)}
-                        />
+                        <StatusSelector value={taskData.status} onChange={(val) => handleChange('status', val)} />
 
                         <FormActions
                             isEditing={!!params.id}

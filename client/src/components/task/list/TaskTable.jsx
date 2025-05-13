@@ -1,12 +1,9 @@
-
 import { Table, Tag, Button, Popconfirm, Space } from 'antd';
 import { EditOutlined, DeleteOutlined, CopyOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { getPermission, getStatusTag, formatDate } from './utils.jsx';
 
-
-
-const TaskTable = ({ tasks, userFullName, userEmail, onDuplicate, onDelete, projectId }) => {
+const TaskTable = ({ tasks, userEmail, onDuplicate, onDelete, projectId }) => {
     const navigate = useNavigate();
 
     const columns = [
@@ -71,14 +68,19 @@ const TaskTable = ({ tasks, userFullName, userEmail, onDuplicate, onDelete, proj
             key: 'acciones',
             align: 'center',
             render: (_, record) => {
-                const permission = getPermission(record, userFullName, userEmail);
+                const permission = getPermission(record, userEmail);
                 return (
                     <Space>
                         {(permission === 'write' || permission === 'admin') && (
                             <Button
                                 icon={<EditOutlined />}
                                 onClick={() => navigate(`/tasks/${record.id}/edit?projectId=${projectId}`)}
-                                style={{ backgroundColor: '#FED36A', borderColor: '#FED36A', color: '#1A1A1A', fontWeight: 'bold' }}
+                                style={{
+                                    backgroundColor: '#FED36A',
+                                    borderColor: '#FED36A',
+                                    color: '#1A1A1A',
+                                    fontWeight: 'bold',
+                                }}
                             >
                                 Editar
                             </Button>
@@ -87,7 +89,11 @@ const TaskTable = ({ tasks, userFullName, userEmail, onDuplicate, onDelete, proj
                             <Button
                                 onClick={() => onDuplicate(record)}
                                 icon={<CopyOutlined />}
-                                style={{ borderColor: '#FED36A', color: '#1A1A1A', fontWeight: 'bold' }}
+                                style={{
+                                    borderColor: '#FED36A',
+                                    color: '#1A1A1A',
+                                    fontWeight: 'bold',
+                                }}
                             >
                                 Duplicar
                             </Button>
@@ -102,7 +108,11 @@ const TaskTable = ({ tasks, userFullName, userEmail, onDuplicate, onDelete, proj
                                 <Button
                                     danger
                                     icon={<DeleteOutlined />}
-                                    style={{ borderColor: '#ff4d4f', color: '#ff4d4f', fontWeight: 'bold' }}
+                                    style={{
+                                        borderColor: '#ff4d4f',
+                                        color: '#ff4d4f',
+                                        fontWeight: 'bold',
+                                    }}
                                 >
                                     Borrar
                                 </Button>
@@ -116,14 +126,16 @@ const TaskTable = ({ tasks, userFullName, userEmail, onDuplicate, onDelete, proj
 
     const tableData = tasks.map((task) => ({
         key: task._id,
-        id: task._id,
+        id: task.id || task._id,
         title: task.title || 'Sin título',
         description: task.description || '',
+        creator: task.creator || '', // necesario para getPermission
         creator_name: task.creator_name || 'Desconocido',
         startDate: task.startDate,
         deadline: task.deadline,
         status: task.status || '',
         collaborators: task.collaborators || [],
+        effective_permission: task.effective_permission || null, // respaldo del backend
     }));
 
     return (
