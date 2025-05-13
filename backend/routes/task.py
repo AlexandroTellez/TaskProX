@@ -72,15 +72,28 @@ async def remove_task(id: str, user: dict = Depends(get_current_user)):
     raise HTTPException(400, "No se pudo eliminar la tarea")
 
 
-# ===================== RUTAS SIN PARÁMETROS =====================
+# ===================== RUTA GET CON FILTROS =====================
 
 
 @task.get("/api/tasks")
 async def get_tasks(request: Request, user: dict = Depends(get_current_user)):
-    project_id = request.query_params.get("projectId")
-    return await get_all_tasks(
-        project_id=project_id, user_id=str(user["_id"]), user_email=user["email"]
-    )
+    params = request.query_params
+
+    filters = {
+        "project_id": params.get("projectId"),
+        "title": params.get("title"),
+        "creator": params.get("creator"),
+        "status": params.get("status"),
+        "startDate": params.get("startDate"),
+        "deadline": params.get("deadline"),
+        "user_id": str(user["_id"]),
+        "user_email": user["email"],
+    }
+
+    return await get_all_tasks(filters)
+
+
+# ===================== RUTA POST =====================
 
 
 @task.post("/api/tasks", response_model=Task)

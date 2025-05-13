@@ -4,12 +4,17 @@ const endpoint = '/api/tasks';
 
 // PETICIONES A /api/tasks
 
-// Obtener todas las tareas del usuario (opcionalmente filtradas por proyecto)
-export const fetchTasks = () => api.get(endpoint);
+// Obtener todas las tareas del usuario con filtros opcionales
+export const fetchTasks = (filters = {}) => {
+    const query = new URLSearchParams(filters).toString();
+    return api.get(`${endpoint}?${query}`);
+};
 
 // Obtener tareas filtradas por ID de proyecto
-export const fetchTasksByProject = (projectId) =>
-    api.get(`${endpoint}?projectId=${projectId}`);
+export const fetchTasksByProject = (projectId, filters = {}) => {
+    const query = new URLSearchParams({ projectId, ...filters }).toString();
+    return api.get(`${endpoint}?${query}`);
+};
 
 // Obtener una tarea por su ID
 export const fetchTask = (id) => api.get(`${endpoint}/${id}`);

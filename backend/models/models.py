@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field, EmailStr
 from typing import Optional, List, Literal
 from bson import ObjectId
+from datetime import datetime
 
 # ================== VALIDADOR DE OBJECTID ==================
 
@@ -38,8 +39,8 @@ class Task(BaseModel):
     creator: Optional[str] = "Desconocido"
     creator_name: Optional[str] = None
     collaborators: Optional[List[Collaborator]] = []
-    startDate: Optional[str] = None
-    deadline: Optional[str] = None
+    startDate: Optional[datetime] = None
+    deadline: Optional[datetime] = None
     status: Optional[str] = "Pendiente"
     projectId: Optional[PyObjectId] = None
     user_id: Optional[str] = None
@@ -49,7 +50,10 @@ class Task(BaseModel):
         from_attributes = True
         populate_by_name = True
         arbitrary_types_allowed = True
-        json_encoders = {ObjectId: str}
+        json_encoders = {
+            ObjectId: str,
+            datetime: lambda v: v.isoformat(),
+        }
 
 
 # ================== MODELO DE ACTUALIZACIÓN DE TAREA ==================
@@ -61,8 +65,8 @@ class UpdateTask(BaseModel):
     completed: Optional[bool] = None
     creator: Optional[str] = None
     collaborators: Optional[List[Collaborator]] = None
-    startDate: Optional[str] = None
-    deadline: Optional[str] = None
+    startDate: Optional[datetime] = None
+    deadline: Optional[datetime] = None
     status: Optional[str] = None
     projectId: Optional[PyObjectId] = None
 
@@ -70,7 +74,10 @@ class UpdateTask(BaseModel):
         from_attributes = True
         populate_by_name = True
         arbitrary_types_allowed = True
-        json_encoders = {ObjectId: str}
+        json_encoders = {
+            ObjectId: str,
+            datetime: lambda v: v.isoformat(),
+        }
 
 
 # ================== MODELO DE PROYECTO ==================
