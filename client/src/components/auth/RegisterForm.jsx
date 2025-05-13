@@ -47,7 +47,14 @@ function RegisterForm({ onSubmit }) {
             return message.warning('Debes aceptar los términos y la política de privacidad');
         }
 
-        const { repetirPassword: _, ...dataToSend } = form;
+        const dataToSend = {
+            first_name: nombre,
+            last_name: apellidos,
+            direccion,
+            codigoPostal,
+            email,
+            password
+        };
 
         try {
             setLoading(true);

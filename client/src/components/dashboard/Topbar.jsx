@@ -1,22 +1,26 @@
-// client/src/components/dashboard/Topbar.jsx
 import { useEffect, useState } from 'react';
 import { Avatar } from 'antd';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { getCurrentUser } from '../../api/auth';
 import { MenuOutlined } from '@ant-design/icons';
 
 const Topbar = ({ setSidebarOpen }) => {
     const [usuario, setUsuario] = useState(null);
     const navigate = useNavigate();
+    const location = useLocation(); // Detectar cambios de ruta
 
     useEffect(() => {
         const fetchUser = async () => {
             try {
                 const data = await getCurrentUser();
                 const fullName = `${data.first_name} ${data.last_name}`.trim();
+                const avatar = data.profile_image
+                    ? `data:image/jpeg;base64,${data.profile_image}`
+                    : `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=random`;
+
                 setUsuario({
                     nombre: fullName,
-                    avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=random`,
+                    avatar,
                 });
             } catch (error) {
                 console.error('Error al obtener el usuario:', error);
@@ -25,7 +29,7 @@ const Topbar = ({ setSidebarOpen }) => {
         };
 
         fetchUser();
-    }, [navigate]);
+    }, [location.pathname]); // 🔁 Se vuelve a ejecutar al cambiar de página
 
     return (
         <header className="flex justify-between items-center px-6 py-4 bg-white">
