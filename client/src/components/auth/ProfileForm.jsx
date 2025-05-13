@@ -171,7 +171,7 @@ const ProfileForm = () => {
             {/* Datos del perfil */}
             <Row gutter={[16, 16]}>
                 <Col xs={24} md={12}>
-                    <label className="block font-medium mb-1">First Name</label>
+                    <label className="block font-medium mb-1">Nombre</label>
                     <Input
                         value={formData.first_name}
                         onChange={(e) => handleChange("first_name", e.target.value)}
@@ -179,7 +179,7 @@ const ProfileForm = () => {
                     />
                 </Col>
                 <Col xs={24} md={12}>
-                    <label className="block font-medium mb-1">Last Name</label>
+                    <label className="block font-medium mb-1">Apellidos</label>
                     <Input
                         value={formData.last_name}
                         onChange={(e) => handleChange("last_name", e.target.value)}
@@ -199,7 +199,7 @@ const ProfileForm = () => {
             </div>
 
             <div className="mt-4">
-                <label className="block font-medium mb-1">Address</label>
+                <label className="block font-medium mb-1">Dirección</label>
                 <Input
                     value={formData.address}
                     onChange={(e) => handleChange("address", e.target.value)}
@@ -237,19 +237,27 @@ const ProfileForm = () => {
 
             <div className="flex flex-wrap gap-4 justify-end mt-8">
                 <Button
-                    type="primary"
                     icon={<SaveOutlined />}
                     loading={loading}
                     onClick={handleSave}
-                    className="bg-yellow-400 text-black font-semibold px-6 hover:!bg-yellow-400 border-none"
+                    style={{
+                        backgroundColor: '#FED36A',
+                        borderColor: '#FED36A',
+                        color: '#1A1A1A',
+                        fontWeight: 'bold'
+                    }}
                 >
                     Guardar
                 </Button>
                 <Button
-                    danger
                     icon={<DeleteOutlined />}
                     onClick={handleDelete}
-                    className="font-semibold px-6"
+                    style={{
+                        backgroundColor: 'transparent',
+                        borderColor: '#ff4d4f',
+                        color: '#ff4d4f',
+                        fontWeight: 'bold',
+                    }}
                 >
                     Eliminar Cuenta
                 </Button>
