@@ -129,7 +129,7 @@ function TaskForm() {
             <div className="flex items-start justify-center min-h-screen w-full bg-white px-4">
                 <div className="w-full max-w-4xl py-10">
                     <form
-                        className="bg-neutral-900 border border-neutral-800 p-8 rounded-xl shadow-md space-y-6 text-white"
+                        className="bg-white border border-gray-200 p-8 rounded-xl shadow-md space-y-6 text-black"
                         onSubmit={handleSubmit}
                     >
                         <h1 className="text-3xl sm:text-4xl font-bold text-center">
@@ -172,7 +172,7 @@ function TaskForm() {
                             <Input
                                 value={taskData.creator_name || 'Desconocido'}
                                 readOnly
-                                className="bg-neutral-800 text-white border border-gray-600 pointer-events-none focus:outline-none focus:ring-0 focus:border-transparent"
+                                className="bg-white text-black border border-gray-600 pointer-events-none focus:outline-none focus:ring-0 focus:border-transparent"
                             />
                         </div>
 
@@ -205,13 +205,13 @@ function TaskForm() {
                             </div>
 
                             {taskData.collaborators.length === 0 ? (
-                                <div className="bg-neutral-800 text-white px-4 py-2 rounded text-center text-sm border border-neutral-600 mt-2">
+                                <div className="bg-white text-black px-4 py-2 rounded text-center text-sm border border-neutral-600 mt-2">
                                     Sin colaboradores asignados
                                 </div>
                             ) : (
                                 <ul className="mt-2 space-y-2">
                                     {taskData.collaborators.map((col, idx) => (
-                                        <li key={idx} className="flex flex-col sm:flex-row sm:justify-between sm:items-center bg-neutral-800 p-2 rounded gap-2">
+                                        <li key={idx} className="flex flex-col sm:flex-row sm:justify-between sm:items-center bg-neutral-100 p-2 rounded gap-2">
                                             <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full">
                                                 <span>{col.email}</span>
                                                 <Select
@@ -263,7 +263,7 @@ function TaskForm() {
                                 </div>
                                 <div className="flex justify-end">
                                     <Checkbox
-                                        className="text-white"
+                                        className="text-black"
                                         checked={noDeadline}
                                         onChange={(e) => {
                                             const checked = e.target.checked;
@@ -330,7 +330,7 @@ function TaskForm() {
                                 danger
                                 block
                                 className="mt-6"
-                                style={{ fontWeight: 'bold', backgroundColor: '#ff4d4f', borderColor: '#ff4d4f', color: 'white' }}
+                                style={{ fontWeight: 'bold', backgroundColor: 'transparent', borderColor: '#ff4d4f',  }}
                             >
                                 Borrar Tarea
                             </Button>
