@@ -8,7 +8,7 @@ import { fetchTasksByProject } from '../../api/tasks';
 import { fetchProjects } from '../../api/projects';
 import { PlusOutlined } from '@ant-design/icons';
 
-const { Title } = Typography;
+const { Title, Paragraph } = Typography;
 
 const Proyectos = () => {
     const [projects, setProjects] = useState([]);
@@ -16,7 +16,6 @@ const Proyectos = () => {
     const [tasks, setTasks] = useState([]);
     const navigate = useNavigate();
 
-    // ✅ Obtener email desde localStorage
     const currentUserEmail = JSON.parse(localStorage.getItem('user'))?.email || '';
 
     const loadProjects = async () => {
@@ -53,9 +52,10 @@ const Proyectos = () => {
     }, [selectedProject]);
 
     return (
-        <div className="p-6 bg-white rounded-lg shadow-md">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+        <div className="w-full bg-white text-black">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
                 <Title level={3} className="!mb-0">Gestión de Proyectos</Title>
+
                 <CreateProjectButton
                     selectedProject={selectedProject}
                     onProjectCreated={loadProjects}
@@ -83,9 +83,9 @@ const Proyectos = () => {
             {selectedProject ? (
                 <>
                     {selectedProject.description && (
-                        <Typography.Paragraph className="italic text-sm text-neutral-700 mb-4">
+                        <Paragraph className="italic text-sm text-neutral-700 mb-4">
                             <span className="underline font-medium">Descripción del proyecto:</span> {selectedProject.description}
-                        </Typography.Paragraph>
+                        </Paragraph>
                     )}
 
                     <div className="flex justify-end mb-4">
@@ -100,6 +100,7 @@ const Proyectos = () => {
                                 fontWeight: 'bold',
                                 display: 'flex',
                                 alignItems: 'center',
+                                borderRadius: '6px',
                             }}
                         >
                             Crear Tarea
@@ -111,7 +112,7 @@ const Proyectos = () => {
                             tasks={tasks}
                             projectId={selectedProject._id}
                             onTaskChanged={() => loadTasks(selectedProject._id)}
-                            currentUserEmail={currentUserEmail} // ✅ Aquí se pasa el email
+                            currentUserEmail={currentUserEmail}
                         />
                     ) : (
                         <Empty description="Este proyecto no tiene tareas aún" />

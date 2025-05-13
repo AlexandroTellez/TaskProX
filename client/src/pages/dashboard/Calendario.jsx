@@ -14,6 +14,8 @@ import localeData from 'dayjs/plugin/localeData';
 import updateLocale from 'dayjs/plugin/updateLocale';
 import esES from 'antd/es/locale/es_ES';
 import { fetchTasks } from '../../api/tasks';
+import { useSearchParams } from 'react-router-dom';
+
 
 const { Title } = Typography;
 const { Panel } = Collapse;
@@ -25,7 +27,9 @@ dayjs.updateLocale('es', { weekStart: 1 });
 
 function Calendario() {
     const [tasks, setTasks] = useState([]);
-    const [selectedDate, setSelectedDate] = useState(dayjs());
+    const [searchParams] = useSearchParams();
+    const defaultDate = searchParams.get('date');
+    const [selectedDate, setSelectedDate] = useState(defaultDate ? dayjs(defaultDate) : dayjs());
 
     useEffect(() => {
         fetchTasks()
@@ -56,49 +60,47 @@ function Calendario() {
 
     return (
         <ConfigProvider locale={esES}>
-            <div className="p-6 bg-white text-black rounded-lg shadow-md flex flex-col items-center max-w-5xl mx-auto">
-                <div className="flex justify-between w-full items-center mb-6">
+            <div className="p-4 sm:p-6 bg-white text-black rounded-lg shadow-md max-w-6xl mx-auto w-full">
+                {/* Header */}
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                     <Title level={3} className="text-black m-0">Calendario de Tareas</Title>
                     <Button
                         size="middle"
                         icon={<FieldTimeOutlined />}
                         onClick={handleToday}
-                        style={{
-                            backgroundColor: '#FED36A',
-                            color: '#1A1A1A',
-                            fontWeight: 'bold',
-                            border: 'none',
-                            borderRadius: '6px'
-                        }}
+                        className="font-bold border-none rounded-md bg-[#FED36A] hover:bg-[#fcd670] text-black"
                     >
                         Hoy
                     </Button>
                 </div>
 
+                {/* Calendario */}
                 <Calendar
-                    className="w-full bg-white rounded-md shadow border"
+                    className="w-full bg-white rounded-md border shadow-sm"
                     fullscreen={false}
                     value={selectedDate}
                     onSelect={handleSelect}
                     onPanelChange={handlePanelChange}
                 />
 
+                {/* Lista de tareas */}
                 <div className="w-full mt-8">
                     <Title level={4} className="text-black">
                         Tareas para el {selectedDate.format('DD/MM/YYYY')}
                     </Title>
+
                     {selectedDayTasks.length > 0 ? (
                         <ul className="space-y-4 mt-4">
                             {selectedDayTasks.map((task) => (
                                 <li
                                     key={task._id}
-                                    className="border border-[#FED36A] bg-white text-black p-4 rounded-md shadow"
+                                    className="border border-[#FED36A] bg-white text-black p-4 rounded-md shadow-sm"
                                 >
-                                    <p className="text-lg font-semibold">{task.title}</p>
+                                    <p className="text-lg font-bold break-words whitespace-normal">{task.title}</p>
 
                                     <div className="text-sm mt-2 space-y-1">
                                         <Collapse ghost>
-                                            <Panel header="Descripción" key="1" className="font-bold">
+                                            <Panel header="Descripción" key="1" className="font-semibold text-sm">
                                                 <div
                                                     className="prose prose-sm max-w-none text-gray-700"
                                                     dangerouslySetInnerHTML={{ __html: task.description }}
@@ -112,27 +114,20 @@ function Calendario() {
                                         <p><strong>Estado:</strong> {task.status}</p>
                                     </div>
 
-                                    <Button
-                                        type="default"
-                                        icon={<ArrowRightOutlined />}
-                                        onClick={() => {
-                                            if (task.projectId) {
-                                                window.open(`/proyectos?projectId=${task.projectId}`, '_blank');
-                                            } else {
-                                                window.open('/proyectos', '_blank');
-                                            }
-                                        }}
-                                        style={{
-                                            marginTop: '12px',
-                                            backgroundColor: '#FED36A',
-                                            color: '#1A1A1A',
-                                            fontWeight: 'bold',
-                                            border: 'none',
-                                            borderRadius: '6px',
-                                        }}
-                                    >
-                                        Ver tarea
-                                    </Button>
+                                    <div className="mt-4 flex justify-start">
+                                        <Button
+                                            icon={<ArrowRightOutlined />}
+                                            onClick={() => {
+                                                const url = task.projectId
+                                                    ? `/proyectos?projectId=${task.projectId}`
+                                                    : '/proyectos';
+                                                window.open(url, '_blank');
+                                            }}
+                                            className="font-bold bg-[#FED36A] hover:bg-[#fcd670] text-black border-none rounded-md"
+                                        >
+                                            Ver tarea
+                                        </Button>
+                                    </div>
                                 </li>
                             ))}
                         </ul>

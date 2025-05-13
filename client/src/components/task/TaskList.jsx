@@ -10,6 +10,7 @@ import 'dayjs/locale/es';
 import localeData from 'dayjs/plugin/localeData';
 import updateLocale from 'dayjs/plugin/updateLocale';
 import esES from 'antd/es/locale/es_ES';
+import { useMediaQuery } from 'react-responsive';
 
 dayjs.extend(localeData);
 dayjs.extend(updateLocale);
@@ -18,6 +19,7 @@ dayjs.updateLocale('es', { weekStart: 1 });
 
 const { Option } = Select;
 const { RangePicker } = DatePicker;
+
 
 const getStatusTag = (status) => {
     let color;
@@ -48,6 +50,7 @@ const TaskList = ({ tasks, projectId, onTaskChanged }) => {
     const user = JSON.parse(localStorage.getItem('user'));
     const userFullName = `${user?.nombre} ${user?.apellidos}`;
     const userEmail = user?.email;
+    const isMobile = useMediaQuery({ maxWidth: 768 });
 
     const [filters, setFilters] = useState({
         title: searchParams.get('title') || '',
@@ -138,54 +141,60 @@ const TaskList = ({ tasks, projectId, onTaskChanged }) => {
 
     const columns = [
         {
-            title: 'Título',
+            title: <div className="text-center w-full">Título</div>,
             dataIndex: 'title',
             key: 'title',
-            render: (text) => <strong>{text}</strong>
+            render: (text) => <div className="text-left font-bold">{text}</div>
         },
         {
-            title: 'Creador',
+            title: <div className="text-center w-full">Creador</div>,
             dataIndex: 'creator_name',
             key: 'creator_name',
-            render: (creatorName) => (
-                <span className="text-black">{creatorName || 'Sin creador'}</span>
-            )
+            render: (creatorName) => <div className="text-left text-black">{creatorName || 'Sin creador'}</div>
         },
         {
-            title: 'Colaboradores',
+            title: <div className="text-center w-full">Colaboradores</div>,
             dataIndex: 'collaborators',
             key: 'collaborators',
             render: (collaborators) => {
-                if (!collaborators || collaborators.length === 0) return 'Ninguno';
-                return collaborators.map((col, index) => (
-                    <Tag key={index} color={
-                        col.permission === 'admin' ? 'red' :
-                            col.permission === 'write' ? 'blue' : 'default'
-                    }>
-                        {col.email} ({col.permission})
-                    </Tag>
-                ));
+                if (!collaborators || collaborators.length === 0)
+                    return <div className="text-left">Ninguno</div>;
+                return (
+                    <div className="text-left space-x-1">
+                        {collaborators.map((col, index) => (
+                            <Tag key={index} color={
+                                col.permission === 'admin' ? 'red' :
+                                    col.permission === 'write' ? 'blue' : 'default'
+                            }>
+                                {col.email} ({col.permission})
+                            </Tag>
+                        ))}
+                    </div>
+                );
             }
         },
         {
-            title: 'Fecha Inicio',
+            title: <div className="text-center w-full">Inicio</div>,
             dataIndex: 'startDate',
-            key: 'startDate'
+            key: 'startDate',
+            render: (date) => <div className="text-left">{date}</div>
         },
         {
-            title: 'Fecha Límite',
+            title: <div className="text-center w-full">Límite</div>,
             dataIndex: 'deadline',
-            key: 'deadline'
+            key: 'deadline',
+            render: (date) => <div className="text-left">{date}</div>
         },
         {
-            title: 'Estado',
+            title: <div className="text-center w-full">Estado</div>,
             dataIndex: 'status',
             key: 'status',
-            render: (status) => getStatusTag(status)
+            render: (status) => <div className="text-left">{getStatusTag(status)}</div>
         },
         {
-            title: 'Acciones',
+            title: <div className="text-center w-full">Acciones</div>,
             key: 'acciones',
+            align: 'center',
             render: (_, record) => {
                 const permission = getPermission(record, userFullName, userEmail);
                 return (
@@ -259,7 +268,8 @@ const TaskList = ({ tasks, projectId, onTaskChanged }) => {
 
     return (
         <ConfigProvider locale={esES}>
-            <div className="bg-white rounded-lg shadow-md p-6 space-y-6 overflow-x-auto">
+            <div className="w-full bg-white rounded-lg space-y-6">
+                {/* Filtros */}
                 <div className="flex flex-wrap gap-4">
                     <Input
                         placeholder="Buscar por título"
@@ -299,25 +309,116 @@ const TaskList = ({ tasks, projectId, onTaskChanged }) => {
                     </Button>
                 </div>
 
-                <Table
-                    columns={columns}
-                    dataSource={tableData}
-                    pagination={false}
-                    bordered
-                    expandable={{
-                        expandedRowRender: (record) => (
-                            <div
-                                className="prose max-w-none text-black"
-                                dangerouslySetInnerHTML={{ __html: record.description }}
-                            />
-                        ),
-                        rowExpandable: (record) => record.description && record.description.length > 0,
-                    }}
-                    scroll={{ x: true }}
-                />
+                {/* Contenido responsive */}
+                {isMobile ? (
+                    <div className="space-y-4">
+                        {tableData.map((task) => {
+                            const permission = getPermission(task, userFullName, userEmail);
+                            return (
+                                <div key={task.id} className="border p-4 rounded-md shadow bg-white text-black">
+                                    <p className="font-bold text-lg mb-2">{task.title}</p>
+                                    <p className="text-sm mb-1"><strong>Creador:</strong> {task.creator_name}</p>
+                                    <p className="text-sm mb-1"><strong>Colaboradores:</strong>{' '}
+                                        {task.collaborators.length > 0 ? task.collaborators.map((c, i) => (
+                                            <Tag key={i} color={
+                                                c.permission === 'admin' ? 'red' :
+                                                    c.permission === 'write' ? 'blue' : 'default'
+                                            }>
+                                                {c.email} ({c.permission})
+                                            </Tag>
+                                        )) : 'Ninguno'}
+                                    </p>
+                                    <p className="text-sm mb-1"><strong>Fecha de inicio:</strong> {task.startDate}</p>
+                                    <p className="text-sm mb-1"><strong>Fecha límite:</strong> {task.deadline}</p>
+                                    <p className="text-sm mb-2"><strong>Estado:</strong> {getStatusTag(task.status)}</p>
+
+                                    {task.description && (
+                                        <details className="mb-3">
+                                            <summary className="cursor-pointer text-sm font-bold">📄 Ver descripción tarea:</summary>
+                                            <div
+                                                className="prose prose-sm max-w-none text-black mt-2"
+                                                dangerouslySetInnerHTML={{ __html: task.description }}
+                                            />
+                                        </details>
+                                    )}
+
+                                    <div className="flex flex-wrap gap-2 mt-3">
+                                        {(permission === 'write' || permission === 'admin') && (
+                                            <Button
+                                                icon={<EditOutlined />}
+                                                onClick={() => navigate(`/tasks/${task.id}/edit?projectId=${projectId}`)}
+                                                style={{
+                                                    backgroundColor: '#FED36A',
+                                                    borderColor: '#FED36A',
+                                                    color: '#1A1A1A',
+                                                    fontWeight: 'bold',
+                                                }}
+                                            >
+                                                Editar
+                                            </Button>
+                                        )}
+                                        {['read', 'write', 'admin'].includes(permission) && (
+                                            <Button
+                                                onClick={() => handleDuplicate(task)}
+                                                icon={<CopyOutlined />}
+                                                style={{
+                                                    borderColor: '#FED36A',
+                                                    color: '#1A1A1A',
+                                                    fontWeight: 'bold',
+                                                }}
+                                            >
+                                                Duplicar
+                                            </Button>
+                                        )}
+                                        {permission === 'admin' && (
+                                            <Popconfirm
+                                                title="¿Estás seguro de borrar esta tarea?"
+                                                onConfirm={() => handleDelete(task.id)}
+                                                okText="Sí"
+                                                cancelText="No"
+                                            >
+                                                <Button
+                                                    danger
+                                                    icon={<DeleteOutlined />}
+                                                    style={{
+                                                        borderColor: '#ff4d4f',
+                                                        color: '#ff4d4f',
+                                                        fontWeight: 'bold',
+                                                    }}
+                                                >
+                                                    Borrar
+                                                </Button>
+                                            </Popconfirm>
+                                        )}
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                ) : (
+                    <div className="overflow-x-auto">
+                        <Table
+                            columns={columns}
+                            dataSource={tableData}
+                            pagination={false}
+                            bordered
+                            expandable={{
+                                expandedRowRender: (record) => (
+                                    <div
+                                        className="prose max-w-none text-black"
+                                        dangerouslySetInnerHTML={{ __html: record.description }}
+                                    />
+                                ),
+                                rowExpandable: (record) => record.description && record.description.length > 0,
+                            }}
+                            scroll={{ x: true }}
+                        />
+                    </div>
+                )}
             </div>
         </ConfigProvider>
     );
+
 };
 
 export default TaskList;

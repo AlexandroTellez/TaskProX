@@ -1,43 +1,57 @@
 import { useNavigate } from 'react-router-dom';
 import { deleteTask, updateTask } from '../../api/tasks';
+import { useState } from 'react';
 
-function TaskCard({ task }) {
+function TaskCard({ task, onTaskChanged }) {
     const navigate = useNavigate();
+    const [loading, setLoading] = useState(false);
 
-    const cardClasses = `
-        flex flex-col p-6 rounded-xl shadow-md transition-all duration-300 cursor-pointer
-        hover:scale-105 border bg-white border-neutral-200 text-black
-    `;
+    const handleToggleCompleted = async (e) => {
+        e.stopPropagation();
+        try {
+            setLoading(true);
+            const res = await updateTask(task._id, { completed: !task.completed });
+            if (res.status === 200 && onTaskChanged) {
+                onTaskChanged();
+            }
+        } catch (err) {
+            console.error('Error al actualizar tarea:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
 
-    const buttonClasses = `
-        px-4 py-2 rounded-md text-sm font-semibold transition-colors
-        focus:outline-none focus:ring-2 focus:ring-offset-2
-    `;
-
-    const handleDelete = async (id) => {
+    const handleDelete = async (e) => {
+        e.stopPropagation();
         if (window.confirm('¿Estás seguro de eliminar esta tarea?')) {
-            await deleteTask(id);
-            window.location.reload();
+            try {
+                await deleteTask(task._id);
+                if (onTaskChanged) onTaskChanged();
+            } catch (err) {
+                console.error('Error al eliminar tarea:', err);
+            }
         }
     };
 
     return (
-        <div className={cardClasses} onClick={() => navigate(`/tasks/${task._id}`)}>
-            <div className="flex justify-between items-start mb-4">
+        <div
+            className="flex flex-col p-6 rounded-xl shadow-md border border-neutral-200 bg-white text-black transition-all duration-300 hover:scale-[1.02] cursor-pointer"
+            onClick={() => navigate(`/tasks/${task._id}`)}
+        >
+            {/* Encabezado */}
+            <div className="flex justify-between items-start mb-3">
                 <div>
-                    <h2 className="font-bold text-xl">{task.title}</h2>
+                    <h2 className="font-bold text-xl break-words whitespace-normal">
+                        {task.title}
+                    </h2>
                     {task.creator_name && (
                         <p className="text-sm text-neutral-500">Creado por: {task.creator_name}</p>
                     )}
                 </div>
                 <button
-                    onClick={async (e) => {
-                        e.stopPropagation();
-                        const res = await updateTask(task._id, { completed: !task.completed });
-                        if (res.status === 200) {
-                            window.location.reload();
-                        }
-                    }}
+                    onClick={handleToggleCompleted}
+                    title="Marcar como completado"
+                    aria-label="Marcar como completado"
                 >
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -52,30 +66,26 @@ function TaskCard({ task }) {
                 </button>
             </div>
 
-            {/* Mostrar HTML enriquecido */}
+            {/* Descripción */}
             <div
                 className="text-neutral-700 mb-4 prose max-w-none"
                 dangerouslySetInnerHTML={{ __html: task.description }}
             />
 
-            <div className="flex gap-2 mt-auto" onClick={(e) => e.stopPropagation()}>
+            {/* Acciones */}
+            <div className="flex gap-2 flex-wrap mt-auto" onClick={(e) => e.stopPropagation()}>
                 <button
-                    className={`${buttonClasses} bg-yellow-400 text-black hover:bg-yellow-500`}
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        navigate(`/tasks/${task._id}`);
-                    }}
+                    className="px-4 py-2 rounded-md text-sm font-semibold bg-yellow-400 text-black hover:bg-yellow-500"
+                    onClick={() => navigate(`/tasks/${task._id}/edit`)}
                 >
                     Editar
                 </button>
                 <button
-                    className={`${buttonClasses} bg-red-500 text-white hover:bg-red-600 `}
-                    onClick={async (e) => {
-                        e.stopPropagation();
-                        await handleDelete(task._id);
-                    }}
+                    className="px-4 py-2 rounded-md text-sm font-semibold bg-red-500 text-white hover:bg-red-600"
+                    onClick={handleDelete}
+                    disabled={loading}
                 >
-                    Borrar
+                    {loading ? 'Eliminando...' : 'Borrar'}
                 </button>
             </div>
         </div>

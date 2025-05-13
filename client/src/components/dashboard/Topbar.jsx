@@ -1,9 +1,11 @@
+// client/src/components/dashboard/Topbar.jsx
 import { useEffect, useState } from 'react';
 import { Avatar } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import { getCurrentUser } from '../../api/auth';
+import { MenuOutlined } from '@ant-design/icons';
 
-const Topbar = () => {
+const Topbar = ({ setSidebarOpen }) => {
     const [usuario, setUsuario] = useState(null);
     const navigate = useNavigate();
 
@@ -26,9 +28,19 @@ const Topbar = () => {
     }, [navigate]);
 
     return (
-        <header className="flex justify-end items-center px-6 py-4 bg-white">
+        <header className="flex justify-between items-center px-6 py-4 bg-white">
+            {/* Botón hamburguesa en móviles */}
+            <button
+                className="md:hidden text-black text-xl"
+                onClick={() => setSidebarOpen(true)}
+                aria-label="Abrir menú"
+            >
+                <MenuOutlined />
+            </button>
+
+            {/* Usuario */}
             {usuario && (
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 ml-auto">
                     <span className="font-medium text-gray-800">{usuario.nombre}</span>
                     <Avatar src={usuario.avatar} />
                 </div>
