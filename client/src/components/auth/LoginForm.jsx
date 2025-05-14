@@ -57,7 +57,7 @@ function LoginForm({ onSubmit }) {
                     <div className="w-full">
                         <h1 className="text-xl sm:text-2xl lg:text-7xl font-bold mb-1 lg:mb-4">Organiza.</h1>
                         <h1 className="text-xl sm:text-2xl lg:text-7xl font-bold mb-1 lg:mb-4">Prioriza.</h1>
-                        <h1 className="text-xl sm:text-2xl lg:text-7xl font-bold mb-1 lg:mb-4">Simplifica.</h1>
+                        <h1 className="text-xl sm:text-2xl lg:text-7xl font-bold mb-1 lg:mb-4">Colabora.</h1>
                     </div>
                 </div>
                 <p className="text-xs absolute bottom-2 left-2 lg:bottom-5 lg:left-5 text-gray-500">
