@@ -121,7 +121,7 @@ function Terms() {
                     Para preguntas sobre estos Términos y Condiciones, contáctanos en:
                 </p>
                 <p>
-                    <strong>Email:</strong> legal@taskprox.com<br />
+                    <strong>Email:</strong> equipo.taskprox@gmail.com <br />
                     <strong>Dirección:</strong> Toledo, España
                 </p>
             </section>
@@ -130,17 +130,3 @@ function Terms() {
 }
 
 export default Terms;
-
-/*
-            <section className="mb-8">
-                <h2 className="text-2xl font-semibold mb-4 text-[#1A1A1A] border-b pb-2">9. Planes de Pago (si aplica)</h2>
-                <p className="mb-4">
-                    Para usuarios de planes premium:
-                </p>
-                <ul className="list-disc pl-6 space-y-2">
-                    <li>Los pagos son recurrentes según el ciclo seleccionado (mensual/anual).</li>
-                    <li>Puedes cancelar tu suscripción en cualquier momento.</li>
-                    <li>No ofrecemos reembolsos por periodos no utilizados.</li>
-                </ul>
-            </section>
-*/

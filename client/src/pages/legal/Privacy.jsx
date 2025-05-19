@@ -89,7 +89,7 @@ function Privacy() {
                     <li>Retirar tu consentimiento en cualquier momento.</li>
                 </ul>
                 <p>
-                    Para ejercer estos derechos, contáctanos en privacy@taskprox.com.
+                    Para ejercer estos derechos, contáctanos en equipo.taskprox@gmail.com.
                 </p>
             </section>
 
@@ -124,7 +124,8 @@ function Privacy() {
                     Si tienes preguntas sobre esta Política de Privacidad, contáctanos en:
                 </p>
                 <p>
-                    <strong>Email:</strong> privacy@taskprox.com .<br />
+                    <strong>Email:</strong>
+                    equipo.taskprox@gmail.com.<br />
                     <strong>Dirección:</strong> Toledo, España.
                 </p>
             </section>
