@@ -64,6 +64,7 @@ class UpdateTask(BaseModel):
     description: Optional[str] = None
     completed: Optional[bool] = None
     creator: Optional[str] = None
+    creator_name: Optional[str] = None
     collaborators: Optional[List[Collaborator]] = None
     startDate: Optional[datetime] = None
     deadline: Optional[datetime] = None

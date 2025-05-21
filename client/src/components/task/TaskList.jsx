@@ -3,21 +3,13 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { message, ConfigProvider } from 'antd';
 import esES from 'antd/es/locale/es_ES';
 import { useMediaQuery } from 'react-responsive';
-import dayjs from 'dayjs';
-import 'dayjs/locale/es';
-import localeData from 'dayjs/plugin/localeData';
-import updateLocale from 'dayjs/plugin/updateLocale';
-
+import dayjs from '../../utils/dayjsConfig';
 import TaskFilters from './list/TaskFilters';
 import TaskTable from './list/TaskTable';
 import TaskMobileCard from './list/TaskMobileCard';
 import { deleteTask, createTask } from '../../api/tasks';
 import { getPermission, formatDate } from './list/utils.jsx';
 
-dayjs.extend(localeData);
-dayjs.extend(updateLocale);
-dayjs.locale('es');
-dayjs.updateLocale('es', { weekStart: 1 });
 
 const TaskList = ({ tasks, projectId, onTaskChanged }) => {
     const navigate = useNavigate();
@@ -69,10 +61,10 @@ const TaskList = ({ tasks, projectId, onTaskChanged }) => {
                 : true;
             const matchesStatus = filters.status ? task.status === filters.status : true;
             const matchesStartDate = filters.startDate
-                ? task.startDate && task.startDate.isSame(filters.startDate, 'day')
+                ? task.startDate && task.startDate.startOf('day').isSame(filters.startDate.startOf('day'), 'day')
                 : true;
             const matchesDeadline = filters.deadline
-                ? task.deadline && task.deadline.isSame(filters.deadline, 'day')
+                ? task.deadline && task.deadline.startOf('day').isSame(filters.deadline.startOf('day'), 'day')
                 : true;
             return (
                 matchesTitle &&

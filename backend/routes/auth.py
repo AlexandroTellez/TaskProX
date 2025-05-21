@@ -12,23 +12,25 @@ from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordBearer
 from pydantic import EmailStr, BaseModel
 from datetime import timedelta
-from models.models import UserCreate, UserLogin, UserOut
-from config.database import (
-    create_user,
-    authenticate_user,
-    get_user_by_email,
-    user_collection,
-    pwd_context,
-)
-from config.config import create_access_token, decode_access_token, FRONTEND_URL
-from config.email_utils import send_reset_email
 from bson import ObjectId
 import base64
 
-router = APIRouter(prefix="/auth", tags=["auth"])
+from models.models import UserCreate, UserLogin, UserOut
+from config.database import user_collection
+from config.config import create_access_token, decode_access_token, FRONTEND_URL
+from config.email_utils import send_reset_email
+from services.auth_service import (
+    create_user,
+    get_user_by_email,
+    authenticate_user,
+    pwd_context,
+)
 
+router = APIRouter(prefix="/auth", tags=["auth"])
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
+
+# ========== OBTENER USUARIO ACTUAL DESDE TOKEN ==========
 
 async def get_current_user(token: str = Depends(oauth2_scheme)):
     try:
@@ -56,6 +58,8 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
         )
 
 
+# ========== REGISTRO ==========
+
 @router.post("/register")
 async def register(user: UserCreate):
     existing_user = await get_user_by_email(user.email)
@@ -71,6 +75,8 @@ async def register(user: UserCreate):
         content={"message": "Usuario registrado correctamente", "user_id": user_id},
     )
 
+
+# ========== LOGIN ==========
 
 @router.post("/login")
 async def login(user: UserLogin):
@@ -91,6 +97,8 @@ async def login(user: UserLogin):
     return {"access_token": access_token, "token_type": "bearer"}
 
 
+# ========== PERFIL DEL USUARIO ACTUAL ==========
+
 @router.get("/me", response_model=UserOut)
 async def get_me(current_user: dict = Depends(get_current_user)):
     if current_user.get("profile_image"):
@@ -99,6 +107,8 @@ async def get_me(current_user: dict = Depends(get_current_user)):
         ).decode("utf-8")
     return current_user
 
+
+# ========== RECUPERACIÓN DE CONTRASEÑA ==========
 
 class EmailRequest(BaseModel):
     email: EmailStr
@@ -153,6 +163,8 @@ async def reset_password(
         raise HTTPException(status_code=400, detail="Token inválido o expirado")
 
 
+# ========== ACTUALIZAR PERFIL ==========
+
 @router.put("/profile")
 async def update_profile(
     first_name: str = Form(None),
@@ -181,7 +193,6 @@ async def update_profile(
 
     if profileImage:
         image_content = await profileImage.read()
-        print(f"[DEBUG] Imagen recibida: {len(image_content)} bytes")
         update_fields["profile_image"] = image_content
 
     if not update_fields:
@@ -193,6 +204,8 @@ async def update_profile(
 
     return {"message": "Perfil actualizado correctamente"}
 
+
+# ========== ELIMINAR CUENTA ==========
 
 @router.delete("/delete")
 async def delete_account(current_user: dict = Depends(get_current_user)):

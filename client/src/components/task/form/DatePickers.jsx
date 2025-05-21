@@ -4,8 +4,9 @@ import dayjs from 'dayjs';
 
 const DatePickers = ({ startDate, deadline, noDeadline, onChange, setNoDeadline }) => {
     const handleDateChange = (field, date) => {
-        console.log(`📅 Fecha seleccionada para ${field}:`, date?.format?.("dddd, DD/MM/YYYY") || 'nula');
-        onChange(field, date);
+        const adjusted = date ? date.startOf('day') : null;
+        console.log(`Fecha ajustada para ${field}:`, adjusted?.format("dddd, DD/MM/YYYY") || 'nula');
+        onChange(field, adjusted);
     };
 
     return (

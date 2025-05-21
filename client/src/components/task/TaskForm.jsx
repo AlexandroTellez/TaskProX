@@ -2,10 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { message, ConfigProvider } from 'antd';
 import esES from 'antd/es/locale/es_ES';
-import dayjs from 'dayjs';
-import 'dayjs/locale/es';
-import localeData from 'dayjs/plugin/localeData';
-import updateLocale from 'dayjs/plugin/updateLocale';
+import dayjs from '../../utils/dayjsConfig';
 
 import TitleInput from './form/TitleInput';
 import DescriptionEditor from './form/DescriptionEditor';
@@ -16,11 +13,6 @@ import StatusSelector from './form/StatusSelector';
 import FormActions from './form/FormActions';
 
 import { createTask, updateTask, deleteTask, fetchTask } from '../../api/tasks';
-
-dayjs.extend(localeData);
-dayjs.extend(updateLocale);
-dayjs.locale('es');
-dayjs.updateLocale('es', { weekStart: 1 });
 
 function TaskForm() {
     const [taskData, setTaskData] = useState({
@@ -55,14 +47,23 @@ function TaskForm() {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        const dataToSend = {
-            ...taskData,
-            startDate: taskData.startDate ? dayjs(taskData.startDate).toISOString() : null,
-            deadline: noDeadline ? null : (taskData.deadline ? dayjs(taskData.deadline).toISOString() : null),
-            projectId: projectId || null,
-            creator: userEmail,
-            creator_name: userFullName,
+        const baseData = {
+            title: taskData.title,
+            description: taskData.description,
+            status: taskData.status,
+            collaborators: taskData.collaborators,
+            startDate: taskData.startDate ? dayjs(taskData.startDate).startOf('day').toISOString() : null,
+            deadline: noDeadline ? null : (taskData.deadline ? dayjs(taskData.deadline).startOf('day').toISOString() : null),
         };
+
+        const dataToSend = params.id
+            ? { ...baseData, projectId } // PUT
+            : {
+                ...baseData, // POST
+                projectId: projectId || null,
+                creator: userEmail,
+                creator_name: userFullName,
+            };
 
         try {
             if (params.id) {
@@ -72,7 +73,7 @@ function TaskForm() {
             }
             navigate(`/proyectos?projectId=${projectId}`);
         } catch (err) {
-            console.error(err);
+            console.error('Error al guardar la tarea:', err.response?.data || err.message);
             message.error('Error al guardar la tarea');
         }
     };
