@@ -104,8 +104,8 @@ class Project(BaseModel):
 class UserBase(BaseModel):
     first_name: str
     last_name: str
-    direccion: str
-    codigoPostal: str
+    address: str
+    postal_code: str
     email: EmailStr
 
 

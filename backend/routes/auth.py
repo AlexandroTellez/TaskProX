@@ -116,6 +116,8 @@ async def forgot_password(data: EmailRequest):
             "user_id": str(user["_id"]),
             "first_name": user.get("first_name", ""),
             "last_name": user.get("last_name", ""),
+            "address": user.get("address", ""),
+            "postal_code": user.get("postal_code", ""),
         },
         expires_delta=timedelta(minutes=15),
     )

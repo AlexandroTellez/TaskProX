@@ -33,6 +33,8 @@ const ProfileForm = () => {
                     password: "",
                     confirmPassword: "",
                     profileImage: null,
+                    address: user.address || "",
+                    postal_code: user.postal_code || "",
                 };
                 setFormData(initialState);
                 setOriginalData(initialState);
