@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Request, Depends
-from config.database import (
+from services.project_service import (
     get_all_projects,
     get_project_by_id,
     create_project,

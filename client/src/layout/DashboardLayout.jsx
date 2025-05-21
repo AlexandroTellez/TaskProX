@@ -1,4 +1,3 @@
-// client/src/layout/DashboardLayout.jsx
 import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from '../components/dashboard/Sidebar';

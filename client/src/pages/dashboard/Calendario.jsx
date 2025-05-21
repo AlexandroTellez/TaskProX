@@ -9,7 +9,7 @@ import {
     Badge
 } from 'antd';
 import { ArrowRightOutlined, FieldTimeOutlined } from '@ant-design/icons';
-import dayjs from 'dayjs';
+import dayjs from '../../utils/dayjsConfig';
 import 'dayjs/locale/es';
 import localeData from 'dayjs/plugin/localeData';
 import updateLocale from 'dayjs/plugin/updateLocale';
@@ -89,7 +89,7 @@ function Calendario() {
                     value={selectedDate}
                     onSelect={handleSelect}
                     onPanelChange={handlePanelChange}
-                    dateCellRender={dateCellRender}
+                    CellRender={dateCellRender}
                 />
 
                 {/* Leyenda */}

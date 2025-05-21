@@ -1,61 +1,51 @@
 from fastapi import APIRouter, HTTPException, Request, Depends
-from config.database import (
+from services.task_service import (
     get_all_tasks,
     create_task,
     get_one_task_id,
-    delete_task,
     update_task,
+    delete_task,
 )
 from models.models import Task, UpdateTask
 from routes.auth import get_current_user
 from bson import ObjectId
+from datetime import datetime, timezone
 
 task = APIRouter()
 
+
 # ===================== FUNCIÓN AUXILIAR DE PERMISOS =====================
-
-
 def get_permission(task: dict, user_email: str) -> str:
-    # 1. El creador tiene permisos completos
     if task.get("creator") == user_email:
         return "admin"
-
-    # 2. Permisos desde el proyecto (ya evaluados en effective_permission)
     if "effective_permission" in task:
         return task["effective_permission"]
-
-    # 3. Buscar en colaboradores individuales de la tarea
     for collaborator in task.get("collaborators", []):
         if collaborator.get("email") == user_email:
             return collaborator.get("permission", "read")
-
     return "none"
 
 
-# ===================== RUTAS CON PARÁMETROS =====================
-
-
+# ===================== RUTA GET POR ID =====================
 @task.get("/api/tasks/{id}", response_model=Task)
 async def get_task(id: str, user: dict = Depends(get_current_user)):
     tarea = await get_one_task_id(id)
     if not tarea:
         raise HTTPException(404, f"Tarea con id {id} no encontrada")
 
-    # Calcular permiso manual si viene de find_one
     permission = get_permission(tarea, user["email"])
     if permission == "none":
         raise HTTPException(403, "No tienes acceso a esta tarea")
 
-    # Añadir campo de permiso efectivo si no está
     tarea["effective_permission"] = permission
 
-    # Asegurar que tenga un campo 'id' para el frontend
     if "_id" in tarea and "id" not in tarea:
         tarea["id"] = str(tarea["_id"])
 
     return tarea
 
 
+# ===================== RUTA PUT =====================
 @task.put("/api/tasks/{id}", response_model=Task)
 async def put_task(id: str, task: UpdateTask, user: dict = Depends(get_current_user)):
     existing_task = await get_one_task_id(id)
@@ -66,12 +56,27 @@ async def put_task(id: str, task: UpdateTask, user: dict = Depends(get_current_u
     if permission not in ["write", "admin"]:
         raise HTTPException(403, "No tienes permiso para editar esta tarea")
 
-    updated = await update_task(id, task)
+    task_data = task.model_dump(exclude_unset=True)
+
+    try:
+        for field in ["startDate", "deadline"]:
+            value = task_data.get(field)
+            if isinstance(value, str):
+                task_data[field] = datetime.fromisoformat(value).replace(
+                    tzinfo=timezone.utc
+                )
+            elif isinstance(value, datetime):
+                task_data[field] = value.astimezone(timezone.utc)
+    except Exception as e:
+        raise HTTPException(400, f"Error en formato de fechas: {e}")
+
+    updated = await update_task(id, task_data)
     if updated:
         return updated
     raise HTTPException(400, "No se pudo actualizar la tarea")
 
 
+# ===================== RUTA DELETE =====================
 @task.delete("/api/tasks/{id}")
 async def remove_task(id: str, user: dict = Depends(get_current_user)):
     existing_task = await get_one_task_id(id)
@@ -89,8 +94,6 @@ async def remove_task(id: str, user: dict = Depends(get_current_user)):
 
 
 # ===================== RUTA GET CON FILTROS =====================
-
-
 @task.get("/api/tasks")
 async def get_tasks(request: Request, user: dict = Depends(get_current_user)):
     params = request.query_params
@@ -110,11 +113,9 @@ async def get_tasks(request: Request, user: dict = Depends(get_current_user)):
 
 
 # ===================== RUTA POST =====================
-
-
 @task.post("/api/tasks", response_model=Task)
 async def save_task(task: Task, user: dict = Depends(get_current_user)):
-    task_data = task.dict()
+    task_data = task.model_dump()
     task_data["user_id"] = str(user["_id"])
     task_data["user_email"] = user["email"]
     task_data["creator"] = user["email"]
@@ -124,6 +125,18 @@ async def save_task(task: Task, user: dict = Depends(get_current_user)):
 
     if "collaborators" not in task_data or task_data["collaborators"] is None:
         task_data["collaborators"] = []
+
+    try:
+        for field in ["startDate", "deadline"]:
+            value = task_data.get(field)
+            if isinstance(value, str):
+                task_data[field] = datetime.fromisoformat(value).replace(
+                    tzinfo=timezone.utc
+                )
+            elif isinstance(value, datetime):
+                task_data[field] = value.astimezone(timezone.utc)
+    except Exception as e:
+        raise HTTPException(400, f"Error en formato de fechas: {e}")
 
     nueva_tarea = await create_task(task_data)
     if nueva_tarea:
