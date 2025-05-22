@@ -81,7 +81,7 @@ function Dashboard() {
             key: 'collaborators',
             render: (collaborators) =>
                 collaborators.length > 0 ? (
-                    <ul className="list-disc list-inside text-sm text-gray-700">
+                    <ul className="list-disc list-inside text-sm text-gray-700 dark:text-gray-300">
                         {collaborators.map((col, idx) => (
                             <li key={idx}>
                                 <Tooltip title={`Permiso: ${col.permission}`}>
@@ -91,7 +91,7 @@ function Dashboard() {
                         ))}
                     </ul>
                 ) : (
-                    <span className="text-neutral-500 italic">Sin colaboradores</span>
+                    <span className="text-neutral-500 dark:text-neutral-400 italic">Sin colaboradores</span>
                 ),
         },
         {
@@ -125,61 +125,62 @@ function Dashboard() {
     const handleToday = () => setSelectedDate(dayjs());
 
     return (
-        <div className="w-full bg-white text-black">
-            <Title level={3}>Mis Proyectos</Title>
-            <p className="text-sm text-neutral-600 mb-4">Resumen - Proyectos</p>
+        <div className="w-full bg-white text-black dark:bg-[#1A1A1A] dark:text-white">
+            <Title level={3} className="dark:text-white">MIS PROYECTOS</Title>
+            <p className="text-sm text-neutral-600 dark:text-[#FED36A] mb-4">Resumen - Proyectos</p>
 
-            {/* Vista de TABLA para escritorio */}
             <div className="hidden sm:block">
-                <Table
-                    columns={columns}
-                    dataSource={dataSource}
-                    pagination={false}
-                    bordered
-                />
+                <div className="rounded-md border dark:border-[#FED36A] overflow-hidden shadow dark:bg-[#2a2e33]">
+                    <Table
+                        columns={columns}
+                        dataSource={dataSource}
+                        pagination={false}
+                        bordered
+                    />
+                </div>
             </div>
 
-            {/* Vista de CARDS solo para móvil */}
             <div className="block sm:hidden mt-4">
-                <div className="flex flex-col gap-4">
+                <ul className="flex flex-col gap-4">
                     {projects.map((project) => (
-                        <div
+                        <li
                             key={project._id}
-                            className="border border-[#FED36A] bg-white p-4 rounded-lg shadow-md flex flex-col justify-between"
+                            className="border dark:border-[#FED36A] bg-white dark:bg-[#2a2e33] text-black dark:text-white p-4 rounded-md shadow"
                         >
-                            <p className="text-lg font-bold  break-words whitespace-normal mb-2">
-                                {project.name}
-                            </p>
+                            <p className="text-lg font-semibold">{project.name}</p>
 
-                            <Collapse ghost>
-                                <Panel header="Descripción" key="desc" className="text-sm font-medium">
-                                    <p className="text-sm text-neutral-600 whitespace-pre-wrap break-words">
+                            <Collapse ghost className="mt-2">
+                                <Panel
+                                    header={<span className="text-sm font-medium dark:text-white">📄 Haz clic para ver la descripción</span>}
+                                    key="desc"
+                                >
+                                    <p className="text-sm text-neutral-700 dark:text-white whitespace-pre-wrap break-words">
                                         {project.description || 'No hay descripción disponible'}
                                     </p>
                                 </Panel>
                             </Collapse>
 
-                            <div className="mt-4">
+                            <div className="mt-4 flex justify-start">
                                 <Button
                                     size="small"
                                     icon={<FolderOpenOutlined />}
                                     onClick={() => navigate(`/proyectos?projectId=${project._id}`)}
-                                    className="font-bold bg-[#FED36A] text-black border-none hover:bg-[#fcd670]"
+                                    className="font-bold bg-[#FED36A] hover:bg-[#fcd670] text-black border-none rounded-md"
                                 >
                                     Ver Proyecto
                                 </Button>
                             </div>
-                        </div>
+                        </li>
                     ))}
-                </div>
+                </ul>
             </div>
 
             <Divider className="my-8" />
 
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4 ">
                 <div className="flex flex-col">
-                    <Title level={3} className="m-0">Calendario</Title>
-                    <p className="text-sm text-neutral-600 mt-1">Resumen - Calendario de tareas</p>
+                    <Title level={3} className="m-0 dark:text-white">CALENDARIO</Title>
+                    <p className="text-sm text-neutral-600 dark:text-[#FED36A]  mt-1">Resumen - Calendario de tareas</p>
                 </div>
 
                 <div className="flex flex-wrap gap-2">
@@ -217,10 +218,10 @@ function Dashboard() {
             <ConfigProvider locale={esES}>
                 <Calendar
                     fullscreen={false}
-                    className="bg-white rounded-md border shadow mb-2"
+                    className="bg-white dark:bg-neutral-700 border dark:border-[#FED36A] rounded-md shadow mb-2"
                     value={selectedDate}
                     onSelect={(date) => setSelectedDate(date)}
-                    dateCellRender={(date) => {
+                    CellRender={(date) => {
                         const dayTasks = getTasksForDate(date);
                         return dayTasks.length > 0 ? (
                             <div className="flex justify-center items-center">
@@ -238,31 +239,31 @@ function Dashboard() {
                 />
             </ConfigProvider>
 
-            {/* Leyenda */}
-            <div className="mt-4 text-center text-sm text-gray-600">
+            <div className="mt-4 text-center text-sm text-gray-600 dark:text-white">
                 <span>📅 <strong>Nota:</strong> Los números indican la cantidad de tareas con fecha límite ese día.</span>
             </div>
+
             <br />
             <div className="w-full mb-4">
-                <Title level={4} className="text-black underline">
-                    Tareas para el {selectedDate.format('DD/MM/YYYY')}
+                <Title level={4} className="text-black dark:text-white">
+                    LISTA DE TAREAS: {selectedDate.format('DD/MM/YYYY')}
                 </Title>
                 {selectedDayTasks.length > 0 ? (
                     <ul className="space-y-4 mt-4">
                         {selectedDayTasks.map((task) => (
                             <li
                                 key={task._id}
-                                className="border border-[#FED36A] bg-white text-black p-4 rounded-md shadow"
+                                className="border dark:border-[#FED36A] bg-white dark:bg-[#2a2e33] dark:text-white text-black p-4 rounded-md shadow"
                             >
                                 <p className="text-lg font-semibold">{task.title}</p>
 
                                 <Collapse ghost className="mt-2">
                                     <Panel
-                                        header={<span className="text-sm font-medium">📄 Haz clic para ver la descripción</span>}
+                                        header={<span className="text-sm font-medium dark:text-white">📄 Haz clic para ver la descripción</span>}
                                         key="1"
                                     >
                                         <div
-                                            className="text-gray-700 prose prose-sm max-w-none"
+                                            className="text-gray-700 dark:text-white prose prose-sm dark:prose-invert max-w-none"
                                             dangerouslySetInnerHTML={{ __html: task.description }}
                                         />
                                     </Panel>
@@ -317,7 +318,7 @@ function Dashboard() {
                         ))}
                     </ul>
                 ) : (
-                    <p className="text-neutral-500">No hay tareas para este día.</p>
+                    <p className="text-neutral-500 dark:text-[#FED36A]">No hay tareas para este día.</p>
                 )}
             </div>
         </div>

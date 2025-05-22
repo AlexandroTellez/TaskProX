@@ -111,69 +111,66 @@ const ProfileForm = () => {
     };
 
     return (
-        <div className="p-4 sm:p-6 bg-white text-black rounded-lg shadow-md max-w-6xl mx-auto w-full">
-            {/* Imagen + subir imagen */}
-            <div className="flex flex-col sm:flex-row items-center gap-4 mb-6">
+        <div className="p-4 sm:p-6 w-full h-full bg-white dark:bg-[#1A1A1A] text-black dark:text-white rounded-lg shadow-md">
+            {/* Imagen + título centrado */}
+            <div className="flex flex-col items-center justify-center gap-4 mb-6 text-center">
                 {previewImage || (formData.profile_image && typeof formData.profile_image === "string") ? (
                     <img
                         src={previewImage || `data:image/jpeg;base64,${formData.profile_image}`}
                         alt="Perfil"
-                        className="w-24 h-24 object-cover rounded-full border"
+                        className="w-24 h-24 object-cover rounded-full border bg-white dark:bg-white"
                     />
                 ) : null}
 
-                <div className="flex flex-col items-center sm:items-start gap-2">
-                    <Upload
-                        beforeUpload={(file) => {
-                            const allowedTypes = [
-                                "image/jpeg",
-                                "image/png",
-                                "image/webp",
-                                "image/gif",
-                                "image/bmp",
-                                "image/svg+xml"
-                            ];
-                            const isAllowed = allowedTypes.includes(file.type);
-                            const isSmallEnough = file.size / 1024 / 1024 < 1;
+                <Upload
+                    beforeUpload={(file) => {
+                        const allowedTypes = [
+                            "image/jpeg",
+                            "image/png",
+                            "image/webp",
+                            "image/gif",
+                            "image/bmp",
+                            "image/svg+xml"
+                        ];
+                        const isAllowed = allowedTypes.includes(file.type);
+                        const isSmallEnough = file.size / 1024 / 1024 < 1;
 
-                            if (!isAllowed) {
-                                message.error("Formato no permitido. Usa: JPG, PNG, GIF, WebP, BMP o SVG");
-                                return false;
-                            }
-
-                            if (!isSmallEnough) {
-                                message.error("La imagen debe pesar menos de 1MB");
-                                return false;
-                            }
-
-                            setFormData((prev) => ({ ...prev, profileImage: file }));
-                            setPreviewImage(URL.createObjectURL(file));
+                        if (!isAllowed) {
+                            message.error("Formato no permitido. Usa: JPG, PNG, GIF, WebP, BMP o SVG");
                             return false;
-                        }}
-                        showUploadList={false}
-                    >
-                        <Button icon={<UploadOutlined />} style={{ backgroundColor: "#F1F1F1", borderColor: "#DADADA" }}>
-                            Subir imagen
-                        </Button>
-                    </Upload>
+                        }
 
-                    {(previewImage || formData.profileImage) && (
-                        <Button icon={<CloseCircleOutlined />} onClick={handleRemoveImage} danger size="small">
-                            Eliminar imagen
-                        </Button>
-                    )}
-                </div>
+                        if (!isSmallEnough) {
+                            message.error("La imagen debe pesar menos de 1MB");
+                            return false;
+                        }
+
+                        setFormData((prev) => ({ ...prev, profileImage: file }));
+                        setPreviewImage(URL.createObjectURL(file));
+                        return false;
+                    }}
+                    showUploadList={false}
+                >
+                    <Button icon={<UploadOutlined />} style={{ backgroundColor: "#F1F1F1", borderColor: "#DADADA" }}>
+                        Subir imagen
+                    </Button>
+                </Upload>
+
+                {(previewImage || formData.profileImage) && (
+                    <Button icon={<CloseCircleOutlined />} onClick={handleRemoveImage} danger size="small">
+                        Eliminar imagen
+                    </Button>
+                )}
+
+                <h2 className="text-3xl font-bold text-black dark:text-white mt-4">
+                    {formData.first_name} {formData.last_name}
+                </h2>
             </div>
-
-            {/* Título */}
-            <h2 className="text-3xl font-bold text-black mb-6 text-center sm:text-left">
-                Cuenta: {formData.first_name} {formData.last_name}
-            </h2>
 
             {/* Datos del perfil */}
             <Row gutter={[16, 16]}>
                 <Col xs={24} md={12}>
-                    <label className="block font-medium mb-1">Nombre</label>
+                    <label className="inline-block font-medium mb-1 dark:text-white w-fit">Nombre</label>
                     <Input
                         value={formData.first_name}
                         onChange={(e) => handleChange("first_name", e.target.value)}
@@ -181,7 +178,7 @@ const ProfileForm = () => {
                     />
                 </Col>
                 <Col xs={24} md={12}>
-                    <label className="block font-medium mb-1">Apellidos</label>
+                    <label className="inline-block font-medium mb-1 dark:text-white w-fit">Apellidos</label>
                     <Input
                         value={formData.last_name}
                         onChange={(e) => handleChange("last_name", e.target.value)}
@@ -191,7 +188,7 @@ const ProfileForm = () => {
             </Row>
 
             <div className="mt-4">
-                <label className="block font-medium mb-1">Email</label>
+                <label className="inline-block font-medium mb-1 dark:text-white w-fit">Email</label>
                 <Input
                     type="email"
                     value={formData.email}
@@ -201,7 +198,7 @@ const ProfileForm = () => {
             </div>
 
             <div className="mt-4">
-                <label className="block font-medium mb-1">Dirección</label>
+                <label className="inline-block font-medium mb-1 dark:text-white w-fit">Dirección</label>
                 <Input
                     value={formData.address}
                     onChange={(e) => handleChange("address", e.target.value)}
@@ -210,7 +207,7 @@ const ProfileForm = () => {
             </div>
 
             <div className="mt-4">
-                <label className="block font-medium mb-1">Código Postal</label>
+                <label className="inline-block font-medium mb-1 dark:text-white w-fit">Código Postal</label>
                 <Input
                     value={formData.postal_code}
                     onChange={(e) => handleChange("postal_code", e.target.value)}
@@ -220,7 +217,7 @@ const ProfileForm = () => {
 
             <Row gutter={[16, 16]} className="mt-4">
                 <Col xs={24} md={12}>
-                    <label className="block font-medium mb-1">Contraseña</label>
+                    <label className="inline-block font-medium mb-1 dark:text-white w-fit">Contraseña</label>
                     <Input.Password
                         value={formData.password}
                         onChange={(e) => handleChange("password", e.target.value)}
@@ -228,7 +225,7 @@ const ProfileForm = () => {
                     />
                 </Col>
                 <Col xs={24} md={12}>
-                    <label className="block font-medium mb-1">Repetir Contraseña</label>
+                    <label className="inline-block font-medium mb-1 dark:text-white w-fit">Repetir Contraseña</label>
                     <Input.Password
                         value={formData.confirmPassword}
                         onChange={(e) => handleChange("confirmPassword", e.target.value)}

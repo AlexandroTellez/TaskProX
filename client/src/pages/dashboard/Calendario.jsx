@@ -68,10 +68,10 @@ function Calendario() {
 
     return (
         <ConfigProvider locale={esES}>
-            <div className="p-4 sm:p-6 bg-white text-black rounded-lg shadow-md max-w-6xl mx-auto w-full">
+            <div className="p-4 sm:p-6 bg-white text-black dark:bg-[#1A1A1A] dark:text-white rounded-lg shadow-md mx-auto w-full">
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-                    <Title level={3} className="text-black m-0">Calendario de Tareas</Title>
+                    <Title level={3} className="text-black dark:text-white m-0">CALENDARIO DE TAREAS</Title>
                     <Button
                         size="middle"
                         icon={<FieldTimeOutlined />}
@@ -84,23 +84,23 @@ function Calendario() {
 
                 {/* Calendario */}
                 <Calendar
-                    className="w-full bg-white rounded-md border shadow-sm"
+                    className="w-full bg-white dark:bg-[#2a2e33] border dark:border-[#FED36A] text-black dark:text-white rounded-md shadow-sm"
                     fullscreen={false}
                     value={selectedDate}
                     onSelect={handleSelect}
                     onPanelChange={handlePanelChange}
-                    CellRender={dateCellRender}
+                    cellRender={dateCellRender}
                 />
 
                 {/* Leyenda */}
-                <div className="mt-4 text-center text-sm text-gray-600">
+                <div className="mt-4 text-center text-sm text-gray-600 dark:text-white">
                     <span> 📅<strong> Nota:</strong> Los números corresponden a tareas por fecha límite.</span>
                 </div>
 
                 {/* Lista de tareas */}
                 <div className="w-full mt-8">
-                    <Title level={4} className="text-black">
-                        Tareas para el {selectedDate.format('DD/MM/YYYY')}
+                    <Title level={4} className="text-black dark:text-white">
+                        LISTA DE TAREAS: {selectedDate.format('DD/MM/YYYY')}
                     </Title>
 
                     {selectedDayTasks.length > 0 ? (
@@ -108,15 +108,18 @@ function Calendario() {
                             {selectedDayTasks.map((task) => (
                                 <li
                                     key={task._id}
-                                    className="border border-[#FED36A] bg-white text-black p-4 rounded-md shadow-sm"
+                                    className="border dark:border-[#FED36A] bg-white dark:bg-[#2a2e33] text-black dark:text-white p-4 rounded-md shadow-sm"
                                 >
                                     <p className="text-lg font-bold break-words whitespace-normal">{task.title}</p>
 
                                     <div className="text-sm mt-2 space-y-1">
-                                        <Collapse ghost>
-                                            <Panel header="Descripción" key="1" className="font-semibold text-sm">
+                                        <Collapse ghost className="mt-2">
+                                            <Panel
+                                                header={<span className="text-sm font-medium dark:text-white">📄 Haz clic para ver la descripción</span>}
+                                                key="1"
+                                            >
                                                 <div
-                                                    className="prose prose-sm max-w-none text-gray-700"
+                                                    className="text-gray-700 dark:text-white prose prose-sm dark:prose-invert max-w-none"
                                                     dangerouslySetInnerHTML={{ __html: task.description }}
                                                 />
                                             </Panel>

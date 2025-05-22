@@ -54,9 +54,9 @@ const Proyectos = () => {
     }, [selectedProject]);
 
     return (
-        <div className="w-full bg-white text-black">
+        <div className="w-full bg-white text-black dark:bg-[#1A1A1A] dark:text-white">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-                <Title level={3} className="!mb-0">Gestión de Proyectos</Title>
+                <Title level={3} className="!mb-0 dark:text-white">Gestión de Proyectos</Title>
 
                 <CreateProjectButton
                     selectedProject={selectedProject}
@@ -85,7 +85,7 @@ const Proyectos = () => {
             {selectedProject ? (
                 <>
                     {selectedProject.description && (
-                        <Paragraph className="italic text-sm text-neutral-700 mb-4">
+                        <Paragraph className="italic text-sm text-neutral-700 dark:text-neutral-300 mb-4">
                             <span className="underline font-medium">Descripción del proyecto:</span> {selectedProject.description}
                         </Paragraph>
                     )}
