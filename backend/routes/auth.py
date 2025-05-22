@@ -14,7 +14,6 @@ from pydantic import EmailStr, BaseModel
 from datetime import timedelta
 from bson import ObjectId
 import base64
-
 from models.models import UserCreate, UserLogin, UserOut
 from config.database import user_collection
 from config.config import create_access_token, decode_access_token, FRONTEND_URL
