@@ -1,5 +1,5 @@
 import { useState } from "react";
-import logo from "../../assets/images/Logo.png";
+import logo from "@assets/images/Logo.png";
 import { message } from "antd";
 import { EyeOutlined, EyeInvisibleOutlined } from "@ant-design/icons";
 

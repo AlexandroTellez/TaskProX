@@ -19,7 +19,7 @@ import DashboardLayout from './layout/DashboardLayout';
 import Proyectos from './pages/dashboard/Proyectos';
 import Calendario from './pages/dashboard/Calendario';
 import Cuenta from './pages/dashboard/Cuenta';
-import PrivateRoute from './components/auth/PrivateRoute';
+import PrivateRoute from './components/auth/login/PrivateRoute';
 
 function AppContent() {
   const location = useLocation();

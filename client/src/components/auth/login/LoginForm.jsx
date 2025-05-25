@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
-import logo from "../../assets/images/Logo.png";
+import logo from "@assets/images/Logo.png";
 
 function LoginForm({ onSubmit }) {
     const [email, setEmail] = useState('');

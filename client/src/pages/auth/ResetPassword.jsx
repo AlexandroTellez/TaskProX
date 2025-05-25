@@ -1,5 +1,5 @@
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import ResetPasswordForm from '../../components/auth/ResetPasswordForm';
+import ResetPasswordForm from '../../components/auth/login/ResetPasswordForm';
 import logo from '../../assets/images/Logo.png';
 import { resetPassword } from '../../api/auth';
 import { useEffect, useState } from 'react';

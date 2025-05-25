@@ -7,7 +7,7 @@ import {
     CloseOutlined,
 } from '@ant-design/icons';
 import { Link, useNavigate } from 'react-router-dom';
-import logo from '../../assets/images/logo.png';
+import logo from "@assets/images/Logo.png";
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
     const navigate = useNavigate();

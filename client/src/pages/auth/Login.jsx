@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { loginUser } from '../../api/auth';
-import LoginForm from '../../components/auth/LoginForm';
+import LoginForm from '../../components/auth/login/LoginForm';
 import { message } from 'antd';
 
 function Login() {

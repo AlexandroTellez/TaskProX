@@ -1,12 +1,12 @@
-import { useEffect, useState } from "react";
-import { Input, Button, Upload, message, Modal, Row, Col } from "antd";
 import {
-    UploadOutlined,
+    CloseCircleOutlined,
     DeleteOutlined,
     SaveOutlined,
-    CloseCircleOutlined,
+    UploadOutlined,
 } from "@ant-design/icons";
-import { updateProfile, deleteAccount, getCurrentUser } from "../../api/auth";
+import { Button, Col, Input, message, Modal, Row, Upload } from "antd";
+import { useEffect, useState } from "react";
+import { deleteAccount, getCurrentUser, updateProfile } from "../../../api/auth";
 
 const ProfileForm = () => {
     const [formData, setFormData] = useState({

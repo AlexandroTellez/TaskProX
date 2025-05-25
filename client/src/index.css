@@ -73,7 +73,6 @@ body {
 .dark .ant-picker-panel {
     background-color: #2a2e33 !important;
     color: white !important;
-    
 }
 
 /* Celdas de días */
@@ -147,13 +146,34 @@ body {
 }
 
 
-/* Tabla Ant Design en modo oscuro */
+/* Modo claro: hover gris oscuro */
+:root:not(.dark) .ant-picker-cell-inner:hover {
+    color: #1f2937 !important;
+    /* gris oscuro */
+    background-color: #f3f4f6 !important;
+    /* gris claro */
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+/* Modo oscuro: hover gris claro */
+.dark .ant-picker-cell-inner:hover {
+    color: #adafb1 !important;
+    /* gris claro */
+    background-color: #515457 !important;
+    /* gris un poco más claro */
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+/* ===== Tabla Ant Design en modo oscuro  ===== */
+
 .dark .ant-table,
 .dark .ant-table-container,
 .dark .ant-table-content,
 .dark .ant-table-cell,
-.dark .ant-table-thead > tr > th,
-.dark .ant-table-tbody > tr > td {
+.dark .ant-table-thead>tr>th,
+.dark .ant-table-tbody>tr>td {
     background-color: #2a2e33 !important;
     color: white !important;
     border-color: #FED36A !important;
@@ -165,11 +185,11 @@ body {
 }
 
 /* Encabezados de columnas */
-.dark .ant-table-thead > tr > th {
+.dark .ant-table-thead>tr>th {
     font-weight: 600;
 }
 
 /* Hover fila */
-.dark .ant-table-tbody > tr:hover > td {
+.dark .ant-table-tbody>tr:hover>td {
     background-color: #393e44 !important;
 }

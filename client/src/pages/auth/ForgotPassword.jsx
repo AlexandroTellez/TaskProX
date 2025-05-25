@@ -1,4 +1,4 @@
-import ForgotPasswordForm from "../../components/auth/ForgotPasswordForm";
+import ForgotPasswordForm from "../../components/auth/login/ForgotPasswordForm";
 import logo from "../../assets/images/Logo.png";
 import { sendForgotPasswordEmail } from "../../api/auth";
 

@@ -125,9 +125,9 @@ function Dashboard() {
     const handleToday = () => setSelectedDate(dayjs());
 
     return (
-        <div className="w-full bg-white text-black dark:bg-[#1A1A1A] dark:text-white">
+        <div className="w-full bg-white text-black dark:bg-[#1A1A1A] dark:text-white ">
             <Title level={3} className="dark:text-white">MIS PROYECTOS</Title>
-            <p className="text-sm text-neutral-600 dark:text-[#FED36A] mb-4">Resumen - Proyectos</p>
+            <p className="text-sm text-neutral-600 dark:text-[#FED36A] mb-4">RESUMEN - PROYECTOS</p>
 
             <div className="hidden sm:block">
                 <div className="rounded-md border dark:border-[#FED36A] overflow-hidden shadow dark:bg-[#2a2e33]">
@@ -180,7 +180,7 @@ function Dashboard() {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4 ">
                 <div className="flex flex-col">
                     <Title level={3} className="m-0 dark:text-white">CALENDARIO</Title>
-                    <p className="text-sm text-neutral-600 dark:text-[#FED36A]  mt-1">Resumen - Calendario de tareas</p>
+                    <p className="text-sm text-neutral-600 dark:text-[#FED36A]  mt-1">RESUMEN - CALENDARIO DE TAREAS</p>
                 </div>
 
                 <div className="flex flex-wrap gap-2">
@@ -217,36 +217,52 @@ function Dashboard() {
 
             <ConfigProvider locale={esES}>
                 <Calendar
+                    className="w-full bg-white dark:bg-[#2a2e33] border dark:border-[#FED36A] text-black dark:text-white rounded-md shadow-sm"
                     fullscreen={false}
-                    className="bg-white dark:bg-neutral-700 border dark:border-[#FED36A] rounded-md shadow mb-2"
                     value={selectedDate}
                     onSelect={(date) => setSelectedDate(date)}
-                    CellRender={(date) => {
-                        const dayTasks = getTasksForDate(date);
-                        return dayTasks.length > 0 ? (
-                            <div className="flex justify-center items-center">
-                                <Badge
-                                    count={dayTasks.length}
-                                    style={{
-                                        backgroundColor: '#FED36A',
-                                        color: '#1A1A1A',
-                                        fontWeight: 'bold',
-                                    }}
-                                />
+                    cellRender={(date) => {
+                        const deadlineTasks = tasks.filter(task => task.deadline && dayjs(task.deadline).isSame(date, 'day'));
+                        const startTasks = tasks.filter(task => task.startDate && dayjs(task.startDate).isSame(date, 'day'));
+
+                        return (
+                            <div className="flex flex-col items-center justify-center gap-1">
+                                {startTasks.length > 0 && (
+                                    <div className="rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold bg-black text-white dark:bg-white dark:text-black">
+                                        {startTasks.length}
+                                    </div>
+                                )}
+                                {deadlineTasks.length > 0 && (
+                                    <Badge
+                                        count={deadlineTasks.length}
+                                        style={{
+                                            backgroundColor: '#B91C1C',
+                                            color: document.documentElement.classList.contains('dark') ? '#FFFFFF' : '#1A1A1A',
+                                            fontWeight: 'bold',
+                                        }}
+                                    />
+                                )}
                             </div>
-                        ) : null;
+                        );
                     }}
                 />
             </ConfigProvider>
 
-            <div className="mt-4 text-center text-sm text-gray-600 dark:text-white">
-                <span>📅 <strong>Nota:</strong> Los números indican la cantidad de tareas con fecha límite ese día.</span>
+            {/* Leyenda */}
+            <div className="mt-4 flex flex-col sm:flex-row justify-center items-start sm:items-center sm:gap-x-6 text-sm text-gray-600 dark:text-white text-start">
+                <span className="flex items-start">
+                    ⚪⚫ <span><strong>Fecha inicio:</strong>&nbsp;Los números marcados en circulos blancos o negros.</span>
+                </span>
+                <span className="flex items-start mt-1 sm:mt-0">
+                    🔴 <span><strong>Fecha límite:</strong>&nbsp;Los números marcados en circulos rojos.</span>
+                </span>
             </div>
 
             <br />
             <div className="w-full mb-4">
                 <Title level={4} className="text-black dark:text-white">
                     LISTA DE TAREAS: {selectedDate.format('DD/MM/YYYY')}
+                    <p className="text-sm text-neutral-600 dark:text-[#FED36A]  mt-1">INFORMACIÓN DE LAS TAREAS</p>
                 </Title>
                 {selectedDayTasks.length > 0 ? (
                     <ul className="space-y-4 mt-4">
