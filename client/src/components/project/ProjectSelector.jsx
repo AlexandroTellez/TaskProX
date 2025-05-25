@@ -32,10 +32,10 @@ const ProjectSelector = ({ projects, selectedProject, setSelectedProject }) => {
     return (
         <div className="mb-4">
             <div className="flex items-center gap-2">
-                <Typography.Text strong className="italic underline text-sm text-neutral-700">
-                    Elige tu proyecto
+                <Typography.Text strong className=" underline text-sm text-black dark:text-white">
+                    SELECCIONA UN PROYECTO:
                 </Typography.Text>
-                <DownOutlined className="text-neutral-500" style={{ fontSize: '12px' }} />
+                <DownOutlined className="text-neutral-500 dark:text-white" style={{ fontSize: '12px' }} />
             </div>
             <Select
                 placeholder="Selecciona un proyecto"

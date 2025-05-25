@@ -21,10 +21,11 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         <div className="flex flex-col justify-between h-full w-full">
             <div>
                 {/* Logo y nombre */}
-                <div className="flex items-center gap-2 px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                <Link  to="/dashboard" className="flex items-center gap-2 px-6 py-4 border-b border-gray-200 dark:border-gray-700">
                     <img src={logo} alt="TaskProX Logo" className="h-8 w-8 dark:invert" />
                     <span className="font-bold text-lg dark:text-white">TaskProX</span>
-                </div>
+                    
+                </Link>
 
                 {/* Navegación */}
                 <nav className="flex flex-col gap-1 mt-4">

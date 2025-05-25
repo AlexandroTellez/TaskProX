@@ -1,4 +1,4 @@
-import ProfileForm from "../../components/auth/account/ProfileForm";
+import ProfileForm from "../../components/auth/login/ProfileForm";
 
 const Cuenta = () => {
     return (

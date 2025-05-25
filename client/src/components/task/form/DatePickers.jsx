@@ -1,4 +1,4 @@
-import { DatePicker, Checkbox } from 'antd';
+import { Checkbox, DatePicker } from 'antd';
 import esES from 'antd/es/locale/es_ES';
 import dayjs from 'dayjs';
 
@@ -42,7 +42,6 @@ const DatePickers = ({ startDate, deadline, noDeadline, onChange, setNoDeadline 
                 </div>
                 <div className="flex justify-end">
                     <Checkbox
-                        className="text-black"
                         checked={noDeadline}
                         onChange={(e) => {
                             const checked = e.target.checked;

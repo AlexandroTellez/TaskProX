@@ -113,7 +113,7 @@ function Calendario() {
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                     <Title level={3} className="text-black dark:text-white m-0">CALENDARIO DE TAREAS
-                        <p className="text-sm text-neutral-600 dark:text-[#FED36A]  mt-1">CALENDARIO SEGÚN FECHA DE INICIO Y FECHA LÍMITE</p>
+                        <p className="text-sm text-neutral-600 dark:text-[#FED36A] font-medium mt-1"> RESUMEN CALENDARIO - FECHA DE INICIO Y FECHA LÍMITE</p>
                     </Title>
                     
                     <Button
@@ -150,7 +150,7 @@ function Calendario() {
                 <div className="w-full mt-8">
                     <Title level={4} className="text-black dark:text-white">
                         LISTA DE TAREAS: {selectedDate.format('DD/MM/YYYY')}
-                        <p className="text-sm text-neutral-600 dark:text-[#FED36A]  mt-1">INFORMACIÓN DE LAS TAREAS</p>
+                        <p className="text-sm text-neutral-600 dark:text-[#FED36A] font-medium mt-1">RESUMEN DETALLADO - REGISTRO DE TAREAS</p>
                     </Title>
 
                     {selectedDayTasks.length > 0 ? (

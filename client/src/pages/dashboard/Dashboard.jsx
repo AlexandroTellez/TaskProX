@@ -48,7 +48,7 @@ function Dashboard() {
         key: p._id || index,
         id: p._id || p.id,
         name: p.name,
-        description: p.description || 'No hay descripción disponible',
+        description: p.description || 'No hay descripción.',
         collaborators: p.collaborators || [],
     }));
 
@@ -127,7 +127,7 @@ function Dashboard() {
     return (
         <div className="w-full bg-white text-black dark:bg-[#1A1A1A] dark:text-white ">
             <Title level={3} className="dark:text-white">MIS PROYECTOS</Title>
-            <p className="text-sm text-neutral-600 dark:text-[#FED36A] mb-4">RESUMEN - PROYECTOS</p>
+            <p className="text-sm text-neutral-600 dark:text-[#FED36A] font-medium mb-4">RESUMEN - PROYECTOS</p>
 
             <div className="hidden sm:block">
                 <div className="rounded-md border dark:border-[#FED36A] overflow-hidden shadow dark:bg-[#2a2e33]">
@@ -155,7 +155,7 @@ function Dashboard() {
                                     key="desc"
                                 >
                                     <p className="text-sm text-neutral-700 dark:text-white whitespace-pre-wrap break-words">
-                                        {project.description || 'No hay descripción disponible'}
+                                        {project.description || 'No hay descripción.'}
                                     </p>
                                 </Panel>
                             </Collapse>
@@ -180,7 +180,7 @@ function Dashboard() {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4 ">
                 <div className="flex flex-col">
                     <Title level={3} className="m-0 dark:text-white">CALENDARIO</Title>
-                    <p className="text-sm text-neutral-600 dark:text-[#FED36A]  mt-1">RESUMEN - CALENDARIO DE TAREAS</p>
+                    <p className="text-sm text-neutral-600 dark:text-[#FED36A] font-medium mt-1">RESUMEN CALENDARIO - FECHA DE INICIO Y FECHA LÍMITE</p>
                 </div>
 
                 <div className="flex flex-wrap gap-2">
@@ -262,7 +262,7 @@ function Dashboard() {
             <div className="w-full mb-4">
                 <Title level={4} className="text-black dark:text-white">
                     LISTA DE TAREAS: {selectedDate.format('DD/MM/YYYY')}
-                    <p className="text-sm text-neutral-600 dark:text-[#FED36A]  mt-1">INFORMACIÓN DE LAS TAREAS</p>
+                    <p className="text-sm text-neutral-600 dark:text-[#FED36A] font-medium mt-1">RESUMEN - REGISTRO DE TAREAS</p>
                 </Title>
                 {selectedDayTasks.length > 0 ? (
                     <ul className="space-y-4 mt-4">

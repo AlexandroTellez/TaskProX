@@ -54,9 +54,12 @@ const Proyectos = () => {
     }, [selectedProject]);
 
     return (
-        <div className="w-full bg-white text-black dark:bg-[#1A1A1A] dark:text-white">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-                <Title level={3} className="!mb-0 dark:text-white">Gestión de Proyectos</Title>
+        <div className="w-full bg-white text-black dark:bg-[#1A1A1A] dark:text-white p-4 sm:p-6 lg:p-8">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                <Title level={3} className="text-black dark:text-white m-0">GESTION DE PROYECTOS
+                    <p className="text-sm text-neutral-600 dark:text-[#FED36A] font-medium mt-1"> FLUJO DE TRABAJO - PROYECTOS Y TAREAS </p>
+                </Title>
 
                 <CreateProjectButton
                     selectedProject={selectedProject}
@@ -85,7 +88,7 @@ const Proyectos = () => {
             {selectedProject ? (
                 <>
                     {selectedProject.description && (
-                        <Paragraph className="italic text-sm text-neutral-700 dark:text-neutral-300 mb-4">
+                        <Paragraph className="italic text-sm text-black dark:text-white mb-4">
                             <span className="underline font-medium">Descripción del proyecto:</span> {selectedProject.description}
                         </Paragraph>
                     )}
@@ -109,14 +112,26 @@ const Proyectos = () => {
                         </Button>
                     </div>
 
-                    <TaskList
-                        tasks={tasks}
-                        projectId={selectedProject._id}
-                        onTaskChanged={() => loadTasks(selectedProject._id)}
-                    />
+                    <div className="rounded-md border dark:border-[#FED36A] shadow-md dark:bg-[#2a2e33] p-4">
+                        <TaskList
+                            tasks={tasks}
+                            projectId={selectedProject._id}
+                            onTaskChanged={() => loadTasks(selectedProject._id)}
+                        />
+                    </div>
                 </>
             ) : (
-                <Empty description="Selecciona un proyecto para ver sus tareas" className="mt-12" />
+                <div className="flex justify-center items-center mt-12">
+                    <div className="text-center">
+                        <Empty
+                            description={
+                                <span className="text-neutral-700 dark:text-[#FED36A]">
+                                    Selecciona un proyecto para ver sus tareas
+                                </span>
+                            }
+                        />
+                    </div>
+                </div>
             )}
         </div>
     );

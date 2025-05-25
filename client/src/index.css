@@ -193,3 +193,85 @@ body {
 .dark .ant-table-tbody>tr:hover>td {
     background-color: #393e44 !important;
 }
+
+/* ================= Tarjeta de tarea Crear/Actualizar Checkbox en modo oscuro ================= */
+
+/* Texto del label */
+.ant-checkbox-wrapper {
+    color: #1A1A1A !important;
+    /* Texto negro en modo claro */
+}
+
+.dark .ant-checkbox-wrapper {
+    color: #FFFFFF !important;
+    /* Texto blanco en modo oscuro */
+}
+
+/* Estilo base del cuadrado del checkbox */
+.ant-checkbox-inner {
+    background-color: #FFFFFF !important;
+    /* Fondo blanco en modo claro */
+    border-color: #D1D5DB !important;
+    /* Gris claro borde */
+}
+
+.dark .ant-checkbox-inner {
+    background-color: #2a2e33 !important;
+    /* Fondo oscuro base */
+    border-color: #a1a1aa !important;
+    /* Gris medio borde */
+}
+
+/* Cuando está marcado */
+.ant-checkbox-checked .ant-checkbox-inner {
+    background-color: #FED36A !important;
+    /* Fondo amarillo */
+    border-color: #FED36A !important;
+}
+
+/* Check negro (✔) */
+.ant-checkbox-checked .ant-checkbox-inner::after {
+    border-color: #1A1A1A !important;
+    /* ✔ en negro para contraste */
+}
+
+/* Hover para consistencia */
+.ant-checkbox:hover .ant-checkbox-inner,
+.dark .ant-checkbox:hover .ant-checkbox-inner {
+    border-color: #FED36A !important;
+}
+
+/* ================= DatePicker DESHABILITADO en modo oscuro ================= */
+
+.dark .ant-picker-disabled {
+    background-color: #e2e4e6 !important;  /* gris claro */
+    color: #1A1A1A !important;             /* texto negro */
+}
+
+/* Placeholder dentro del input */
+.dark .ant-picker-disabled .ant-picker-input > input::placeholder {
+    color: #1A1A1A !important;
+}
+
+/* Icono de calendario (si está presente) */
+.dark .ant-picker-disabled .ant-picker-suffix {
+    color: #1A1A1A !important;
+}
+
+/* ================= TABLA DE TAREAS EN PROYECTOS- Expansión de descripción (ícono + / -) ================= */
+
+/* Estilo base en modo claro */
+.ant-table-row-expand-icon {
+    background-color: #FFFFFF !important; /* fondo blanco */
+    color: #1A1A1A !important;            /* icono negro */
+    border-radius: 4px;
+    border: 1px solid #d4d4d8; /* borde gris claro */
+}
+
+/* Estilo en modo oscuro */
+.dark .ant-table-row-expand-icon {
+    background-color: #FFFFFF !important; /* fondo blanco también */
+    color: #1A1A1A !important;            /* icono negro */
+    border-radius: 4px;
+    border: 1px solid #FED36A !important; /* borde amarillo */
+}

@@ -138,7 +138,7 @@ const ProjectButton = ({
 
     return (
         <>
-            <Space>
+            <div className="flex flex-col sm:flex-row flex-wrap gap-2 sm:items-center sm:justify-start">
                 <Button icon={<PlusOutlined />} onClick={showCreateModal} style={yellowStyle}>
                     Crear Proyecto
                 </Button>
@@ -176,7 +176,7 @@ const ProjectButton = ({
                         Borrar Proyecto
                     </Button>
                 </Popconfirm>
-            </Space>
+            </div>
 
             <ConfigProvider
                 theme={{

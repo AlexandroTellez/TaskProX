@@ -8,7 +8,7 @@ const TaskActions = ({ task, userEmail, projectId, onDuplicate, onDelete }) => {
     const permission = getPermission(task, userEmail);
 
     return (
-        <Space>
+        <div className='= dark:bg-[#2a2e33]'>
             {(permission === 'write' || permission === 'admin') && (
                 <Button
                     icon={<EditOutlined />}
@@ -58,7 +58,7 @@ const TaskActions = ({ task, userEmail, projectId, onDuplicate, onDelete }) => {
                     </Button>
                 </Popconfirm>
             )}
-        </Space>
+        </div>
     );
 };
 
