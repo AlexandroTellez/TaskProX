@@ -125,7 +125,7 @@ const Proyectos = () => {
                     <div className="text-center">
                         <Empty
                             description={
-                                <span className="text-neutral-700 dark:text-[#FED36A]">
+                                <span className="text-neutral-700 dark:text-white">
                                     Selecciona un proyecto para ver sus tareas
                                 </span>
                             }

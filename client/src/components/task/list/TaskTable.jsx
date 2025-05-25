@@ -2,6 +2,7 @@ import { Table, Tag, Button, Popconfirm, Space } from 'antd';
 import { EditOutlined, DeleteOutlined, CopyOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { getPermission, getStatusTag, formatDate } from './utils.jsx';
+import { Empty } from 'antd';
 
 const TaskTable = ({ tasks, userEmail, onDuplicate, onDelete, projectId }) => {
     const navigate = useNavigate();
@@ -161,6 +162,17 @@ const TaskTable = ({ tasks, userEmail, onDuplicate, onDelete, projectId }) => {
                     rowExpandable: (record) => record.description && record.description.length > 0,
                 }}
                 scroll={{ x: true }}
+                locale={{
+                    emptyText: (
+                        <Empty
+                            description={
+                                <span className="font-semibold text-white">
+                                    No hay tareas disponibles
+                                </span>
+                            }
+                        />
+                    ),
+                }}
             />
         </div>
     );

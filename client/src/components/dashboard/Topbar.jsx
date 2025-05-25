@@ -12,26 +12,27 @@ const Topbar = ({ setSidebarOpen }) => {
     const location = useLocation();
 
     useEffect(() => {
-        const fetchUser = async () => {
-            try {
-                const data = await getCurrentUser();
-                const fullName = `${data.first_name} ${data.last_name}`.trim();
-                const avatar = data.profile_image
-                    ? `data:image/jpeg;base64,${data.profile_image}`
-                    : `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=random`;
+        const token = localStorage.getItem('token');
+        if (!token) return;
 
-                setUsuario({
-                    nombre: fullName,
-                    avatar,
+        const timeout = setTimeout(() => {
+            getCurrentUser()
+                .then(data => {
+                    const fullName = `${data.first_name} ${data.last_name}`.trim();
+                    const avatar = data.profile_image
+                        ? `data:image/jpeg;base64,${data.profile_image}`
+                        : `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=random`;
+
+                    setUsuario({ nombre: fullName, avatar });
+                })
+                .catch(error => {
+                    console.error('[Topbar] No se pudo cargar usuario:', error);
                 });
-            } catch (error) {
-                console.error('Error al obtener el usuario:', error);
-                navigate('/login');
-            }
-        };
+        }, 200); // ⏳ Espera a que PrivateRoute termine su validación
 
-        fetchUser();
+        return () => clearTimeout(timeout);
     }, [location.pathname]);
+
 
     const handleGoToAccount = () => {
         navigate('/cuenta');
