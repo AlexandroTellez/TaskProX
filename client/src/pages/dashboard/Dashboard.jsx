@@ -334,7 +334,7 @@ function Dashboard() {
                         ))}
                     </ul>
                 ) : (
-                    <p className="text-neutral-500 dark:text-[#FED36A]">No hay tareas para este día.</p>
+                    <p className="text-neutral-500 dark:text-white">No hay tareas para este día.</p>
                 )}
             </div>
         </div>

@@ -1,12 +1,16 @@
+import { message } from 'antd';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { loginUser, getCurrentUser } from '../../api/auth';
+import { getCurrentUser, loginUser } from '../../api/auth';
 import LoginForm from '../../components/auth/login/LoginForm';
-import { message } from 'antd';
 
 function Login() {
     const navigate = useNavigate();
 
+    /**
+     * Maneja el envío del formulario de login.
+     * Guarda el estado del checkbox "Recuérdame" y redirige al dashboard.
+     */
     const handleLogin = async ({ email, password, rememberMe }) => {
         try {
             await loginUser({ email, password });
@@ -19,12 +23,14 @@ function Login() {
 
             navigate('/dashboard');
         } catch (err) {
-            console.error(' Error al iniciar sesión:', err);
             message.error(err?.message || 'Error al iniciar sesión');
         }
     };
 
-    //  Verificar si ya está autenticado al cargar la pantalla de login
+    /**
+     * Verifica si el usuario ya tiene una sesión activa al cargar el componente.
+     * Si el token existe y es válido, redirige automáticamente al dashboard.
+     */
     useEffect(() => {
         const validateSession = async () => {
             const token = localStorage.getItem('token');
@@ -32,9 +38,9 @@ function Login() {
 
             try {
                 await getCurrentUser();
-                navigate('/dashboard'); // redirigir si está logueado
+                navigate('/dashboard');
             } catch (err) {
-                console.log('[Login.jsx] Token inválido o expirado.');
+                // Token inválido o expirado: no redirigimos
             }
         };
 

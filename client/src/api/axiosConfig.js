@@ -4,10 +4,10 @@ import axios from 'axios';
 // CONFIGURACIÓN DE AXIOS
 // ==========================
 
-// URL base del backend, configurable por entorno
+// URL base del backend desde entorno (Vite)
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
-// Crear una instancia de Axios con baseURL
+// Crear instancia de Axios con configuración base
 const api = axios.create({
     baseURL: API_URL,
 });
@@ -16,15 +16,20 @@ const api = axios.create({
 // INTERCEPTOR DE SOLICITUDES
 // ==========================
 
+/**
+ * Añade el token JWT a cada solicitud si está disponible en localStorage.
+ */
 api.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem('token');
+
         if (token) {
             config.headers = {
                 ...config.headers,
                 Authorization: `Bearer ${token}`,
             };
         }
+
         return config;
     },
     (error) => Promise.reject(error)
@@ -34,17 +39,13 @@ api.interceptors.request.use(
 // INTERCEPTOR DE RESPUESTAS
 // ==========================
 
+/**
+ * Maneja respuestas de error globalmente.
+ * Si hay un 401 (token expirado o inválido), el componente `PrivateRoute` lo gestionará.
+ */
 api.interceptors.response.use(
     (response) => response,
-    (error) => {
-        if (error.response?.status === 401) {
-            // Si el token expira o no es válido, forzar logout
-            localStorage.removeItem('token');
-            localStorage.removeItem('rememberMe');
-            window.location.href = '/login';
-        }
-        return Promise.reject(error.response?.data || error);
-    }
+    (error) => Promise.reject(error.response?.data || error)
 );
 
 // ==========================

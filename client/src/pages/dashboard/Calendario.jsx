@@ -108,14 +108,14 @@ function Calendario() {
     });
 
     return (
-        <ConfigProvider locale={esES}>
+        <ConfigProvider locale={esES} >
             <div className="p-4 sm:p-6 bg-white text-black dark:bg-[#1A1A1A] dark:text-white rounded-lg shadow-md mx-auto w-full">
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                     <Title level={3} className="text-black dark:text-white m-0">CALENDARIO DE TAREAS
                         <p className="text-sm text-neutral-600 dark:text-[#FED36A] font-medium mt-1"> RESUMEN CALENDARIO - FECHA DE INICIO Y FECHA LÍMITE</p>
                     </Title>
-                    
+
                     <Button
                         size="middle"
                         icon={<FieldTimeOutlined />}
@@ -190,7 +190,7 @@ function Calendario() {
                                                     : '/proyectos';
                                                 window.open(url, '_blank');
                                             }}
-                                            className="font-bold bg-[#FED36A] hover:bg-[#fcd670] text-black border-none rounded-md"
+                                            className="font-bold bg-[#FED36A] hover:bg-[#fcd670] text-black  border-none rounded-md"
                                         >
                                             Ver tarea
                                         </Button>
@@ -199,7 +199,13 @@ function Calendario() {
                             ))}
                         </ul>
                     ) : (
-                        <Empty description="No hay tareas para este día" className="mt-4" />
+                        <Empty
+                            description={
+                                <span className="text-neutral-700 dark:text-white">
+                                    No hay tareas para este día
+                                </span>
+                            }
+                        />
                     )}
                 </div>
             </div>

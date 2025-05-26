@@ -1,38 +1,47 @@
 import { useEffect, useState } from 'react';
 import { Avatar, Button } from 'antd';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { getCurrentUser } from '../../api/auth';
 import { MenuOutlined, SunOutlined, MoonOutlined } from '@ant-design/icons';
 import useDarkMode from '../../hooks/useDarkMode';
+import { getToken, getUser } from '../../utils/auth';
 
 const Topbar = ({ setSidebarOpen }) => {
     const [usuario, setUsuario] = useState(null);
     const [isDarkMode, toggleDarkMode] = useDarkMode();
     const navigate = useNavigate();
-    const location = useLocation();
 
     useEffect(() => {
-        const token = localStorage.getItem('token');
+        const token = getToken();
         if (!token) return;
 
-        const timeout = setTimeout(() => {
-            getCurrentUser()
-                .then(data => {
-                    const fullName = `${data.first_name} ${data.last_name}`.trim();
-                    const avatar = data.profile_image
-                        ? `data:image/jpeg;base64,${data.profile_image}`
-                        : `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=random`;
+        // Mostrar datos desde localStorage si están disponibles
+        const localUser = getUser();
+        if (localUser) {
+            const avatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(localUser.nombre)}&background=random`;
+            setUsuario({ nombre: localUser.nombre, avatar });
+        }
 
-                    setUsuario({ nombre: fullName, avatar });
-                })
-                .catch(error => {
-                    console.error('[Topbar] No se pudo cargar usuario:', error);
-                });
-        }, 200); // ⏳ Espera a que PrivateRoute termine su validación
+        // Validar token con el backend para obtener información actualizada
+        getCurrentUser()
+            .then(data => {
+                const fullName = `${data.first_name} ${data.last_name}`.trim();
+                const avatar = data.profile_image
+                    ? `data:image/jpeg;base64,${data.profile_image}`
+                    : `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=random`;
 
-        return () => clearTimeout(timeout);
-    }, [location.pathname]);
+                setUsuario({ nombre: fullName, avatar });
 
+                // Guardar los datos actualizados en localStorage
+                localStorage.setItem(
+                    'user',
+                    JSON.stringify({ nombre: fullName, email: data.email })
+                );
+            })
+            .catch(() => {
+                // En caso de error no hacemos nada visualmente
+            });
+    }, []);
 
     const handleGoToAccount = () => {
         navigate('/cuenta');
@@ -40,7 +49,7 @@ const Topbar = ({ setSidebarOpen }) => {
 
     return (
         <header className="flex justify-between items-center px-4 sm:px-6 lg:px-8 py-4 bg-white dark:bg-[#1A1A1A] dark:text-white">
-            {/* Botón hamburguesa en móviles */}
+            {/* Botón hamburguesa para dispositivos móviles */}
             <button
                 className="md:hidden text-black dark:text-white text-xl"
                 onClick={() => setSidebarOpen(true)}
@@ -49,7 +58,7 @@ const Topbar = ({ setSidebarOpen }) => {
                 <MenuOutlined />
             </button>
 
-            {/* Usuario + modo oscuro */}
+            {/* Información del usuario y botón de modo oscuro */}
             {usuario && (
                 <div className="flex items-center gap-4 ml-auto">
                     <Button
@@ -65,7 +74,6 @@ const Topbar = ({ setSidebarOpen }) => {
                             borderRadius: '6px',
                         }}
                     />
-
                     <div
                         className="flex items-center gap-2 cursor-pointer"
                         onClick={handleGoToAccount}
@@ -81,7 +89,6 @@ const Topbar = ({ setSidebarOpen }) => {
                             }}
                         />
                     </div>
-
                 </div>
             )}
         </header>

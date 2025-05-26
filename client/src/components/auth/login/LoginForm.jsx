@@ -3,6 +3,11 @@ import { Link } from 'react-router-dom';
 import { EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
 import logo from "@assets/images/Logo.png";
 
+/**
+ * Formulario de inicio de sesión
+ * - Muestra el branding a la izquierda (pantallas grandes)
+ * - Permite ingresar credenciales, recordar sesión y aceptar términos
+ */
 function LoginForm({ onSubmit }) {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -12,7 +17,7 @@ function LoginForm({ onSubmit }) {
     const [showPassword, setShowPassword] = useState(false);
     const [rememberMe, setRememberMe] = useState(false);
 
-    // Cargar email y estado de 'Recuérdame' si están guardados
+    // Leer datos recordados al cargar
     useEffect(() => {
         const savedEmail = localStorage.getItem("savedEmail");
         const remember = localStorage.getItem("rememberMe") === "true";
@@ -21,6 +26,7 @@ function LoginForm({ onSubmit }) {
         if (remember) setRememberMe(true);
     }, []);
 
+    // Enviar formulario
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -32,7 +38,7 @@ function LoginForm({ onSubmit }) {
         try {
             setLoading(true);
 
-            // Guardar email y estado del checkbox
+            // Guardar email y preferencia
             localStorage.setItem("savedEmail", email);
             localStorage.setItem("rememberMe", rememberMe ? "true" : "false");
 
@@ -47,7 +53,7 @@ function LoginForm({ onSubmit }) {
 
     return (
         <div className="min-h-screen w-full flex flex-col lg:flex-row bg-[#1a1a1a] lg:bg-transparent">
-            {/* Branding */}
+            {/* Branding lateral */}
             <div className="lg:w-1/2 w-full bg-white text-black flex justify-center items-center px-4 sm:px-6 py-8 lg:py-16 relative">
                 <div className="flex flex-col items-center text-center lg:text-left w-full max-w-md">
                     <div className="flex flex-col lg:flex-row items-center gap-3 mb-4 lg:mb-10">
@@ -69,7 +75,8 @@ function LoginForm({ onSubmit }) {
             <div className="lg:w-1/2 w-full bg-[#1a1a1a] text-white flex flex-col justify-center items-center px-4 sm:px-6 lg:px-16 py-8">
                 <div className="w-full max-w-xs sm:max-w-md lg:max-w-xl">
                     <h2 className="text-xl sm:text-5xl font-bold mb-2"> Inicia sesión</h2>
-                    <p className="mb-4 sm:mb-6 text-xs sm:text-xl"> Accede a tu espacio de productividad en TaskProX.</p>
+                    <p className="mb-4 sm:mb-6 text-xs sm:text-xl">Accede a tu espacio de productividad en TaskProX.</p>
+
                     <form onSubmit={handleSubmit} autoComplete="on" className="space-y-4 lg:space-y-6">
                         <input
                             type="email"
@@ -81,6 +88,7 @@ function LoginForm({ onSubmit }) {
                             className="w-full p-3 sm:p-4 lg:p-5 text-sm sm:text-base lg:text-lg bg-transparent border border-gray-400 rounded text-white"
                             required
                         />
+
                         <div className="relative">
                             <input
                                 type={showPassword ? "text" : "password"}
@@ -98,7 +106,7 @@ function LoginForm({ onSubmit }) {
                             </span>
                         </div>
 
-                        {/* Recuérdame y enlace */}
+                        {/* Recuérdame + Olvido */}
                         <div className="flex items-center justify-between">
                             <label className="flex items-center gap-2 text-xs sm:text-sm lg:text-base">
                                 <input
@@ -114,6 +122,7 @@ function LoginForm({ onSubmit }) {
                             </Link>
                         </div>
 
+                        {/* Términos y privacidad */}
                         <div className="flex items-start gap-2">
                             <input
                                 type="checkbox"
@@ -138,6 +147,7 @@ function LoginForm({ onSubmit }) {
                             </label>
                         </div>
 
+                        {/* Botón */}
                         <button
                             type="submit"
                             disabled={loading}
@@ -146,6 +156,7 @@ function LoginForm({ onSubmit }) {
                             {loading ? "Entrando..." : "Entrar"}
                         </button>
 
+                        {/* Enlace a registro */}
                         <div className="text-center text-xs sm:text-sm lg:text-base">
                             <p className="mb-1">
                                 ¿Aún no tienes cuenta?{" "}

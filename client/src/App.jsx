@@ -20,20 +20,10 @@ import Proyectos from './pages/dashboard/Proyectos';
 import Calendario from './pages/dashboard/Calendario';
 import Cuenta from './pages/dashboard/Cuenta';
 import PrivateRoute from './components/auth/login/PrivateRoute';
+import { getToken } from './utils/auth';
 
 function AppContent() {
   const location = useLocation();
-  const hiddenLayoutRoutes = [
-    '/',
-    '/login',
-    '/register',
-    '/forgot-password',
-    '/reset-password',
-    '/legal/terminos',
-    '/legal/privacidad',
-  ];
-
-  const isAuthPage = hiddenLayoutRoutes.includes(location.pathname);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -42,8 +32,17 @@ function AppContent() {
   return (
     <div className="min-h-screen w-full">
       <Routes>
+        {/* Ruta raíz redirige según autenticación */}
+        <Route
+          path="/"
+          element={
+            getToken()
+              ? <Navigate to="/dashboard" replace />
+              : <Navigate to="/login" replace />
+          }
+        />
+
         {/* Rutas públicas */}
-        <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -64,7 +63,7 @@ function AppContent() {
           </Route>
         </Route>
 
-        {/* Redirección por defecto */}
+        {/* Ruta por defecto (catch-all) */}
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </div>
