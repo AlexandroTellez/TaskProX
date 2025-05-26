@@ -2,6 +2,7 @@ import { message } from 'antd';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getCurrentUser, loginUser } from '../../api/auth';
+import { getToken } from '../../utils/auth';
 import LoginForm from '../../components/auth/login/LoginForm';
 
 function Login() {
@@ -13,7 +14,7 @@ function Login() {
      */
     const handleLogin = async ({ email, password, rememberMe }) => {
         try {
-            await loginUser({ email, password });
+            await loginUser({ email, password, rememberMe });
 
             if (rememberMe) {
                 localStorage.setItem('rememberMe', 'true');
@@ -33,7 +34,7 @@ function Login() {
      */
     useEffect(() => {
         const validateSession = async () => {
-            const token = localStorage.getItem('token');
+            const token = getToken(); // Verifica en localStorage o sessionStorage
             if (!token) return;
 
             try {

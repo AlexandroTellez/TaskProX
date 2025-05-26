@@ -15,9 +15,11 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
 
     // Cerrar sesión y redirigir a login
     const handleLogout = () => {
-        removeToken(); // Elimina token y usuario del almacenamiento local
+        removeToken(); // Elimina el token (de localStorage o sessionStorage) y los datos del usuario
+        // NOTA: No elimina savedEmail ni rememberMe, para mantener la experiencia de "Recuérdame"
         navigate('/login');
     };
+
 
     // Contenido principal del menú (navegación y logout)
     const menuContent = (

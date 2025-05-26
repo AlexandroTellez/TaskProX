@@ -7,11 +7,11 @@ from fastapi import (
     Form,
     UploadFile,
     File,
+    Request,
 )
 from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordBearer
 from pydantic import EmailStr, BaseModel
-from datetime import timedelta
 from bson import ObjectId
 import base64
 
@@ -82,12 +82,15 @@ async def register(user: UserCreate):
 
 
 @router.post("/login")
-async def login(user: UserLogin):
+async def login(user: UserLogin, request: Request):
     authenticated_user = await authenticate_user(user.email, user.password)
     if not authenticated_user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Credenciales inválidas"
         )
+
+    body = await request.json()
+    remember_me = body.get("rememberMe", False)
 
     access_token = create_access_token(
         data={
@@ -95,8 +98,11 @@ async def login(user: UserLogin):
             "user_id": str(authenticated_user["_id"]),
             "first_name": authenticated_user.get("first_name", ""),
             "last_name": authenticated_user.get("last_name", ""),
-        }
+        },
+        remember_me=remember_me,  # expiración respetando "Recuérdame"
+        # Si remember_me es True, el token durará 30 días, de lo contrario 8 horas
     )
+
     return {"access_token": access_token, "token_type": "bearer"}
 
 
@@ -134,21 +140,16 @@ async def forgot_password(data: EmailRequest):
             "address": user.get("address", ""),
             "postal_code": user.get("postal_code", ""),
         },
-        expires_delta=timedelta(minutes=15),
+        remember_me=False,  # Expiración corta para recuperación
     )
     reset_link = f"{FRONTEND_URL}/reset-password?token={token}"
     await send_reset_email(data.email, reset_link)
 
-    return {
-        "message": "Se ha enviado un correo para restablecer tu contraseña.",
-    }
+    return {"message": "Se ha enviado un correo para restablecer tu contraseña."}
 
 
 @router.post("/reset-password")
-async def reset_password(
-    token: str = Body(...),
-    password: str = Body(...),
-):
+async def reset_password(token: str = Body(...), password: str = Body(...)):
     try:
         payload = decode_access_token(token)
         email = payload.get("sub")
