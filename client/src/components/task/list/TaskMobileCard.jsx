@@ -12,7 +12,10 @@ const TaskMobileCard = ({ tasks, userEmail, onDuplicate, onDelete, projectId }) 
                 const permission = getPermission(task, userEmail);
 
                 return (
-                    <div key={task.id || task._id} className="border p-4 rounded-md shadow bg-white text-black">
+                    <div
+                        key={task.id || task._id}
+                        className="border dark:border-[#FED36A] p-4 rounded-md shadow bg-white text-black dark:bg-[#2a2e33] dark:text-white"
+                    >
                         <p className="font-bold text-lg mb-2">{task.title}</p>
 
                         <p className="text-sm mb-1">
@@ -55,9 +58,11 @@ const TaskMobileCard = ({ tasks, userEmail, onDuplicate, onDelete, projectId }) 
 
                         {task.description && (
                             <details className="mb-3">
-                                <summary className="cursor-pointer text-sm font-bold">📄 Ver descripción tarea:</summary>
+                                <summary className="cursor-pointer text-sm font-bold">
+                                    📄 Ver descripción tarea:
+                                </summary>
                                 <div
-                                    className="prose prose-sm max-w-none text-black mt-2"
+                                    className="prose prose-sm max-w-none text-black dark:text-white dark:prose-invert mt-2"
                                     dangerouslySetInnerHTML={{ __html: task.description }}
                                 />
                             </details>
@@ -67,7 +72,9 @@ const TaskMobileCard = ({ tasks, userEmail, onDuplicate, onDelete, projectId }) 
                             {(permission === 'write' || permission === 'admin') && (
                                 <Button
                                     icon={<EditOutlined />}
-                                    onClick={() => navigate(`/tasks/${task.id || task._id}/edit?projectId=${projectId}`)}
+                                    onClick={() =>
+                                        navigate(`/tasks/${task.id || task._id}/edit?projectId=${projectId}`)
+                                    }
                                     style={{
                                         backgroundColor: '#FED36A',
                                         borderColor: '#FED36A',

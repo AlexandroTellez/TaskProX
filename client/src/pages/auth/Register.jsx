@@ -1,7 +1,7 @@
 import { message } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import { registerUser } from '../../api/auth';
-import RegisterForm from '../../components/auth/RegisterForm';
+import RegisterForm from '../../components/auth/login/RegisterForm';
 
 function Register() {
     const navigate = useNavigate();

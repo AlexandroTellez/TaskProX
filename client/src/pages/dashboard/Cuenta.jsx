@@ -1,8 +1,8 @@
-import ProfileForm from "../../components/auth/ProfileForm";
+import ProfileForm from "../../components/auth/account/ProfileForm";
 
 const Cuenta = () => {
     return (
-        <div className="p-4 bg-[#ffffff]">
+        <div className="w-full h-full p-4 sm:p-6 lg:p-8 bg-[#ffffff] dark:bg-[#1A1A1A] dark:text-white">
             <ProfileForm />
         </div>
     );

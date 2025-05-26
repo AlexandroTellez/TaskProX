@@ -5,9 +5,9 @@ const { Option } = Select;
 
 const TaskFilters = ({ filters, onChange, onReset }) => {
     return (
-        <div className="flex flex-wrap gap-x-6 gap-y-4 sm:items-end">
+        <div className="flex flex-wrap gap-x-6 gap-y-4 sm:items-end bg-white dark:bg-[#2a2e33]">
             <div className="flex flex-col w-full sm:w-auto">
-                <label className="text-sm font-medium text-gray-700 mb-1">Título</label>
+                <label className="text-sm font-medium text-gray-700 dark:text-white mb-1">Título</label>
                 <Input
                     placeholder="Buscar por título"
                     value={filters.title}
@@ -17,7 +17,7 @@ const TaskFilters = ({ filters, onChange, onReset }) => {
             </div>
 
             <div className="flex flex-col w-full sm:w-auto">
-                <label className="text-sm font-medium text-gray-700 mb-1">Creador</label>
+                <label className="text-sm font-medium text-gray-700 dark:text-white mb-1">Creador</label>
                 <Input
                     placeholder="Buscar por creador"
                     value={filters.creator}
@@ -27,7 +27,7 @@ const TaskFilters = ({ filters, onChange, onReset }) => {
             </div>
 
             <div className="flex flex-col w-full sm:w-auto">
-                <label className="text-sm font-medium text-gray-700 mb-1">Colaborador</label>
+                <label className="text-sm font-medium text-gray-700 dark:text-white mb-1">Colaborador</label>
                 <Input
                     placeholder="Buscar por colaborador"
                     value={filters.collaborator}
@@ -37,7 +37,7 @@ const TaskFilters = ({ filters, onChange, onReset }) => {
             </div>
 
             <div className="flex flex-col w-full sm:w-auto">
-                <label className="text-sm font-medium text-gray-700 mb-1">Estado</label>
+                <label className="text-sm font-medium text-gray-700 dark:text-white mb-1">Estado</label>
                 <Select
                     placeholder="Estado"
                     value={filters.status || undefined}
@@ -54,7 +54,7 @@ const TaskFilters = ({ filters, onChange, onReset }) => {
             </div>
 
             <div className="flex flex-col w-full sm:w-auto">
-                <label className="text-sm font-medium text-gray-700 mb-1">Fecha de inicio</label>
+                <label className="text-sm font-medium text-gray-700 dark:text-white mb-1">Fecha de inicio</label>
                 <DatePicker
                     placeholder="Inicio"
                     value={filters.startDate}
@@ -64,7 +64,7 @@ const TaskFilters = ({ filters, onChange, onReset }) => {
             </div>
 
             <div className="flex flex-col w-full sm:w-auto">
-                <label className="text-sm font-medium text-gray-700 mb-1">Fecha límite</label>
+                <label className="text-sm font-medium text-gray-700 dark:text-white mb-1">Fecha límite</label>
                 <DatePicker
                     placeholder="Límite"
                     value={filters.deadline}

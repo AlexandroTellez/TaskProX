@@ -56,7 +56,7 @@ const CollaboratorsSection = ({
                     {collaborators.map((col, idx) => (
                         <li
                             key={idx}
-                            className="flex flex-col sm:flex-row sm:justify-between sm:items-center bg-neutral-100 p-2 rounded gap-2"
+                            className="flex flex-col sm:flex-row sm:justify-between sm:items-center bg-white text-dark p-2 rounded gap-2"
                         >
                             <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full">
                                 <span>{col.email}</span>

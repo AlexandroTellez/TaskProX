@@ -2,29 +2,36 @@ import { Table, Tag, Button, Popconfirm, Space } from 'antd';
 import { EditOutlined, DeleteOutlined, CopyOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { getPermission, getStatusTag, formatDate } from './utils.jsx';
+import { Empty } from 'antd';
 
 const TaskTable = ({ tasks, userEmail, onDuplicate, onDelete, projectId }) => {
     const navigate = useNavigate();
 
     const columns = [
         {
-            title: <div className="text-center w-full">Título</div>,
+            title: <div className="text-center w-full dark:text-white">Título</div>,
             dataIndex: 'title',
             key: 'title',
-            render: (text) => <div className="text-left font-bold">{text}</div>,
+            render: (text) => <div className="text-left font-bold dark:text-white">{text}</div>,
         },
         {
-            title: <div className="text-center w-full">Creador</div>,
+            title: <div className="text-center w-full dark:text-white">Creador</div>,
             dataIndex: 'creator_name',
             key: 'creator_name',
-            render: (creatorName) => <div className="text-left text-black">{creatorName || 'Sin creador'}</div>,
+            render: (creatorName) => (
+                <div className="text-left text-black dark:text-white">
+                    {creatorName || 'Sin creador'}
+                </div>
+            ),
         },
         {
-            title: <div className="text-center w-full">Colaboradores</div>,
+            title: <div className="text-center w-full dark:text-white">Colaboradores</div>,
             dataIndex: 'collaborators',
             key: 'collaborators',
             render: (collaborators) => {
-                if (!collaborators || collaborators.length === 0) return <div className="text-left">Ninguno</div>;
+                if (!collaborators || collaborators.length === 0) {
+                    return <div className="text-left dark:text-white">Ninguno</div>;
+                }
                 return (
                     <div className="text-left space-x-1">
                         {collaborators.map((col, index) => (
@@ -46,31 +53,31 @@ const TaskTable = ({ tasks, userEmail, onDuplicate, onDelete, projectId }) => {
             },
         },
         {
-            title: <div className="text-center w-full">Inicio</div>,
+            title: <div className="text-center w-full dark:text-white">Fecha Inicio</div>,
             dataIndex: 'startDate',
             key: 'startDate',
-            render: (date) => <div className="text-left">{formatDate(date)}</div>,
+            render: (date) => <div className="text-left dark:text-white">{formatDate(date)}</div>,
         },
         {
-            title: <div className="text-center w-full">Límite</div>,
+            title: <div className="text-center w-full dark:text-white">Fecha Límite</div>,
             dataIndex: 'deadline',
             key: 'deadline',
-            render: (date) => <div className="text-left">{formatDate(date)}</div>,
+            render: (date) => <div className="text-left dark:text-white">{formatDate(date)}</div>,
         },
         {
-            title: <div className="text-center w-full">Estado</div>,
+            title: <div className="text-center w-full dark:text-white">Estado</div>,
             dataIndex: 'status',
             key: 'status',
             render: (status) => <div className="text-left">{getStatusTag(status)}</div>,
         },
         {
-            title: <div className="text-center w-full">Acciones</div>,
+            title: <div className="text-center w-full dark:text-white">Acciones</div>,
             key: 'acciones',
             align: 'center',
             render: (_, record) => {
                 const permission = getPermission(record, userEmail);
                 return (
-                    <Space>
+                    <Space wrap>
                         {(permission === 'write' || permission === 'admin') && (
                             <Button
                                 icon={<EditOutlined />}
@@ -129,17 +136,17 @@ const TaskTable = ({ tasks, userEmail, onDuplicate, onDelete, projectId }) => {
         id: task.id || task._id,
         title: task.title || 'Sin título',
         description: task.description || '',
-        creator: task.creator || '', // necesario para getPermission
+        creator: task.creator || '',
         creator_name: task.creator_name || 'Desconocido',
         startDate: task.startDate,
         deadline: task.deadline,
         status: task.status || '',
         collaborators: task.collaborators || [],
-        effective_permission: task.effective_permission || null, // respaldo del backend
+        effective_permission: task.effective_permission || null,
     }));
 
     return (
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto rounded-md border dark:border-[#FED36A] shadow bg-white dark:bg-[#2a2e33]">
             <Table
                 columns={columns}
                 dataSource={tableData}
@@ -147,11 +154,25 @@ const TaskTable = ({ tasks, userEmail, onDuplicate, onDelete, projectId }) => {
                 bordered
                 expandable={{
                     expandedRowRender: (record) => (
-                        <div className="prose max-w-none text-black" dangerouslySetInnerHTML={{ __html: record.description }} />
+                        <div
+                            className="prose max-w-none text-black dark:text-white dark:prose-invert"
+                            dangerouslySetInnerHTML={{ __html: record.description }}
+                        />
                     ),
                     rowExpandable: (record) => record.description && record.description.length > 0,
                 }}
                 scroll={{ x: true }}
+                locale={{
+                    emptyText: (
+                        <Empty
+                            description={
+                                <span className="font-semibold text-white">
+                                    No hay tareas disponibles
+                                </span>
+                            }
+                        />
+                    ),
+                }}
             />
         </div>
     );

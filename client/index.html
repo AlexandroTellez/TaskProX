@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es" class="h-full">
+<html lang="es" class="h-full w-full">
 
 <head>
   <meta charset="UTF-8" />
@@ -7,10 +7,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TaskProX</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Asegura que el modo oscuro se aplica antes de que React renderice -->
+  <script>
+    if (localStorage.getItem('theme') === 'dark') {
+      document.documentElement.classList.add('dark');
+    }
+  </script>
 </head>
 
-<body class="h-full">
-  <div id="root" class="h-full"></div>
+<body class="h-full w-full overflow-hidden bg-white dark:bg-[#1A1A1A]">
+  <div id="root" class="h-full w-full"></div>
   <script type="module" src="/src/main.jsx"></script>
 </body>
 

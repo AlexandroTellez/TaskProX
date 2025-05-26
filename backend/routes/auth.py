@@ -29,8 +29,8 @@ from services.auth_service import (
 router = APIRouter(prefix="/auth", tags=["auth"])
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
-
 # ========== OBTENER USUARIO ACTUAL DESDE TOKEN ==========
+
 
 async def get_current_user(token: str = Depends(oauth2_scheme)):
     try:
@@ -50,6 +50,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
         user["_id"] = user_id
 
         return user
+
     except Exception:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -59,6 +60,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
 
 
 # ========== REGISTRO ==========
+
 
 @router.post("/register")
 async def register(user: UserCreate):
@@ -77,6 +79,7 @@ async def register(user: UserCreate):
 
 
 # ========== LOGIN ==========
+
 
 @router.post("/login")
 async def login(user: UserLogin):
@@ -99,6 +102,7 @@ async def login(user: UserLogin):
 
 # ========== PERFIL DEL USUARIO ACTUAL ==========
 
+
 @router.get("/me", response_model=UserOut)
 async def get_me(current_user: dict = Depends(get_current_user)):
     if current_user.get("profile_image"):
@@ -109,6 +113,7 @@ async def get_me(current_user: dict = Depends(get_current_user)):
 
 
 # ========== RECUPERACIÓN DE CONTRASEÑA ==========
+
 
 class EmailRequest(BaseModel):
     email: EmailStr
@@ -165,6 +170,7 @@ async def reset_password(
 
 # ========== ACTUALIZAR PERFIL ==========
 
+
 @router.put("/profile")
 async def update_profile(
     first_name: str = Form(None),
@@ -190,7 +196,6 @@ async def update_profile(
         update_fields["email"] = email
     if password:
         update_fields["password"] = pwd_context.hash(password)
-
     if profileImage:
         image_content = await profileImage.read()
         update_fields["profile_image"] = image_content
@@ -206,6 +211,7 @@ async def update_profile(
 
 
 # ========== ELIMINAR CUENTA ==========
+
 
 @router.delete("/delete")
 async def delete_account(current_user: dict = Depends(get_current_user)):

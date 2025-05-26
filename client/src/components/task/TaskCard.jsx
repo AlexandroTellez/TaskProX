@@ -68,7 +68,7 @@ function TaskCard({ task, onTaskChanged }) {
 
             {/* Descripción */}
             <div
-                className="text-neutral-700 mb-4 prose max-w-none"
+                className="text-neutral-700 mb-4 prose max-w-none dark:bg-[#2a2e33] "
                 dangerouslySetInnerHTML={{ __html: task.description }}
             />
 

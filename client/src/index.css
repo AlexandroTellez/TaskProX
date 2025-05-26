@@ -4,6 +4,7 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Variables globales */
 :root {
     font-family: 'Inter', 'Helvetica', sans-serif;
     --primary-color: #FED36A;
@@ -14,7 +15,14 @@
     --border-color: #E2E8F0;
 }
 
-/* Garantiza que los elementos raíz ocupen toda la pantalla */
+/* Reset global */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+/* Asegura que root y body ocupen toda la pantalla */
 html,
 body,
 #root {
@@ -24,13 +32,12 @@ body,
     padding: 0;
 }
 
-/* Estructura principal de la aplicación */
-#root {
-    display: flex;
-    flex-direction: column;
+body {
+    overflow: hidden;
+    font-family: 'Inter', 'Helvetica', sans-serif;
 }
 
-/* Clase para páginas de autenticación (login/register) */
+/* Layouts base */
 .auth-layout {
     width: 100%;
     min-height: 100vh;
@@ -39,17 +46,232 @@ body,
     justify-content: center;
 }
 
-/* Clase para el contenido principal */
 .main-layout {
     width: 100%;
     flex: 1;
 }
 
-/* Personaliza el día seleccionado del calendario de Ant Design */
+/* ===== Calendario Ant Design: Modo claro/dark ===== */
+
+/* Día seleccionado */
 .ant-picker-cell-selected .ant-picker-cell-inner,
 .ant-picker-cell-selected:hover .ant-picker-cell-inner {
     background-color: var(--primary-color) !important;
     color: var(--secondary-color) !important;
     font-weight: 600;
     border-radius: 4px;
+}
+
+/* Flecha de Collapse */
+.dark .ant-collapse-header .ant-collapse-arrow {
+    color: white !important;
+}
+
+/* Fondo general del calendario */
+.dark .ant-picker-calendar,
+.dark .ant-picker-calendar-full,
+.dark .ant-picker-panel {
+    background-color: #2a2e33 !important;
+    color: white !important;
+}
+
+/* Celdas de días */
+.dark .ant-picker-cell {
+    background-color: #2a2e33 !important;
+    color: white !important;
+}
+
+/* Día activo */
+.dark .ant-picker-cell-selected .ant-picker-cell-inner {
+    background-color: #FED36A !important;
+    color: #1A1A1A !important;
+    font-weight: bold;
+}
+
+/* Día actual con borde */
+.dark .ant-picker-cell-today .ant-picker-cell-inner::before {
+    border-color: #FED36A !important;
+}
+
+/* Borde inferior del encabezado superior del calendario (donde están mes y flechas) */
+.dark .ant-picker-calendar-header {
+    border-bottom: 1px solid #FED36A !important;
+}
+
+/* Borde inferior de los nombres de los días (Lun, Mar...) */
+.dark .ant-picker-content thead tr th {
+    color: white !important;
+}
+
+/* Nombres de días (Lun, Mar, etc.) */
+.dark .ant-picker-content th {
+    color: white !important;
+}
+
+/* Fechas de otros meses (desactivadas) */
+.dark .ant-picker-cell-disabled {
+    color: #6b7280 !important;
+}
+
+/* Botones (flechas, mes, año) */
+.dark .ant-picker-header button {
+    background-color: transparent !important;
+    color: white !important;
+    border: none !important;
+    font-weight: 500;
+}
+
+/* Flechas SVG de navegación */
+.dark .ant-picker-header button svg {
+    fill: white !important;
+}
+
+/* Dropdown de selección de mes y año */
+:root.dark .ant-picker-dropdown {
+    background-color: #2a2e33 !important;
+    color: white !important;
+    border: 1px solid #3b3b3b !important;
+}
+
+/* Celdas del dropdown */
+:root.dark .ant-picker-dropdown .ant-picker-cell-inner {
+    color: white !important;
+}
+
+/* Celda seleccionada en dropdown */
+:root.dark .ant-picker-dropdown .ant-picker-cell-selected .ant-picker-cell-inner {
+    background-color: #FED36A !important;
+    color: #1A1A1A !important;
+    font-weight: bold;
+}
+
+
+/* Modo claro: hover gris oscuro */
+:root:not(.dark) .ant-picker-cell-inner:hover {
+    color: #1f2937 !important;
+    /* gris oscuro */
+    background-color: #f3f4f6 !important;
+    /* gris claro */
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+/* Modo oscuro: hover gris claro */
+.dark .ant-picker-cell-inner:hover {
+    color: #adafb1 !important;
+    /* gris claro */
+    background-color: #515457 !important;
+    /* gris un poco más claro */
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+/* ===== Tabla Ant Design en modo oscuro  ===== */
+
+.dark .ant-table,
+.dark .ant-table-container,
+.dark .ant-table-content,
+.dark .ant-table-cell,
+.dark .ant-table-thead>tr>th,
+.dark .ant-table-tbody>tr>td {
+    background-color: #2a2e33 !important;
+    color: white !important;
+    border-color: #FED36A !important;
+}
+
+/* Borde externo de la tabla */
+.dark .ant-table-wrapper .ant-table {
+    border: #FED36A !important;
+}
+
+/* Encabezados de columnas */
+.dark .ant-table-thead>tr>th {
+    font-weight: 600;
+}
+
+/* Hover fila */
+.dark .ant-table-tbody>tr:hover>td {
+    background-color: #393e44 !important;
+}
+
+/* ================= Tarjeta de tarea Crear/Actualizar Checkbox en modo oscuro ================= */
+
+/* Texto del label */
+.ant-checkbox-wrapper {
+    color: #1A1A1A !important;
+    /* Texto negro en modo claro */
+}
+
+.dark .ant-checkbox-wrapper {
+    color: #FFFFFF !important;
+    /* Texto blanco en modo oscuro */
+}
+
+/* Estilo base del cuadrado del checkbox */
+.ant-checkbox-inner {
+    background-color: #FFFFFF !important;
+    /* Fondo blanco en modo claro */
+    border-color: #D1D5DB !important;
+    /* Gris claro borde */
+}
+
+.dark .ant-checkbox-inner {
+    background-color: #2a2e33 !important;
+    /* Fondo oscuro base */
+    border-color: #a1a1aa !important;
+    /* Gris medio borde */
+}
+
+/* Cuando está marcado */
+.ant-checkbox-checked .ant-checkbox-inner {
+    background-color: #FED36A !important;
+    /* Fondo amarillo */
+    border-color: #FED36A !important;
+}
+
+/* Check negro (✔) */
+.ant-checkbox-checked .ant-checkbox-inner::after {
+    border-color: #1A1A1A !important;
+    /* ✔ en negro para contraste */
+}
+
+/* Hover para consistencia */
+.ant-checkbox:hover .ant-checkbox-inner,
+.dark .ant-checkbox:hover .ant-checkbox-inner {
+    border-color: #FED36A !important;
+}
+
+/* ================= DatePicker DESHABILITADO en modo oscuro ================= */
+
+.dark .ant-picker-disabled {
+    background-color: #e2e4e6 !important;  /* gris claro */
+    color: #1A1A1A !important;             /* texto negro */
+}
+
+/* Placeholder dentro del input */
+.dark .ant-picker-disabled .ant-picker-input > input::placeholder {
+    color: #1A1A1A !important;
+}
+
+/* Icono de calendario (si está presente) */
+.dark .ant-picker-disabled .ant-picker-suffix {
+    color: #1A1A1A !important;
+}
+
+/* ================= TABLA DE TAREAS EN PROYECTOS- Expansión de descripción (ícono + / -) ================= */
+
+/* Estilo base en modo claro */
+.ant-table-row-expand-icon {
+    background-color: #FFFFFF !important; /* fondo blanco */
+    color: #1A1A1A !important;            /* icono negro */
+    border-radius: 4px;
+    border: 1px solid #d4d4d8; /* borde gris claro */
+}
+
+/* Estilo en modo oscuro */
+.dark .ant-table-row-expand-icon {
+    background-color: #FFFFFF !important; /* fondo blanco también */
+    color: #1A1A1A !important;            /* icono negro */
+    border-radius: 4px;
+    border: 1px solid #FED36A !important; /* borde amarillo */
 }

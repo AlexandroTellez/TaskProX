@@ -1,5 +1,5 @@
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from dotenv import load_dotenv
 from jose import JWTError, jwt
 from fastapi import HTTPException, status
@@ -13,7 +13,7 @@ FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
 # ================== JWT CONFIG ==================
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60
+ACCESS_TOKEN_EXPIRE_MINUTES = 1440  # El token dura 24 horas
 
 if not SECRET_KEY:
     raise ValueError("SECRET_KEY no está definido en el archivo .env")
@@ -23,7 +23,7 @@ if not SECRET_KEY:
 def create_access_token(data: dict, expires_delta: timedelta = None):
     """Genera un token JWT válido con datos y expiración."""
     to_encode = data.copy()
-    expire = datetime.utcnow() + (
+    expire = datetime.now(timezone.utc) + (
         expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     )
     to_encode.update({"exp": expire})

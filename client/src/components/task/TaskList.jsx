@@ -116,7 +116,7 @@ const TaskList = ({ tasks, projectId, onTaskChanged }) => {
 
     return (
         <ConfigProvider locale={esES}>
-            <div className="w-full bg-white rounded-lg space-y-6">
+            <div className="w-full bg-white dark:bg-[#2a2e33] text-black dark:text-white rounded-lg space-y-6 p-4">
                 <TaskFilters filters={filters} onChange={handleFilterChange} onReset={resetFilters} />
                 {isMobile ? (
                     <TaskMobileCard
@@ -140,6 +140,7 @@ const TaskList = ({ tasks, projectId, onTaskChanged }) => {
             </div>
         </ConfigProvider>
     );
+
 };
 
 export default TaskList;
