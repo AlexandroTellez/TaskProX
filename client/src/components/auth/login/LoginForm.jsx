@@ -5,8 +5,8 @@ import logo from "@assets/images/Logo.png";
 
 /**
  * Formulario de inicio de sesión
- * - Muestra el branding a la izquierda (pantallas grandes)
- * - Permite ingresar credenciales, recordar sesión y aceptar términos
+ * - Guarda el correo si se activa "Recuérdame"
+ * - El token se guarda automáticamente en localStorage o sessionStorage desde auth.js
  */
 function LoginForm({ onSubmit }) {
     const [email, setEmail] = useState('');
@@ -17,16 +17,17 @@ function LoginForm({ onSubmit }) {
     const [showPassword, setShowPassword] = useState(false);
     const [rememberMe, setRememberMe] = useState(false);
 
-    // Leer datos recordados al cargar
+    // Al cargar el componente, restaurar el correo si "Recuérdame" estaba activo
     useEffect(() => {
-        const savedEmail = localStorage.getItem("savedEmail");
         const remember = localStorage.getItem("rememberMe") === "true";
-
-        if (savedEmail) setEmail(savedEmail);
-        if (remember) setRememberMe(true);
+        if (remember) {
+            const savedEmail = localStorage.getItem("savedEmail");
+            if (savedEmail) setEmail(savedEmail);
+            setRememberMe(true);
+        }
     }, []);
 
-    // Enviar formulario
+    // Enviar el formulario de login
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -38,11 +39,17 @@ function LoginForm({ onSubmit }) {
         try {
             setLoading(true);
 
-            // Guardar email y preferencia
-            localStorage.setItem("savedEmail", email);
-            localStorage.setItem("rememberMe", rememberMe ? "true" : "false");
+            if (rememberMe) {
+                localStorage.setItem("rememberMe", "true");
+                localStorage.setItem("savedEmail", email);
+            } else {
+                localStorage.removeItem("rememberMe");
+                localStorage.removeItem("savedEmail");
+            }
 
+            // Pasar la opción rememberMe para que auth.js decida dónde guardar el token
             await onSubmit({ email, password, rememberMe });
+
         } catch (err) {
             const msg = err.detail || err.message || 'Error al iniciar sesión';
             alert(msg);
@@ -71,10 +78,10 @@ function LoginForm({ onSubmit }) {
                 </p>
             </div>
 
-            {/* Formulario */}
+            {/* Formulario de login */}
             <div className="lg:w-1/2 w-full bg-[#1a1a1a] text-white flex flex-col justify-center items-center px-4 sm:px-6 lg:px-16 py-8">
                 <div className="w-full max-w-xs sm:max-w-md lg:max-w-xl">
-                    <h2 className="text-xl sm:text-5xl font-bold mb-2"> Inicia sesión</h2>
+                    <h2 className="text-xl sm:text-5xl font-bold mb-2">Inicia sesión</h2>
                     <p className="mb-4 sm:mb-6 text-xs sm:text-xl">Accede a tu espacio de productividad en TaskProX.</p>
 
                     <form onSubmit={handleSubmit} autoComplete="on" className="space-y-4 lg:space-y-6">
@@ -106,7 +113,6 @@ function LoginForm({ onSubmit }) {
                             </span>
                         </div>
 
-                        {/* Recuérdame + Olvido */}
                         <div className="flex items-center justify-between">
                             <label className="flex items-center gap-2 text-xs sm:text-sm lg:text-base">
                                 <input
@@ -122,7 +128,6 @@ function LoginForm({ onSubmit }) {
                             </Link>
                         </div>
 
-                        {/* Términos y privacidad */}
                         <div className="flex items-start gap-2">
                             <input
                                 type="checkbox"
@@ -147,7 +152,6 @@ function LoginForm({ onSubmit }) {
                             </label>
                         </div>
 
-                        {/* Botón */}
                         <button
                             type="submit"
                             disabled={loading}
@@ -156,7 +160,6 @@ function LoginForm({ onSubmit }) {
                             {loading ? "Entrando..." : "Entrar"}
                         </button>
 
-                        {/* Enlace a registro */}
                         <div className="text-center text-xs sm:text-sm lg:text-base">
                             <p className="mb-1">
                                 ¿Aún no tienes cuenta?{" "}

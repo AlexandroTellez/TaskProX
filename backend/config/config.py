@@ -13,28 +13,35 @@ FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
 # ================== JWT CONFIG ==================
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 1440  # El token dura 24 horas
+
+# Expiraciones personalizadas
+ACCESS_TOKEN_EXPIRE_MINUTES_DEFAULT = 480  # 8 horas para usuarios sin "recuérdame"
+ACCESS_TOKEN_EXPIRE_MINUTES_REMEMBER = 43200  # 30 días para usuarios con "recuérdame"
 
 if not SECRET_KEY:
     raise ValueError("SECRET_KEY no está definido en el archivo .env")
 
 
 # ================== CREAR TOKEN ==================
-def create_access_token(data: dict, expires_delta: timedelta = None):
-    """Genera un token JWT válido con datos y expiración."""
+def create_access_token(data: dict, remember_me: bool = False):
+    """
+    Genera un token JWT con expiración personalizada según si el usuario activó "Recuérdame".
+    """
     to_encode = data.copy()
-    expire = datetime.now(timezone.utc) + (
-        expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    expire_minutes = (
+        ACCESS_TOKEN_EXPIRE_MINUTES_REMEMBER
+        if remember_me
+        else ACCESS_TOKEN_EXPIRE_MINUTES_DEFAULT
     )
+    expire = datetime.now(timezone.utc) + timedelta(minutes=expire_minutes)
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    return encoded_jwt
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 
 # ================== DECODIFICAR TOKEN ==================
 def decode_access_token(token: str) -> dict:
     """
-    Devuelve el payload completo con campos como 'sub', 'first_name', 'last_name', etc.
+    Decodifica y valida el token JWT, devolviendo el payload.
     """
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])

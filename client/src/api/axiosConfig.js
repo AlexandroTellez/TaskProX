@@ -17,11 +17,12 @@ const api = axios.create({
 // ==========================
 
 /**
- * Añade el token JWT a cada solicitud si está disponible en localStorage.
+ * Añade el token JWT a cada solicitud si está disponible.
+ * Busca primero en localStorage (persistente) y luego en sessionStorage (temporal).
  */
 api.interceptors.request.use(
     (config) => {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
 
         if (token) {
             config.headers = {
@@ -40,8 +41,8 @@ api.interceptors.request.use(
 // ==========================
 
 /**
- * Maneja respuestas de error globalmente.
- * Si hay un 401 (token expirado o inválido), el componente `PrivateRoute` lo gestionará.
+ * Maneja errores globales.
+ * Si el token está expirado o no autorizado (401), el flujo lo gestionará `PrivateRoute`.
  */
 api.interceptors.response.use(
     (response) => response,
