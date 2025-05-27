@@ -134,7 +134,7 @@ function Dashboard() {
             <p className="text-sm text-neutral-600 dark:text-[#FED36A] font-medium mb-4">RESUMEN - PROYECTOS</p>
 
             <div className="hidden sm:block">
-                <div className="rounded-md border  dark:border-white overflow-hidden shadow dark:bg-[#2a2e33]">
+                <div className="rounded-md border dark:border-white overflow-hidden shadow dark:bg-[#2a2e33]">
                     <Table
                         columns={columns}
                         dataSource={dataSource}
@@ -251,15 +251,11 @@ function Dashboard() {
             <div className="mt-4 flex flex-col sm:flex-row justify-center items-start sm:items-center sm:gap-x-6 text-sm text-gray-600 dark:text-white text-start">
                 <span className="flex items-center gap-2">
                     <CheckCircleFilled style={{ color: '#1890ff' }} />
-                    <span>
-                        <strong>Fecha Inicio:</strong>&nbsp;Los números marcados en círculos azules.
-                    </span>
+                    <span><strong>Fecha Inicio:</strong>&nbsp;Los números marcados en círculos azules.</span>
                 </span>
                 <span className="flex items-center gap-2 mt-1 sm:mt-0">
                     <CloseCircleFilled style={{ color: '#ff4d4f' }} />
-                    <span>
-                        <strong>Fecha Límite:</strong>&nbsp;Los números marcados en círculos rojos.
-                    </span>
+                    <span><strong>Fecha Límite:</strong>&nbsp;Los números marcados en círculos rojos.</span>
                 </span>
             </div>
 
@@ -296,9 +292,7 @@ function Dashboard() {
                                         type="default"
                                         icon={<CalendarOutlined />}
                                         onClick={() => {
-                                            // Usar fecha límite si está presente, o fecha de inicio si no hay límite
                                             const dateToUse = task.deadline || task.startDate;
-
                                             if (dateToUse) {
                                                 const formattedDate = dayjs(dateToUse).format('YYYY-MM-DD');
                                                 navigate(`/calendario?date=${formattedDate}`);
@@ -321,11 +315,8 @@ function Dashboard() {
                                         type="default"
                                         icon={<ArrowRightOutlined />}
                                         onClick={() => {
-                                            if (task.projectId) {
-                                                window.open(`/proyectos?projectId=${task.projectId}`, '_blank');
-                                            } else {
-                                                window.open('/proyectos', '_blank');
-                                            }
+                                            const url = task.projectId ? `/proyectos?projectId=${task.projectId}` : '/proyectos';
+                                            window.open(url, '_blank');
                                         }}
                                         style={{
                                             backgroundColor: '#FED36A',

@@ -38,8 +38,9 @@ const TaskList = ({ tasks, projectId, onTaskChanged }) => {
         if (filters.title) params.title = filters.title;
         if (filters.creator) params.creator = filters.creator;
         if (filters.status) params.status = filters.status;
-        if (filters.startDate) params.startDate = filters.startDate.toISOString();
-        if (filters.deadline) params.deadline = filters.deadline.toISOString();
+        // Usar formato YYYY-MM-DD consistente con TaskForm
+        if (filters.startDate) params.startDate = filters.startDate.format('YYYY-MM-DD');
+        if (filters.deadline) params.deadline = filters.deadline.format('YYYY-MM-DD');
         setSearchParams(params);
     }, [filters, setSearchParams]);
 
@@ -61,10 +62,10 @@ const TaskList = ({ tasks, projectId, onTaskChanged }) => {
                 : true;
             const matchesStatus = filters.status ? task.status === filters.status : true;
             const matchesStartDate = filters.startDate
-                ? task.startDate && task.startDate.startOf('day').isSame(filters.startDate.startOf('day'), 'day')
+                ? task.startDate && task.startDate.format('YYYY-MM-DD') === filters.startDate.format('YYYY-MM-DD')
                 : true;
             const matchesDeadline = filters.deadline
-                ? task.deadline && task.deadline.startOf('day').isSame(filters.deadline.startOf('day'), 'day')
+                ? task.deadline && task.deadline.format('YYYY-MM-DD') === filters.deadline.format('YYYY-MM-DD')
                 : true;
             return (
                 matchesTitle &&
@@ -75,7 +76,6 @@ const TaskList = ({ tasks, projectId, onTaskChanged }) => {
             );
         });
     }, [parsedTasks, filters]);
-
 
     const handleDelete = async (id) => {
         try {
@@ -89,23 +89,41 @@ const TaskList = ({ tasks, projectId, onTaskChanged }) => {
 
     const handleDuplicate = async (record) => {
         try {
-            const duplicatedTask = {
-                ...record,
-                title: `${record.title} (copia)`,
-                status: record.status || 'Pendiente',
-                projectId,
+            // Preparar fechas para la duplicación - usar el mismo formato que TaskForm
+            const prepareDate = (date) => {
+                if (!date) return null;
+                const dayjsDate = dayjs.isDayjs(date) ? date : dayjs(date);
+                return dayjsDate.format('YYYY-MM-DD');
             };
-            delete duplicatedTask.id;
-            delete duplicatedTask._id;
+
+            const duplicatedTask = {
+                title: `${record.title} (copia)`,
+                description: record.description || '',
+                status: record.status || 'Pendiente',
+                collaborators: record.collaborators || [],
+                startDate: prepareDate(record.startDate),
+                deadline: prepareDate(record.deadline),
+                projectId,
+                creator: userEmail,
+                creator_name: userFullName,
+            };
+
+            console.log('Duplicando tarea con fechas:', {
+                startDate: duplicatedTask.startDate,
+                deadline: duplicatedTask.deadline
+            });
+
             await createTask(duplicatedTask);
             message.success('Tarea duplicada correctamente');
             onTaskChanged && onTaskChanged();
-        } catch {
+        } catch (error) {
+            console.error('Error al duplicar:', error);
             message.error('Error al duplicar la tarea');
         }
     };
 
     const handleFilterChange = (field, value) => {
+        console.log(`Filtro ${field} cambiado a:`, value?.format ? value.format('YYYY-MM-DD') : value);
         setFilters((prev) => ({ ...prev, [field]: value }));
     };
 

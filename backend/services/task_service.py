@@ -2,13 +2,15 @@ from bson import ObjectId
 from datetime import datetime, timedelta
 from models.models import Task
 from config.database import collection, project_collection
-from services.utils import normalize_status, parse_date_safe, format_utc_midnight
+from services.utils import normalize_status
 
 
+# ================== Obtener tarea por ID ==================
 async def get_one_task_id(id: str):
     return await collection.find_one({"_id": ObjectId(id)})
 
 
+# ================== Obtener todas las tareas según filtros ==================
 async def get_all_tasks(filters: dict):
     query = {}
     user_id = filters.get("user_id")
@@ -59,22 +61,30 @@ async def get_all_tasks(filters: dict):
     if filters.get("status"):
         query["status"] = normalize_status(filters["status"])
     if filters.get("startDate"):
-        start_date = parse_date_safe(filters["startDate"])
-        if start_date:
+        try:
+            start_date = datetime.fromisoformat(filters["startDate"])
             query["startDate"] = {
                 "$gte": start_date,
                 "$lt": start_date + timedelta(days=1),
             }
+        except Exception as e:
+            print(f"[WARN] Error al parsear startDate: {e}")
     if filters.get("deadline"):
-        deadline = parse_date_safe(filters["deadline"])
-        if deadline:
-            query["deadline"] = {"$gte": deadline, "$lt": deadline + timedelta(days=1)}
+        try:
+            deadline = datetime.fromisoformat(filters["deadline"])
+            query["deadline"] = {
+                "$gte": deadline,
+                "$lt": deadline + timedelta(days=1),
+            }
+        except Exception as e:
+            print(f"[WARN] Error al parsear deadline: {e}")
 
     tasks = []
     cursor = collection.find(query)
     async for document in cursor:
         project_id_str = str(document.get("projectId"))
         permission = None
+
         if document.get("creator") == user_email:
             permission = "admin"
         elif project_id_str in project_permissions:
@@ -97,6 +107,7 @@ async def get_all_tasks(filters: dict):
     return tasks
 
 
+# ================== Crear tarea ==================
 async def create_task(task: dict):
     if "projectId" in task and isinstance(task["projectId"], str):
         try:
@@ -105,14 +116,6 @@ async def create_task(task: dict):
             raise ValueError("projectId inválido")
 
     task["status"] = normalize_status(task.get("status", ""))
-
-    for field in ["startDate", "deadline"]:
-        if task.get(field):
-            if isinstance(task[field], str):
-                task[field] = parse_date_safe(task[field])
-            elif isinstance(task[field], datetime):
-                task[field] = format_utc_midnight(task[field])
-
     task.setdefault("deadline", None)
     task.setdefault("collaborators", [])
 
@@ -121,35 +124,37 @@ async def create_task(task: dict):
     return Task(**created_task)
 
 
+# ================== Actualizar tarea ==================
 async def update_task(id: str, data: dict):
-    task_data = {k: v for k, v in data.items() if v is not None}
+    task_data = data.copy()  # No eliminar campos con valor None
 
+    # Convertir projectId si es string
     if "projectId" in task_data and isinstance(task_data["projectId"], str):
         try:
             task_data["projectId"] = ObjectId(task_data["projectId"])
         except:
             raise ValueError("projectId inválido")
 
+    # Normalizar status si viene
     if "status" in task_data:
         task_data["status"] = normalize_status(task_data["status"])
 
-    for field in ["startDate", "deadline"]:
-        if field in task_data:
-            if isinstance(task_data[field], str):
-                task_data[field] = parse_date_safe(task_data[field])
-            elif isinstance(task_data[field], datetime):
-                task_data[field] = format_utc_midnight(task_data[field])
-
-    if "deadline" in data and data["deadline"] is None:
-        task_data["deadline"] = None
-    else:
-        task_data.pop("deadline", None)
+    # Convertir deadline a fecha si es string
+    if "deadline" in task_data:
+        if isinstance(task_data["deadline"], str):
+            try:
+                task_data["deadline"] = datetime.strptime(
+                    task_data["deadline"], "%Y-%m-%d"
+                ).date()
+            except ValueError:
+                task_data["deadline"] = None  # Si es inválida, se elimina
 
     await collection.update_one({"_id": ObjectId(id)}, {"$set": task_data})
     updated_task = await collection.find_one({"_id": ObjectId(id)})
     return updated_task
 
 
+# ================== Eliminar tarea ==================
 async def delete_task(id: str):
     await collection.delete_one({"_id": ObjectId(id)})
     return True

@@ -8,8 +8,6 @@ from services.task_service import (
 )
 from models.models import Task, UpdateTask
 from routes.auth import get_current_user
-from bson import ObjectId
-from datetime import datetime, timezone
 
 task = APIRouter()
 
@@ -57,18 +55,6 @@ async def put_task(id: str, task: UpdateTask, user: dict = Depends(get_current_u
         raise HTTPException(403, "No tienes permiso para editar esta tarea")
 
     task_data = task.model_dump(exclude_unset=True)
-
-    try:
-        for field in ["startDate", "deadline"]:
-            value = task_data.get(field)
-            if isinstance(value, str):
-                task_data[field] = datetime.fromisoformat(value).replace(
-                    tzinfo=timezone.utc
-                )
-            elif isinstance(value, datetime):
-                task_data[field] = value.astimezone(timezone.utc)
-    except Exception as e:
-        raise HTTPException(400, f"Error en formato de fechas: {e}")
 
     updated = await update_task(id, task_data)
     if updated:
@@ -125,18 +111,6 @@ async def save_task(task: Task, user: dict = Depends(get_current_user)):
 
     if "collaborators" not in task_data or task_data["collaborators"] is None:
         task_data["collaborators"] = []
-
-    try:
-        for field in ["startDate", "deadline"]:
-            value = task_data.get(field)
-            if isinstance(value, str):
-                task_data[field] = datetime.fromisoformat(value).replace(
-                    tzinfo=timezone.utc
-                )
-            elif isinstance(value, datetime):
-                task_data[field] = value.astimezone(timezone.utc)
-    except Exception as e:
-        raise HTTPException(400, f"Error en formato de fechas: {e}")
 
     nueva_tarea = await create_task(task_data)
     if nueva_tarea:
