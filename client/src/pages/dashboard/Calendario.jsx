@@ -20,6 +20,7 @@ import updateLocale from 'dayjs/plugin/updateLocale';
 import esES from 'antd/es/locale/es_ES';
 import { fetchTasks } from '../../api/tasks';
 import { useSearchParams } from 'react-router-dom';
+import { getStatusTag } from '../../components/task/list/utils';
 
 const { Title } = Typography;
 const { Panel } = Collapse;
@@ -34,22 +35,11 @@ function Calendario() {
     const [searchParams] = useSearchParams();
     const defaultDate = searchParams.get('date');
     const [selectedDate, setSelectedDate] = useState(defaultDate ? dayjs(defaultDate) : dayjs());
-    const [isDarkMode, setIsDarkMode] = useState(false);
 
     useEffect(() => {
         fetchTasks()
             .then((res) => setTasks(res.data))
             .catch((err) => console.error('Error al cargar tareas:', err));
-    }, []);
-
-    useEffect(() => {
-        const matchDark = window.matchMedia('(prefers-color-scheme: dark)');
-        setIsDarkMode(matchDark.matches);
-
-        const listener = (e) => setIsDarkMode(e.matches);
-        matchDark.addEventListener('change', listener);
-
-        return () => matchDark.removeEventListener('change', listener);
     }, []);
 
     const getTasksForDate = (date) => {
@@ -172,9 +162,10 @@ function Calendario() {
                                                     </Panel>
                                                 </Collapse>
                                                 <p><strong>Creador:</strong> {task.creator || 'No especificado'}</p>
+                                                <p><strong>Colaboradores:</strong> {task.collaborators?.length > 0 ? task.collaborators.map(col => col.name || col.email).join(', ') : 'Ninguno'}</p>
                                                 <p><strong>Fecha Inicio:</strong> {dayjs(task.startDate).format('DD/MM/YYYY')}</p>
                                                 <p><strong>Fecha Límite:</strong> {task.deadline ? dayjs(task.deadline).format('DD/MM/YYYY') : 'Sin fecha'}</p>
-                                                <p><strong>Estado:</strong> {task.status}</p>
+                                                <p><strong>Estado:</strong> {getStatusTag(task.status)}</p>
                                             </div>
                                             <div className="mt-4 flex justify-start">
                                                 <Button
@@ -213,9 +204,10 @@ function Calendario() {
                                                     </Panel>
                                                 </Collapse>
                                                 <p><strong>Creador:</strong> {task.creator || 'No especificado'}</p>
+                                                <p><strong>Colaboradores:</strong> {task.collaborators?.length > 0 ? task.collaborators.map(col => col.name || col.email).join(', ') : 'Ninguno'}</p>
                                                 <p><strong>Fecha Inicio:</strong> {task.startDate ? dayjs(task.startDate).format('DD/MM/YYYY') : '—'}</p>
                                                 <p><strong>Fecha Límite:</strong> {dayjs(task.deadline).format('DD/MM/YYYY')}</p>
-                                                <p><strong>Estado:</strong> {task.status}</p>
+                                                <p><strong>Estado:</strong> {getStatusTag(task.status)}</p>
                                             </div>
                                             <div className="mt-4 flex justify-start">
                                                 <Button

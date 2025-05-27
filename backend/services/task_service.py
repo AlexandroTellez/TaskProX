@@ -115,7 +115,9 @@ async def create_task(task: dict):
         except:
             raise ValueError("projectId inválido")
 
+    # Normalizar o capitalizar estado
     task["status"] = normalize_status(task.get("status", ""))
+
     task.setdefault("deadline", None)
     task.setdefault("collaborators", [])
 
@@ -126,20 +128,17 @@ async def create_task(task: dict):
 
 # ================== Actualizar tarea ==================
 async def update_task(id: str, data: dict):
-    task_data = data.copy()  # No eliminar campos con valor None
+    task_data = data.copy()
 
-    # Convertir projectId si es string
     if "projectId" in task_data and isinstance(task_data["projectId"], str):
         try:
             task_data["projectId"] = ObjectId(task_data["projectId"])
         except:
             raise ValueError("projectId inválido")
 
-    # Normalizar status si viene
     if "status" in task_data:
         task_data["status"] = normalize_status(task_data["status"])
 
-    # Convertir deadline a fecha si es string
     if "deadline" in task_data:
         if isinstance(task_data["deadline"], str):
             try:
@@ -147,7 +146,7 @@ async def update_task(id: str, data: dict):
                     task_data["deadline"], "%Y-%m-%d"
                 ).date()
             except ValueError:
-                task_data["deadline"] = None  # Si es inválida, se elimina
+                task_data["deadline"] = None
 
     await collection.update_one({"_id": ObjectId(id)}, {"$set": task_data})
     updated_task = await collection.find_one({"_id": ObjectId(id)})

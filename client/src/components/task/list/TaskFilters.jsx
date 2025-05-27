@@ -1,11 +1,55 @@
 import { Input, Select, DatePicker, Button } from 'antd';
+import { useState, useEffect } from 'react';
 import dayjs from 'dayjs';
+import { getStatusTag } from './utils';
 
 const { Option } = Select;
 
+const predefinedStatuses = [
+    "pendiente",
+    "en espera",
+    "lista para comenzar",
+    "en progreso",
+    "en revisión",
+    "completado",
+];
+
 const TaskFilters = ({ filters, onChange, onReset }) => {
+    const [isCustomStatus, setIsCustomStatus] = useState(false);
+    const [customStatusValue, setCustomStatusValue] = useState("");
+
+    useEffect(() => {
+        if (
+            filters.status &&
+            !predefinedStatuses.includes(filters.status.toLowerCase())
+        ) {
+            setIsCustomStatus(true);
+            setCustomStatusValue(filters.status);
+        } else {
+            setIsCustomStatus(false);
+        }
+    }, [filters.status]);
+
+    const handleStatusChange = (value) => {
+        if (value === "__custom__") {
+            setIsCustomStatus(true);
+            setCustomStatusValue("");
+            onChange("status", "");
+        } else {
+            setIsCustomStatus(false);
+            onChange("status", value);
+        }
+    };
+
+    const handleCustomStatusInput = (e) => {
+        const val = e.target.value;
+        setCustomStatusValue(val);
+        onChange("status", val);
+    };
+
     return (
         <div className="flex flex-wrap gap-x-6 gap-y-4 sm:items-end bg-white dark:bg-[#2a2e33]">
+            {/* Título */}
             <div className="flex flex-col w-full sm:w-auto">
                 <label className="text-sm font-medium text-gray-700 dark:text-white mb-1">Título</label>
                 <Input
@@ -16,6 +60,7 @@ const TaskFilters = ({ filters, onChange, onReset }) => {
                 />
             </div>
 
+            {/* Creador */}
             <div className="flex flex-col w-full sm:w-auto">
                 <label className="text-sm font-medium text-gray-700 dark:text-white mb-1">Creador</label>
                 <Input
@@ -26,6 +71,7 @@ const TaskFilters = ({ filters, onChange, onReset }) => {
                 />
             </div>
 
+            {/* Colaborador */}
             <div className="flex flex-col w-full sm:w-auto">
                 <label className="text-sm font-medium text-gray-700 dark:text-white mb-1">Colaborador</label>
                 <Input
@@ -36,23 +82,34 @@ const TaskFilters = ({ filters, onChange, onReset }) => {
                 />
             </div>
 
+            {/* Estado con colores */}
             <div className="flex flex-col w-full sm:w-auto">
                 <label className="text-sm font-medium text-gray-700 dark:text-white mb-1">Estado</label>
                 <Select
                     placeholder="Estado"
-                    value={filters.status || undefined}
-                    onChange={(value) => onChange('status', value)}
+                    value={isCustomStatus ? "__custom__" : filters.status || undefined}
+                    onChange={handleStatusChange}
                     allowClear
-                    className="w-full sm:w-[140px]"
+                    className="w-full sm:w-[180px]"
                 >
-                    <Option value="Pendiente">Pendiente</Option>
-                    <Option value="En proceso">En proceso</Option>
-                    <Option value="Completado">Completado</Option>
-                    <Option value="En espera">En espera</Option>
-                    <Option value="Cancelado">Cancelado</Option>
+                    {predefinedStatuses.map((status) => (
+                        <Option key={status} value={capitalize(status)}>
+                            {getStatusTag(status)}
+                        </Option>
+                    ))}
+                    <Option value="__custom__">{getStatusTag("Otro...")}</Option>
                 </Select>
+                {isCustomStatus && (
+                    <Input
+                        placeholder="Estado personalizado"
+                        value={customStatusValue}
+                        onChange={handleCustomStatusInput}
+                        className="mt-2"
+                    />
+                )}
             </div>
 
+            {/* Fecha de inicio */}
             <div className="flex flex-col w-full sm:w-auto">
                 <label className="text-sm font-medium text-gray-700 dark:text-white mb-1">Fecha de inicio</label>
                 <DatePicker
@@ -63,6 +120,7 @@ const TaskFilters = ({ filters, onChange, onReset }) => {
                 />
             </div>
 
+            {/* Fecha límite */}
             <div className="flex flex-col w-full sm:w-auto">
                 <label className="text-sm font-medium text-gray-700 dark:text-white mb-1">Fecha límite</label>
                 <DatePicker
@@ -73,6 +131,7 @@ const TaskFilters = ({ filters, onChange, onReset }) => {
                 />
             </div>
 
+            {/* Botón limpiar */}
             <div className="flex flex-col w-full sm:w-auto">
                 <Button
                     onClick={onReset}
@@ -84,5 +143,9 @@ const TaskFilters = ({ filters, onChange, onReset }) => {
         </div>
     );
 };
+
+// Utilidad para mostrar con mayúscula inicial
+const capitalize = (str) =>
+    str.charAt(0).toUpperCase() + str.slice(1);
 
 export default TaskFilters;
