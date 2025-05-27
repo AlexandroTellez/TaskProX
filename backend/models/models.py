@@ -1,11 +1,15 @@
-from pydantic import BaseModel, Field, EmailStr
+from pydantic import (
+    BaseModel,
+    Field,
+    EmailStr,
+    field_validator,
+)
 from typing import Optional, List, Literal
 from bson import ObjectId
-from datetime import datetime
+from datetime import datetime, date
+
 
 # ================== VALIDADOR DE OBJECTID ==================
-
-
 class PyObjectId(ObjectId):
     @classmethod
     def __get_validators__(cls):
@@ -21,16 +25,12 @@ class PyObjectId(ObjectId):
 
 
 # ================== MODELO DE COLABORADOR ==================
-
-
 class Collaborator(BaseModel):
     email: EmailStr
     permission: Literal["read", "write", "admin"] = "read"
 
 
 # ================== MODELO DE TAREA ==================
-
-
 class Task(BaseModel):
     id: Optional[PyObjectId] = Field(default=None, alias="_id")
     title: str
@@ -46,6 +46,54 @@ class Task(BaseModel):
     user_id: Optional[str] = None
     user_email: Optional[EmailStr] = None
 
+    @field_validator("startDate", "deadline", mode="before")
+    @classmethod
+    def validate_dates(cls, value):
+        if value is None:
+            return None
+
+        if isinstance(value, datetime):
+            return value
+
+        if isinstance(value, date):
+            # Convertir date a datetime (medianoche)
+            return datetime.combine(value, datetime.min.time())
+
+        if isinstance(value, str):
+            # Limpiar la cadena
+            value = value.strip()
+            if not value:
+                return None
+
+            # Intentar diferentes formatos de fecha
+            formats_to_try = [
+                "%Y-%m-%d",  # Formato simple: 2024-12-25
+                "%Y-%m-%dT%H:%M:%S.%fZ",  # ISO con microsegundos y Z
+                "%Y-%m-%dT%H:%M:%SZ",  # ISO con Z
+                "%Y-%m-%dT%H:%M:%S.%f",  # ISO con microsegundos
+                "%Y-%m-%dT%H:%M:%S",  # ISO simple
+                "%Y-%m-%d %H:%M:%S",  # Formato con espacio
+            ]
+
+            for fmt in formats_to_try:
+                try:
+                    return datetime.strptime(value, fmt)
+                except ValueError:
+                    continue
+
+            # Si falla con strptime, intentar con fromisoformat
+            try:
+                return datetime.fromisoformat(value.replace("Z", "+00:00"))
+            except ValueError:
+                pass
+
+            # Si todo falla, lanzar error descriptivo
+            raise ValueError(
+                f"Formato de fecha no válido: {value}. Formatos aceptados: YYYY-MM-DD o ISO 8601"
+            )
+
+        return value
+
     class Config:
         from_attributes = True
         populate_by_name = True
@@ -57,8 +105,6 @@ class Task(BaseModel):
 
 
 # ================== MODELO DE ACTUALIZACIÓN DE TAREA ==================
-
-
 class UpdateTask(BaseModel):
     title: Optional[str] = None
     description: Optional[str] = None
@@ -71,6 +117,54 @@ class UpdateTask(BaseModel):
     status: Optional[str] = None
     projectId: Optional[PyObjectId] = None
 
+    @field_validator("startDate", "deadline", mode="before")
+    @classmethod
+    def validate_dates(cls, value):
+        if value is None:
+            return None
+
+        if isinstance(value, datetime):
+            return value
+
+        if isinstance(value, date):
+            # Convertir date a datetime (medianoche)
+            return datetime.combine(value, datetime.min.time())
+
+        if isinstance(value, str):
+            # Limpiar la cadena
+            value = value.strip()
+            if not value:
+                return None
+
+            # Intentar diferentes formatos de fecha
+            formats_to_try = [
+                "%Y-%m-%d",  # Formato simple: 2024-12-25
+                "%Y-%m-%dT%H:%M:%S.%fZ",  # ISO con microsegundos y Z
+                "%Y-%m-%dT%H:%M:%SZ",  # ISO con Z
+                "%Y-%m-%dT%H:%M:%S.%f",  # ISO con microsegundos
+                "%Y-%m-%dT%H:%M:%S",  # ISO simple
+                "%Y-%m-%d %H:%M:%S",  # Formato con espacio
+            ]
+
+            for fmt in formats_to_try:
+                try:
+                    return datetime.strptime(value, fmt)
+                except ValueError:
+                    continue
+
+            # Si falla con strptime, intentar con fromisoformat
+            try:
+                return datetime.fromisoformat(value.replace("Z", "+00:00"))
+            except ValueError:
+                pass
+
+            # Si todo falla, lanzar error descriptivo
+            raise ValueError(
+                f"Formato de fecha no válido: {value}. Formatos aceptados: YYYY-MM-DD o ISO 8601"
+            )
+
+        return value
+
     class Config:
         from_attributes = True
         populate_by_name = True
@@ -82,8 +176,6 @@ class UpdateTask(BaseModel):
 
 
 # ================== MODELO DE PROYECTO ==================
-
-
 class Project(BaseModel):
     id: Optional[PyObjectId] = Field(default=None, alias="_id")
     name: str
@@ -100,8 +192,6 @@ class Project(BaseModel):
 
 
 # ================== MODELOS DE USUARIO ==================
-
-
 class UserBase(BaseModel):
     first_name: str
     last_name: str

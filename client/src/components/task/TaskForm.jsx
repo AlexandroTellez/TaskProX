@@ -18,7 +18,7 @@ function TaskForm() {
     const [taskData, setTaskData] = useState({
         title: '',
         description: '',
-        startDate: dayjs(),
+        startDate: dayjs(), // Fecha de hoy por defecto
         deadline: null,
         status: 'Pendiente',
         collaborators: [],
@@ -41,35 +41,48 @@ function TaskForm() {
     const userEmail = user.email || '';
 
     const handleChange = (field, value) => {
+        console.log(`Cambiando ${field}:`, value?.format ? value.format('DD/MM/YYYY') : value);
         setTaskData((prev) => ({ ...prev, [field]: value }));
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        // Preparar fechas para envío - mantener consistencia con formato ISO
+        const prepareDate = (date) => {
+            if (!date) return null;
+            // Asegurarse de que sea un objeto dayjs válido
+            const dayjsDate = dayjs.isDayjs(date) ? date : dayjs(date);
+            return dayjsDate.format('YYYY-MM-DD'); // Formato simple para evitar problemas de zona horaria
+        };
+
         const baseData = {
             title: taskData.title,
             description: taskData.description,
             status: taskData.status,
             collaborators: taskData.collaborators,
-            startDate: taskData.startDate ? dayjs(taskData.startDate).startOf('day').toISOString() : null,
-            deadline: noDeadline ? null : (taskData.deadline ? dayjs(taskData.deadline).startOf('day').toISOString() : null),
+            startDate: prepareDate(taskData.startDate),
+            deadline: noDeadline ? null : prepareDate(taskData.deadline),
         };
 
         const dataToSend = params.id
-            ? { ...baseData, projectId } // PUT
+            ? { ...baseData, projectId } // Para actualización (PUT)
             : {
-                ...baseData, // POST
+                ...baseData,               // Para creación (POST)
                 projectId: projectId || null,
                 creator: userEmail,
                 creator_name: userFullName,
             };
 
+        console.log('Datos a enviar:', dataToSend);
+
         try {
             if (params.id) {
                 await updateTask(params.id, dataToSend);
+                message.success('Tarea actualizada correctamente');
             } else {
                 await createTask(dataToSend);
+                message.success('Tarea creada correctamente');
             }
             navigate(`/proyectos?projectId=${projectId}`);
         } catch (err) {
@@ -81,6 +94,7 @@ function TaskForm() {
     const handleDelete = async () => {
         try {
             await deleteTask(params.id);
+            message.success('Tarea eliminada correctamente');
             navigate(`/proyectos?projectId=${projectId}`);
         } catch (err) {
             console.error(err);
@@ -114,26 +128,42 @@ function TaskForm() {
         if (params.id) {
             fetchTask(params.id)
                 .then((res) => {
+                    console.log('Datos recibidos del backend:', res.data);
+
+                    // Procesar fechas de forma consistente
+                    const processDate = (dateValue) => {
+                        if (!dateValue) return null;
+                        return dayjs(dateValue);
+                    };
+
                     setTaskData({
                         ...res.data,
-                        startDate: res.data.startDate ? dayjs(res.data.startDate) : dayjs(),
-                        deadline: res.data.deadline ? dayjs(res.data.deadline) : null,
+                        startDate: processDate(res.data.startDate) || dayjs(), // Fallback a hoy si no hay fecha
+                        deadline: processDate(res.data.deadline),
                         status: res.data.status || 'Pendiente',
                         collaborators: res.data.collaborators || [],
                         creator: res.data.creator || userEmail,
                         creator_name: res.data.creator_name || userFullName,
                     });
+
                     setNoDeadline(!res.data.deadline);
+
+                    console.log('Fechas procesadas - Inicio:', processDate(res.data.startDate)?.format('DD/MM/YYYY'), 'Límite:', processDate(res.data.deadline)?.format('DD/MM/YYYY'));
                 })
-                .catch(console.error);
+                .catch((err) => {
+                    console.error('Error al cargar tarea:', err);
+                    message.error('Error al cargar la tarea');
+                });
         } else {
+            // Tarea nueva - establecer valores por defecto
             setTaskData((prev) => ({
                 ...prev,
+                startDate: dayjs(), // Fecha de hoy por defecto
                 creator: userEmail,
                 creator_name: userFullName,
             }));
         }
-    }, [params.id]);
+    }, [params.id, userEmail, userFullName]);
 
     return (
         <ConfigProvider locale={esES}>
@@ -187,7 +217,6 @@ function TaskForm() {
             </div>
         </ConfigProvider>
     );
-
 }
 
 export default TaskForm;
