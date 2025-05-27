@@ -120,7 +120,7 @@ function Calendario() {
 
                 {/* Calendario */}
                 <Calendar
-                    className="w-full bg-white dark:bg-[#2a2e33] border dark:border-[#FED36A] text-black dark:text-white rounded-md shadow-sm"
+                    className="w-full bg-white dark:bg-[#2a2e33] border dark:border-[#FFFFFF] text-black dark:text-white rounded-md shadow-sm"
                     fullscreen={false}
                     value={selectedDate}
                     onSelect={handleSelect}
@@ -173,7 +173,7 @@ function Calendario() {
                                     {getStartTasksForDate(selectedDate).map((task) => (
                                         <li
                                             key={task._id}
-                                            className="border dark:border-[#FED36A] bg-white dark:bg-[#2a2e33] text-black dark:text-white p-4 rounded-md shadow-sm"
+                                            className="border dark:border-[#FFFFFF] bg-white dark:bg-[#2a2e33] text-black dark:text-white p-4 rounded-md shadow-sm"
                                         >
                                             <p className="text-lg font-bold break-words whitespace-normal">{task.title}</p>
 
@@ -225,7 +225,7 @@ function Calendario() {
                                     {getTasksForDate(selectedDate).map((task) => (
                                         <li
                                             key={task._id}
-                                            className="border dark:border-[#FED36A] bg-white dark:bg-[#2a2e33] text-black dark:text-white p-4 rounded-md shadow-sm"
+                                            className="border dark:border-[#FFFFFF] bg-white dark:bg-[#2a2e33] text-black dark:text-white p-4 rounded-md shadow-sm"
                                         >
                                             <p className="text-lg font-bold break-words whitespace-normal">{task.title}</p>
 

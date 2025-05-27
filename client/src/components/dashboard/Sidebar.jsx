@@ -35,28 +35,28 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 <nav className="flex flex-col gap-1 mt-4">
                     <Link
                         to="/dashboard"
-                        className="flex items-center gap-3 px-6 py-3 hover:bg-gray-100 dark:hover:bg-gray-800 dark:text-white"
+                        className="flex items-center gap-3 px-6 py-3 hover:bg-gray-200 dark:hover:bg-gray-500 dark:text-white"
                         onClick={() => setIsOpen(false)}
                     >
                         <DashboardOutlined /> Dashboard
                     </Link>
                     <Link
                         to="/proyectos"
-                        className="flex items-center gap-3 px-6 py-3 hover:bg-gray-100 dark:hover:bg-gray-800 dark:text-white"
+                        className="flex items-center gap-3 px-6 py-3 hover:bg-gray-200 dark:hover:bg-gray-500 dark:text-white"
                         onClick={() => setIsOpen(false)}
                     >
                         <FolderOpenOutlined /> Proyectos
                     </Link>
                     <Link
                         to="/calendario"
-                        className="flex items-center gap-3 px-6 py-3 hover:bg-gray-100 dark:hover:bg-gray-800 dark:text-white"
+                        className="flex items-center gap-3 px-6 py-3 hover:bg-gray-200 dark:hover:bg-gray-500 dark:text-white"
                         onClick={() => setIsOpen(false)}
                     >
                         <CalendarOutlined /> Calendario
                     </Link>
                     <Link
                         to="/cuenta"
-                        className="flex items-center gap-3 px-6 py-3 hover:bg-gray-100 dark:hover:bg-gray-800 dark:text-white"
+                        className="flex items-center gap-3 px-6 py-3 hover:bg-gray-200 dark:hover:bg-gray-500 dark:text-white"
                         onClick={() => setIsOpen(false)}
                     >
                         <UserOutlined /> Cuenta
@@ -67,7 +67,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             {/* Botón para cerrar sesión */}
             <button
                 onClick={handleLogout}
-                className="flex items-center gap-3 px-6 py-4 text-red-600 hover:bg-red-50 dark:hover:bg-red-900 dark:text-red-400 transition-colors"
+                className="flex items-center gap-3 px-6 py-4 text-red-600 hover:bg-red-100 dark:hover:bg-red-900 dark:text-red-400 transition-colors"
             >
                 <LogoutOutlined /> Cerrar sesión
             </button>
@@ -77,7 +77,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     return (
         <>
             {/* Sidebar visible en pantallas grandes */}
-            <aside className="hidden md:flex h-screen w-64 bg-white text-black dark:bg-[#1A1A1A] dark:text-white flex-col justify-between shadow-xl">
+            <aside className="hidden md:flex h-screen w-64 bg-gray-50 text-black dark:bg-[#2a2e33] dark:text-white flex-col justify-between">
                 {menuContent}
             </aside>
 
@@ -91,7 +91,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                     />
 
                     {/* Menú lateral */}
-                    <div className="relative z-50 w-64 h-full bg-white text-black dark:bg-[#1A1A1A] dark:text-white flex flex-col justify-between shadow-xl">
+                    <div className="relative z-50 w-64 h-full bg-gray-50 text-black dark:bg-[#2a2e33] dark:text-white flex flex-col justify-between">
                         {/* Botón para cerrar el menú móvil */}
                         <button
                             onClick={() => setIsOpen(false)}
@@ -99,7 +99,6 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                         >
                             <CloseOutlined />
                         </button>
-
                         {menuContent}
                     </div>
                 </div>

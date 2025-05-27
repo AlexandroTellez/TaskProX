@@ -134,7 +134,7 @@ function Dashboard() {
             <p className="text-sm text-neutral-600 dark:text-[#FED36A] font-medium mb-4">RESUMEN - PROYECTOS</p>
 
             <div className="hidden sm:block">
-                <div className="rounded-md border dark:border-[#FED36A] overflow-hidden shadow dark:bg-[#2a2e33]">
+                <div className="rounded-md border  dark:border-white overflow-hidden shadow dark:bg-[#2a2e33]">
                     <Table
                         columns={columns}
                         dataSource={dataSource}
@@ -149,7 +149,7 @@ function Dashboard() {
                     {projects.map((project) => (
                         <li
                             key={project._id}
-                            className="border dark:border-[#FED36A] bg-white dark:bg-[#2a2e33] text-black dark:text-white p-4 rounded-md shadow"
+                            className="border dark:border-white bg-white dark:bg-[#2a2e33] text-black dark:text-white p-4 rounded-md shadow"
                         >
                             <p className="text-lg font-semibold">{project.name}</p>
 
@@ -184,7 +184,7 @@ function Dashboard() {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4 ">
                 <div className="flex flex-col">
                     <Title level={3} className="m-0 dark:text-white">CALENDARIO</Title>
-                    <p className="text-sm text-neutral-600 dark:text-[#FED36A] font-medium mt-1">RESUMEN CALENDARIO - FECHA DE INICIO Y FECHA LÍMITE</p>
+                    <p className="text-sm text-neutral-600 dark:text-[#FED36A] font-medium mt-1">RESUMEN - CALENDARIO </p>
                 </div>
 
                 <div className="flex flex-wrap gap-2">
@@ -221,7 +221,7 @@ function Dashboard() {
 
             <ConfigProvider locale={esES}>
                 <Calendar
-                    className="w-full bg-white dark:bg-[#2a2e33] border dark:border-[#FED36A] text-black dark:text-white rounded-md shadow-sm"
+                    className="w-full bg-white dark:bg-[#2a2e33] border dark:border-[#FFFFFF] text-black dark:text-white rounded-md shadow-sm"
                     fullscreen={false}
                     value={selectedDate}
                     onSelect={(date) => setSelectedDate(date)}
@@ -274,7 +274,7 @@ function Dashboard() {
                         {selectedDayTasks.map((task) => (
                             <li
                                 key={task._id}
-                                className="border dark:border-[#FED36A] bg-white dark:bg-[#2a2e33] dark:text-white text-black p-4 rounded-md shadow"
+                                className="border dark:border-white bg-white dark:bg-[#2a2e33] dark:text-white text-black p-4 rounded-md shadow"
                             >
                                 <p className="text-lg font-semibold">{task.title}</p>
 

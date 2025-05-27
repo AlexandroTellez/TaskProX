@@ -112,7 +112,7 @@ const Proyectos = () => {
                         </Button>
                     </div>
 
-                    <div className="rounded-md border dark:border-[#FED36A] shadow-md dark:bg-[#2a2e33] p-4">
+                    <div className="rounded-md border dark:border-[#FFFFFF] shadow-md dark:bg-[#2a2e33] p-4">
                         <TaskList
                             tasks={tasks}
                             projectId={selectedProject._id}
