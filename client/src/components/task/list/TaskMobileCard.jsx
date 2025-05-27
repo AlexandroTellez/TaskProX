@@ -14,7 +14,7 @@ const TaskMobileCard = ({ tasks, userEmail, onDuplicate, onDelete, projectId }) 
                 return (
                     <div
                         key={task.id || task._id}
-                        className="border dark:border-[#FED36A] p-4 rounded-md shadow bg-white text-black dark:bg-[#2a2e33] dark:text-white"
+                        className="border dark:border-[#FFFFFF] p-4 rounded-md shadow bg-white text-black dark:bg-[#2a2e33] dark:text-white"
                     >
                         <p className="font-bold text-lg mb-2">{task.title}</p>
 

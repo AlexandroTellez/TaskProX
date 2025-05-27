@@ -88,14 +88,14 @@ body {
     font-weight: bold;
 }
 
-/* Día actual con borde */
-.dark .ant-picker-cell-today .ant-picker-cell-inner::before {
+/* Día actual con borde modo oscuro/claro */
+.ant-picker-cell-today .ant-picker-cell-inner::before {
     border-color: #FED36A !important;
 }
 
 /* Borde inferior del encabezado superior del calendario (donde están mes y flechas) */
 .dark .ant-picker-calendar-header {
-    border-bottom: 1px solid #FED36A !important;
+    border-bottom: 1px solid #FFFFFF !important;
 }
 
 /* Borde inferior de los nombres de los días (Lun, Mar...) */
@@ -176,12 +176,17 @@ body {
 .dark .ant-table-tbody>tr>td {
     background-color: #2a2e33 !important;
     color: white !important;
-    border-color: #FED36A !important;
+    border-color: #FFFFFF !important; /* CAMBIO: de #FED36A a blanco */
 }
 
 /* Borde externo de la tabla */
 .dark .ant-table-wrapper .ant-table {
-    border: #FED36A !important;
+    border: #FFFFFF !important;
+}
+
+/* Borde de las celdas */
+.dark .ant-table-row-expand-icon {
+    border: 1px solid #FFFFFF !important;
 }
 
 /* Encabezados de columnas */
@@ -238,7 +243,7 @@ body {
 /* Hover para consistencia */
 .ant-checkbox:hover .ant-checkbox-inner,
 .dark .ant-checkbox:hover .ant-checkbox-inner {
-    border-color: #FED36A !important;
+    border-color: #FFFFFF !important;
 }
 
 /* ================= DatePicker DESHABILITADO en modo oscuro ================= */
@@ -273,5 +278,6 @@ body {
     background-color: #FFFFFF !important; /* fondo blanco también */
     color: #1A1A1A !important;            /* icono negro */
     border-radius: 4px;
-    border: 1px solid #FED36A !important; /* borde amarillo */
+    border: 1px solid #FFFFFF !important; /* borde blanco */
 }
+

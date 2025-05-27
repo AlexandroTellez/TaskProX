@@ -146,7 +146,7 @@ const TaskTable = ({ tasks, userEmail, onDuplicate, onDelete, projectId }) => {
     }));
 
     return (
-        <div className="overflow-x-auto rounded-md border dark:border-[#FED36A] shadow bg-white dark:bg-[#2a2e33]">
+        <div className="overflow-x-auto rounded-md border dark:border-[#FFFFFF] shadow bg-white dark:bg-[#2a2e33]">
             <Table
                 columns={columns}
                 dataSource={tableData}
