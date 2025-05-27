@@ -7,8 +7,9 @@ import {
     Button,
     Collapse,
     Badge,
+    Divider,
 } from 'antd';
-import { ArrowRightOutlined, FieldTimeOutlined } from '@ant-design/icons';
+import { ArrowRightOutlined, FieldTimeOutlined, CheckCircleFilled, CloseCircleFilled } from '@ant-design/icons';
 import dayjs from '../../utils/dayjsConfig';
 import 'dayjs/locale/es';
 import localeData from 'dayjs/plugin/localeData';
@@ -77,29 +78,20 @@ function Calendario() {
         const startTasks = getStartTasksForDate(date);
 
         return (
-            <div className="flex flex-col items-center justify-center gap-1">
-                {/* Marcador de fecha de inicio */}
+            <div className="flex flex-row items-center justify-center gap-1 overflow-hidden max-w-full">
                 {startTasks.length > 0 && (
-                    <div className="rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold bg-black text-white dark:bg-white dark:text-black">
+                    <div className="rounded-full w-4 h-4 flex items-center justify-center text-[10px] font-bold text-white bg-blue-500">
                         {startTasks.length}
                     </div>
                 )}
-
-                {/* Marcador de fecha límite */}
                 {deadlineTasks.length > 0 && (
-                    <Badge
-                        count={deadlineTasks.length}
-                        style={{
-                            backgroundColor: '#B91C1C', // rojo suave
-                            color: isDarkMode ? '#FFFFFF' : '#1A1A1A',
-                            fontWeight: 'bold'
-                        }}
-                    />
+                    <div className="rounded-full w-4 h-4 flex items-center justify-center text-[10px] font-bold text-white bg-red-500">
+                        {deadlineTasks.length}
+                    </div>
                 )}
             </div>
         );
     };
-
 
     const selectedDayTasks = tasks.filter(task => {
         const startMatch = task.startDate && dayjs(task.startDate).isSame(selectedDate, 'day');
@@ -138,67 +130,30 @@ function Calendario() {
 
                 {/* Leyenda */}
                 <div className="mt-4 flex flex-col sm:flex-row justify-center items-start sm:items-center sm:gap-x-6 text-sm text-gray-600 dark:text-white text-start">
-                    <span className="flex items-start">
-                        ⚪⚫ <span><strong>Fecha inicio:</strong>&nbsp;Los números marcados en circulos blancos o negros.</span>
+                    <span className="flex items-center gap-2">
+                        <CheckCircleFilled style={{ color: '#1890ff' }} />
+                        <span>
+                            <strong>Fecha Inicio:</strong>&nbsp;Los números marcados en círculos azules.
+                        </span>
                     </span>
-                    <span className="flex items-start mt-1 sm:mt-0">
-                        🔴 <span><strong>Fecha límite:</strong>&nbsp;Los números marcados en circulos rojos.</span>
+                    <span className="flex items-center gap-2 mt-1 sm:mt-0">
+                        <CloseCircleFilled style={{ color: '#ff4d4f' }} />
+                        <span>
+                            <strong>Fecha Límite:</strong>&nbsp;Los números marcados en círculos rojos.
+                        </span>
                     </span>
                 </div>
 
-                {/* Lista de tareas */}
+                {/* Vista tipo Kanban o lista responsive */}
                 <div className="w-full mt-8">
                     <Title level={4} className="text-black dark:text-white">
-                        LISTA DE TAREAS: {selectedDate.format('DD/MM/YYYY')}
-                        <p className="text-sm text-neutral-600 dark:text-[#FED36A] font-medium mt-1">RESUMEN DETALLADO - REGISTRO DE TAREAS</p>
+                        TAREAS DEL DÍA: {selectedDate.format('DD/MM/YYYY')}
+                        <p className="text-sm text-neutral-600 dark:text-[#FED36A] font-medium mt-1">
+                            RESUMEN DETALLADO – VISIÓN KANBAN
+                        </p>
                     </Title>
 
-                    {selectedDayTasks.length > 0 ? (
-                        <ul className="space-y-4 mt-4">
-                            {selectedDayTasks.map((task) => (
-                                <li
-                                    key={task._id}
-                                    className="border dark:border-[#FED36A] bg-white dark:bg-[#2a2e33] text-black dark:text-white p-4 rounded-md shadow-sm"
-                                >
-                                    <p className="text-lg font-bold break-words whitespace-normal">{task.title}</p>
-
-                                    <div className="text-sm mt-2 space-y-1">
-                                        <Collapse ghost className="mt-2">
-                                            <Panel
-                                                header={<span className="text-sm font-medium dark:text-white">📄 Haz clic para ver la descripción</span>}
-                                                key="1"
-                                            >
-                                                <div
-                                                    className="text-gray-700 dark:text-white prose prose-sm dark:prose-invert max-w-none"
-                                                    dangerouslySetInnerHTML={{ __html: task.description }}
-                                                />
-                                            </Panel>
-                                        </Collapse>
-
-                                        <p><strong>Creador:</strong> {task.creator || 'No especificado'}</p>
-                                        <p><strong>Fecha Inicio:</strong> {task.startDate ? dayjs(task.startDate).format('DD/MM/YYYY') : '—'}</p>
-                                        <p><strong>Fecha Límite:</strong> {task.deadline ? dayjs(task.deadline).format('DD/MM/YYYY') : 'Sin fecha'}</p>
-                                        <p><strong>Estado:</strong> {task.status}</p>
-                                    </div>
-
-                                    <div className="mt-4 flex justify-start">
-                                        <Button
-                                            icon={<ArrowRightOutlined />}
-                                            onClick={() => {
-                                                const url = task.projectId
-                                                    ? `/proyectos?projectId=${task.projectId}`
-                                                    : '/proyectos';
-                                                window.open(url, '_blank');
-                                            }}
-                                            className="font-bold bg-[#FED36A] hover:bg-[#fcd670] text-black  border-none rounded-md"
-                                        >
-                                            Ver tarea
-                                        </Button>
-                                    </div>
-                                </li>
-                            ))}
-                        </ul>
-                    ) : (
+                    {getStartTasksForDate(selectedDate).length === 0 && getTasksForDate(selectedDate).length === 0 ? (
                         <Empty
                             description={
                                 <span className="text-neutral-700 dark:text-white">
@@ -206,8 +161,115 @@ function Calendario() {
                                 </span>
                             }
                         />
+                    ) : (
+                        <div className="flex flex-col sm:flex-row sm:gap-8 mt-6">
+                            {/* Columna de tareas que inician hoy */}
+                            <div className="flex-1">
+                                <h3 className="text-lg font-bold mb-4 text-blue-500 flex items-center gap-2">
+                                    <CheckCircleFilled /> FECHA INICIO
+                                </h3>
+                                <div className="border-t dark:border-white border-black my-4 opacity-20" />
+                                <ul className="space-y-4">
+                                    {getStartTasksForDate(selectedDate).map((task) => (
+                                        <li
+                                            key={task._id}
+                                            className="border dark:border-[#FED36A] bg-white dark:bg-[#2a2e33] text-black dark:text-white p-4 rounded-md shadow-sm"
+                                        >
+                                            <p className="text-lg font-bold break-words whitespace-normal">{task.title}</p>
+
+                                            <div className="text-sm mt-2 space-y-1">
+                                                <Collapse ghost className="mt-2">
+                                                    <Panel
+                                                        header={<span className="text-sm font-medium dark:text-white">📄 Ver descripción</span>}
+                                                        key="desc-start"
+                                                    >
+                                                        <div
+                                                            className="text-gray-700 dark:text-white prose prose-sm dark:prose-invert max-w-none"
+                                                            dangerouslySetInnerHTML={{ __html: task.description }}
+                                                        />
+                                                    </Panel>
+                                                </Collapse>
+                                                <p><strong>Creador:</strong> {task.creator || 'No especificado'}</p>
+                                                <p><strong>Fecha Inicio:</strong> {dayjs(task.startDate).format('DD/MM/YYYY')}</p>
+                                                <p><strong>Fecha Límite:</strong> {task.deadline ? dayjs(task.deadline).format('DD/MM/YYYY') : 'Sin fecha'}</p>
+                                                <p><strong>Estado:</strong> {task.status}</p>
+                                            </div>
+
+                                            <div className="mt-4 flex justify-start">
+                                                <Button
+                                                    icon={<ArrowRightOutlined />}
+                                                    onClick={() => {
+                                                        const url = task.projectId
+                                                            ? `/proyectos?projectId=${task.projectId}`
+                                                            : '/proyectos';
+                                                        window.open(url, '_blank');
+                                                    }}
+                                                    className="font-bold bg-[#FED36A] hover:bg-[#fcd670] text-black border-none rounded-md"
+                                                >
+                                                    Ver tarea
+                                                </Button>
+                                            </div>
+                                        </li>
+                                    ))}
+                                </ul>
+                                <div className="border-t dark:border-white border-black my-4 opacity-20" />
+                            </div>
+
+                            {/* Columna de tareas que finalizan hoy */}
+                            <div className="flex-1 mt-10 sm:mt-0">
+                                <h3 className="text-lg font-bold mb-4 text-red-500 flex items-center gap-2">
+                                    <CloseCircleFilled /> FECHA LÍMITE
+                                </h3>
+                                <div className="border-t dark:border-white border-black my-4 opacity-20" />
+                                <ul className="space-y-4">
+                                    {getTasksForDate(selectedDate).map((task) => (
+                                        <li
+                                            key={task._id}
+                                            className="border dark:border-[#FED36A] bg-white dark:bg-[#2a2e33] text-black dark:text-white p-4 rounded-md shadow-sm"
+                                        >
+                                            <p className="text-lg font-bold break-words whitespace-normal">{task.title}</p>
+
+                                            <div className="text-sm mt-2 space-y-1">
+                                                <Collapse ghost className="mt-2">
+                                                    <Panel
+                                                        header={<span className="text-sm font-medium dark:text-white">📄 Ver descripción</span>}
+                                                        key="desc-deadline"
+                                                    >
+                                                        <div
+                                                            className="text-gray-700 dark:text-white prose prose-sm dark:prose-invert max-w-none"
+                                                            dangerouslySetInnerHTML={{ __html: task.description }}
+                                                        />
+                                                    </Panel>
+                                                </Collapse>
+                                                <p><strong>Creador:</strong> {task.creator || 'No especificado'}</p>
+                                                <p><strong>Fecha Inicio:</strong> {task.startDate ? dayjs(task.startDate).format('DD/MM/YYYY') : '—'}</p>
+                                                <p><strong>Fecha Límite:</strong> {dayjs(task.deadline).format('DD/MM/YYYY')}</p>
+                                                <p><strong>Estado:</strong> {task.status}</p>
+                                            </div>
+
+                                            <div className="mt-4 flex justify-start">
+                                                <Button
+                                                    icon={<ArrowRightOutlined />}
+                                                    onClick={() => {
+                                                        const url = task.projectId
+                                                            ? `/proyectos?projectId=${task.projectId}`
+                                                            : '/proyectos';
+                                                        window.open(url, '_blank');
+                                                    }}
+                                                    className="font-bold bg-[#FED36A] hover:bg-[#fcd670] text-black border-none rounded-md"
+                                                >
+                                                    Ver tarea
+                                                </Button>
+                                            </div>
+                                        </li>
+                                    ))}
+                                </ul>
+                                <div className="border-t dark:border-white border-black my-4 opacity-20" />
+                            </div>
+                        </div>
                     )}
                 </div>
+
             </div>
         </ConfigProvider>
     );
