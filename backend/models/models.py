@@ -41,7 +41,8 @@ class Task(BaseModel):
     collaborators: Optional[List[Collaborator]] = []
     startDate: Optional[datetime] = None
     deadline: Optional[datetime] = None
-    status: Optional[str] = "Pendiente"
+    status: Optional[str] = "pendiente" # Estados: pendiente, en espera, lista para comenzar, en progreso, en revisión, completado. También se permite estado personalizado.
+
     projectId: Optional[PyObjectId] = None
     user_id: Optional[str] = None
     user_email: Optional[EmailStr] = None
@@ -114,7 +115,7 @@ class UpdateTask(BaseModel):
     collaborators: Optional[List[Collaborator]] = None
     startDate: Optional[datetime] = None
     deadline: Optional[datetime] = None
-    status: Optional[str] = None
+    status: Optional[str] = None # Estados + personalizado
     projectId: Optional[PyObjectId] = None
 
     @field_validator("startDate", "deadline", mode="before")

@@ -5,30 +5,38 @@ import 'dayjs/locale/es';
 dayjs.locale('es');
 
 // ==========================
-// Etiqueta según estado
+// Etiqueta según estado con color fijo
 // ==========================
 export const getStatusTag = (status) => {
+    if (!status) return <Tag color="gray">Sin estado</Tag>;
+
+    const statusLower = status.toLowerCase();
     let color;
-    switch (status) {
-        case 'Completado':
-            color = 'green';
-            break;
-        case 'En proceso':
-            color = 'gold';
-            break;
-        case 'Pendiente':
-            color = 'red';
-            break;
-        case 'En espera':
-            color = 'blue';
-            break;
-        case 'Cancelado':
+
+    switch (statusLower) {
+        case 'pendiente':
             color = 'volcano';
             break;
+        case 'en espera':
+            color = 'purple';
+            break;
+        case 'lista para comenzar':
+            color = 'blue';
+            break;
+        case 'en progreso':
+            color = 'gold';
+            break;
+        case 'en revisión':
+            color = 'pink';
+            break;
+        case 'completado':
+            color = 'green';
+            break;
         default:
-            color = 'gray';
+            color = 'gray'; // Estados personalizados o desconocidos
     }
-    return <Tag color={color}>{status || 'Sin estado'}</Tag>;
+
+    return <Tag color={color}>{capitalize(status)}</Tag>;
 };
 
 // ==========================
@@ -44,13 +52,14 @@ export const formatDate = (value) => {
 // Permiso efectivo del usuario
 // ==========================
 export const getPermission = (task, userEmail) => {
-    // 1. Si es el creador → admin
     if (task.creator === userEmail) return 'admin';
-
-    // 2. Si tiene campo effective_permission calculado por el backend
     if (task.effective_permission) return task.effective_permission;
-
-    // 3. Si está en colaboradores
     const match = task.collaborators?.find((col) => col.email === userEmail);
     return match?.permission || 'none';
 };
+
+// ==========================
+// Capitalizar texto
+// ==========================
+const capitalize = (str) =>
+    str.charAt(0).toUpperCase() + str.slice(1);
