@@ -174,7 +174,7 @@ function TaskForm() {
                         onSubmit={handleSubmit}
                     >
                         <h1 className="text-3xl sm:text-4xl font-bold text-center">
-                            {params.id ? 'ACTUALIZAR TAREA' : 'CREAR TAREA'}
+                            {params.id ? 'ACTUALIZAR TAREA' : 'NUEVA TAREA'}
                         </h1>
 
                         <TitleInput value={taskData.title} onChange={(val) => handleChange('title', val)} />
