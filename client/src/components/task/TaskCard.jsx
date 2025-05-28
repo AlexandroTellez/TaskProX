@@ -72,6 +72,27 @@ function TaskCard({ task, onTaskChanged }) {
                 dangerouslySetInnerHTML={{ __html: task.description }}
             />
 
+            {/* Archivos adjuntos */}
+            {task.recurso && task.recurso.length > 0 && (
+                <div className="mb-4">
+                    <h3 className="font-semibold text-sm text-neutral-800 mb-1"> Archivos adjuntos:</h3>
+                    <ul className="list-disc list-inside text-blue-600 text-sm space-y-1">
+                        {task.recurso.map((file, index) => (
+                            <li key={index}>
+                                <a
+                                    href={file.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="underline break-words"
+                                >
+                                    {file.name}
+                                </a>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            )}
+
             {/* Acciones */}
             <div className="flex gap-2 flex-wrap mt-auto" onClick={(e) => e.stopPropagation()}>
                 <button

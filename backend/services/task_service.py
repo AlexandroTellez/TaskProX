@@ -79,6 +79,12 @@ async def get_all_tasks(filters: dict):
         except Exception as e:
             print(f"[WARN] Error al parsear deadline: {e}")
 
+    # ================== FILTRO POR RECURSO ==================
+    if filters.get("has_recurso") == "yes":
+        query["recurso"] = {"$ne": None}
+    elif filters.get("has_recurso") == "no":
+        query["recurso"] = None
+
     tasks = []
     cursor = collection.find(query)
     async for document in cursor:
@@ -120,6 +126,9 @@ async def create_task(task: dict):
 
     task.setdefault("deadline", None)
     task.setdefault("collaborators", [])
+
+    # Asegurar que 'recurso' sea lista si no se proporciona
+    task.setdefault("recurso", [])
 
     new_task = await collection.insert_one(task)
     created_task = await collection.find_one({"_id": new_task.inserted_id})

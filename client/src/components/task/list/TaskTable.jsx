@@ -1,7 +1,51 @@
 import { Table, Tag, Button, Popconfirm, Space, Empty } from 'antd';
-import { EditOutlined, DeleteOutlined, CopyOutlined } from '@ant-design/icons';
+import { EditOutlined, DeleteOutlined, CopyOutlined, DownloadOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { getPermission, getStatusTag, formatDate } from './utils.jsx';
+
+function descargarArchivo(file) {
+    try {
+        if (!file || !file.data || typeof file.data !== "string") {
+            console.error("Archivo inválido o sin contenido base64:", file);
+            return;
+        }
+
+        let base64Data = file.data;
+
+        // Detectar y eliminar encabezado data:<tipo>;base64,
+        const base64Match = file.data.match(/^data:(.*);base64,(.*)$/);
+        if (base64Match) {
+            base64Data = base64Match[2];
+        }
+
+        // Decodificar base64
+        const byteCharacters = atob(base64Data.trim());
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: file.type || 'application/octet-stream' });
+
+        // Si el nombre empieza con punto, lo ajustamos
+        let safeFileName = file.name || 'archivo';
+        if (safeFileName.startsWith('.')) {
+            safeFileName = `descarga_${safeFileName.replace(/^\.+/, '')}`;
+            console.warn(`Nombre de archivo modificado para la descarga: ${safeFileName}`);
+        }
+
+        // Descargar
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = safeFileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    } catch (error) {
+        console.error('Error al intentar descargar el archivo:', error);
+    }
+}
+
 
 const TaskTable = ({ tasks, userEmail, onDuplicate, onDelete, projectId }) => {
     const navigate = useNavigate();
@@ -68,6 +112,35 @@ const TaskTable = ({ tasks, userEmail, onDuplicate, onDelete, projectId }) => {
             dataIndex: 'status',
             key: 'status',
             render: (status) => <div className="text-left">{getStatusTag(status)}</div>,
+        },
+        {
+            title: <div className="text-center w-full dark:text-white">Archivos</div>,
+            dataIndex: 'recurso',
+            key: 'recurso',
+            render: (recurso) => {
+                if (!recurso || recurso.length === 0) {
+                    return <div className="text-left dark:text-white">Ninguno</div>;
+                }
+
+                return (
+                    <ul className="list-disc list-inside text-left text-blue-500 dark:text-blue-400">
+                        {recurso.map((file, index) => (
+                            <li key={index}>
+                                <Button
+                                    type="link"
+                                    className="underline break-words px-0 text-blue-500 dark:text-blue-300"
+                                    icon={<DownloadOutlined />}
+                                    onClick={() => {
+                                        descargarArchivo(file);
+                                    }}
+                                >
+                                    {file.name}
+                                </Button>
+                            </li>
+                        ))}
+                    </ul>
+                );
+            }
         },
         {
             title: <div className="text-center w-full dark:text-white">Acciones</div>,
@@ -142,6 +215,7 @@ const TaskTable = ({ tasks, userEmail, onDuplicate, onDelete, projectId }) => {
         status: task.status || '',
         collaborators: task.collaborators || [],
         effective_permission: task.effective_permission || null,
+        recurso: task.recurso || []
     }));
 
     return (

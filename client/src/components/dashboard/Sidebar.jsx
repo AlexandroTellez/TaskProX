@@ -77,13 +77,13 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     return (
         <>
             {/* Sidebar visible en pantallas grandes */}
-            <aside className="hidden md:flex h-screen w-64 bg-gray-50 text-black dark:bg-[#2a2e33] dark:text-white flex-col justify-between">
+            <aside className="hidden lg:flex h-screen w-64 bg-gray-50 text-black dark:bg-[#2a2e33] dark:text-white flex-col justify-between">
                 {menuContent}
             </aside>
 
-            {/* Sidebar desplegable en móviles */}
+            {/* Sidebar desplegable en móviles y tablets */}
             {isOpen && (
-                <div className="fixed inset-0 z-50 flex md:hidden">
+                <div className="fixed inset-0 z-50 flex lg:hidden">
                     {/* Fondo oscuro al hacer overlay */}
                     <div
                         className="fixed inset-0 bg-black bg-opacity-50"
