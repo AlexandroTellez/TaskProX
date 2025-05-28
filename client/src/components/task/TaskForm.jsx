@@ -11,6 +11,7 @@ import CollaboratorsSection from './form/CollaboratorsSection';
 import DatePickers from './form/DatePickers';
 import StatusSelector from './form/StatusSelector';
 import FormActions from './form/FormActions';
+import FileUploader from './form/FileUploader';
 
 import { createTask, updateTask, deleteTask, fetchTask } from '../../api/tasks';
 
@@ -18,12 +19,13 @@ function TaskForm() {
     const [taskData, setTaskData] = useState({
         title: '',
         description: '',
-        startDate: dayjs(), // Fecha de hoy por defecto
+        startDate: dayjs(),
         deadline: null,
         status: 'Pendiente',
         collaborators: [],
         creator: '',
         creator_name: '',
+        recurso: [],
     });
 
     const [noDeadline, setNoDeadline] = useState(false);
@@ -41,20 +43,26 @@ function TaskForm() {
     const userEmail = user.email || '';
 
     const handleChange = (field, value) => {
-        console.log(`Cambiando ${field}:`, value?.format ? value.format('DD/MM/YYYY') : value);
         setTaskData((prev) => ({ ...prev, [field]: value }));
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        // Preparar fechas para envío - mantener consistencia con formato ISO
         const prepareDate = (date) => {
             if (!date) return null;
-            // Asegurarse de que sea un objeto dayjs válido
             const dayjsDate = dayjs.isDayjs(date) ? date : dayjs(date);
-            return dayjsDate.format('YYYY-MM-DD'); // Formato simple para evitar problemas de zona horaria
+            return dayjsDate.format('YYYY-MM-DD');
         };
+
+        const nuevosArchivos = (taskData.recurso || []).filter(file => file instanceof File);
+        const archivosExistentes = (taskData.recurso || []).filter(file => !(file instanceof File));
+
+        // Validar nombres conflictivos
+        const archivosInvalidos = nuevosArchivos.filter(file => file.name.startsWith('.'));
+        if (archivosInvalidos.length > 0) {
+            message.warning('Algunos archivos tienen nombres que comienzan con "." y serán renombrados automáticamente al descargarlos.');
+        }
 
         const baseData = {
             title: taskData.title,
@@ -63,30 +71,37 @@ function TaskForm() {
             collaborators: taskData.collaborators,
             startDate: prepareDate(taskData.startDate),
             deadline: noDeadline ? null : prepareDate(taskData.deadline),
+            recurso: archivosExistentes, // solo los base64 (ya existentes)
         };
 
         const dataToSend = params.id
-            ? { ...baseData, projectId } // Para actualización (PUT)
+            ? { ...baseData, projectId }
             : {
-                ...baseData,               // Para creación (POST)
+                ...baseData,
                 projectId: projectId || null,
                 creator: userEmail,
                 creator_name: userFullName,
             };
 
-        console.log('Datos a enviar:', dataToSend);
-
         try {
+            const formData = new FormData();
+            const jsonData = JSON.stringify(dataToSend);
+            formData.append("task", jsonData);
+
+            nuevosArchivos.forEach((file) => {
+                formData.append("files", file);
+            });
+
             if (params.id) {
-                await updateTask(params.id, dataToSend);
-                message.success('Tarea actualizada correctamente');
+                await updateTask(params.id, dataToSend, nuevosArchivos);
+                message.success("Tarea actualizada correctamente");
             } else {
-                await createTask(dataToSend);
-                message.success('Tarea creada correctamente');
+                await createTask(dataToSend, nuevosArchivos);
+                message.success("Tarea creada correctamente");
             }
             navigate(`/proyectos?projectId=${projectId}`);
         } catch (err) {
-            console.error('Error al guardar la tarea:', err.response?.data || err.message);
+            console.error(err);
             message.error('Error al guardar la tarea');
         }
     };
@@ -97,7 +112,6 @@ function TaskForm() {
             message.success('Tarea eliminada correctamente');
             navigate(`/proyectos?projectId=${projectId}`);
         } catch (err) {
-            console.error(err);
             message.error('Error al eliminar la tarea');
         }
     };
@@ -128,9 +142,6 @@ function TaskForm() {
         if (params.id) {
             fetchTask(params.id)
                 .then((res) => {
-                    console.log('Datos recibidos del backend:', res.data);
-
-                    // Procesar fechas de forma consistente
                     const processDate = (dateValue) => {
                         if (!dateValue) return null;
                         return dayjs(dateValue);
@@ -138,27 +149,24 @@ function TaskForm() {
 
                     setTaskData({
                         ...res.data,
-                        startDate: processDate(res.data.startDate) || dayjs(), // Fallback a hoy si no hay fecha
+                        startDate: processDate(res.data.startDate) || dayjs(),
                         deadline: processDate(res.data.deadline),
                         status: res.data.status || 'Pendiente',
                         collaborators: res.data.collaborators || [],
                         creator: res.data.creator || userEmail,
                         creator_name: res.data.creator_name || userFullName,
+                        recurso: res.data.recurso || [],
                     });
 
                     setNoDeadline(!res.data.deadline);
-
-                    console.log('Fechas procesadas - Inicio:', processDate(res.data.startDate)?.format('DD/MM/YYYY'), 'Límite:', processDate(res.data.deadline)?.format('DD/MM/YYYY'));
                 })
-                .catch((err) => {
-                    console.error('Error al cargar tarea:', err);
+                .catch(() => {
                     message.error('Error al cargar la tarea');
                 });
         } else {
-            // Tarea nueva - establecer valores por defecto
             setTaskData((prev) => ({
                 ...prev,
-                startDate: dayjs(), // Fecha de hoy por defecto
+                startDate: dayjs(),
                 creator: userEmail,
                 creator_name: userFullName,
             }));
@@ -180,7 +188,6 @@ function TaskForm() {
                         <TitleInput value={taskData.title} onChange={(val) => handleChange('title', val)} />
                         <DescriptionEditor value={taskData.description} onChange={(val) => handleChange('description', val)} />
                         <CreatorField value={taskData.creator_name || 'Desconocido'} />
-
                         <CollaboratorsSection
                             collaborators={taskData.collaborators}
                             newCollaborator={newCollaborator}
@@ -196,7 +203,6 @@ function TaskForm() {
                                 setTaskData((prev) => ({ ...prev, collaborators: updated }));
                             }}
                         />
-
                         <DatePickers
                             startDate={taskData.startDate}
                             deadline={taskData.deadline}
@@ -204,8 +210,12 @@ function TaskForm() {
                             onChange={handleChange}
                             setNoDeadline={setNoDeadline}
                         />
-
                         <StatusSelector value={taskData.status} onChange={(val) => handleChange('status', val)} />
+
+                        <FileUploader
+                            recurso={taskData.recurso}
+                            setRecurso={(archivos) => setTaskData((prev) => ({ ...prev, recurso: archivos }))}
+                        />
 
                         <FormActions
                             isEditing={!!params.id}

@@ -1,4 +1,12 @@
-from fastapi import APIRouter, HTTPException, Request, Depends
+from fastapi import (
+    APIRouter,
+    HTTPException,
+    Request,
+    Depends,
+    UploadFile,
+    File,
+    Form,
+)
 from services.task_service import (
     get_all_tasks,
     create_task,
@@ -8,8 +16,60 @@ from services.task_service import (
 )
 from models.models import Task, UpdateTask
 from routes.auth import get_current_user
+import json
+import base64
+from typing import List
 
 task = APIRouter()
+
+MAX_FILES = 3
+MAX_FILE_SIZE = 5 * 1024 * 1024  # 5 MB
+
+
+# ===================== CONVERSIÓN DE ARCHIVOS A BASE64 =====================
+def encode_files_to_base64(files: List[UploadFile]) -> List[dict]:
+    base64_files = []
+
+    ALLOWED_TYPES = [
+        "application/pdf",
+        "application/msword",  # .doc
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",  # .docx
+        "application/vnd.ms-excel",  # .xls
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",  # .xlsx
+        "image/jpeg",
+        "image/png",
+        "image/gif",
+        "image/svg+xml",
+        # Se aceptarán tipos que empiecen con image/ incluso si no están listados explícitamente (como RAW)
+    ]
+
+    if len(files) > MAX_FILES:
+        raise HTTPException(400, f"Máximo {MAX_FILES} archivos permitidos.")
+
+    for file in files:
+        contents = file.file.read()
+
+        if len(contents) > MAX_FILE_SIZE:
+            raise HTTPException(413, f"El archivo {file.filename} excede los 5MB")
+
+        if file.content_type not in ALLOWED_TYPES and not file.content_type.startswith(
+            "image/"
+        ):
+            raise HTTPException(
+                415,
+                f"Tipo de archivo no permitido: {file.content_type}. Solo se permiten documentos (PDF, Word, Excel) e imágenes.",
+            )
+
+        encoded = base64.b64encode(contents).decode("utf-8")
+        base64_files.append(
+            {
+                "name": file.filename,
+                "type": file.content_type,
+                "data": f"data:{file.content_type};base64,{encoded}",
+            }
+        )
+
+    return base64_files
 
 
 # ===================== FUNCIÓN AUXILIAR DE PERMISOS =====================
@@ -45,7 +105,12 @@ async def get_task(id: str, user: dict = Depends(get_current_user)):
 
 # ===================== RUTA PUT =====================
 @task.put("/api/tasks/{id}", response_model=Task)
-async def put_task(id: str, task: UpdateTask, user: dict = Depends(get_current_user)):
+async def put_task(
+    id: str,
+    task: str = Form(...),
+    files: List[UploadFile] = File(None),
+    user: dict = Depends(get_current_user),
+):
     existing_task = await get_one_task_id(id)
     if not existing_task:
         raise HTTPException(404, f"Tarea con id {id} no encontrada")
@@ -54,7 +119,10 @@ async def put_task(id: str, task: UpdateTask, user: dict = Depends(get_current_u
     if permission not in ["write", "admin"]:
         raise HTTPException(403, "No tienes permiso para editar esta tarea")
 
-    task_data = task.model_dump(exclude_unset=True)
+    task_data = json.loads(task)
+
+    if files:
+        task_data["recurso"] = encode_files_to_base64(files)
 
     updated = await update_task(id, task_data)
     if updated:
@@ -93,6 +161,7 @@ async def get_tasks(request: Request, user: dict = Depends(get_current_user)):
         "deadline": params.get("deadline"),
         "user_id": str(user["_id"]),
         "user_email": user["email"],
+        "has_recurso": params.get("hasRecurso"),
     }
 
     return await get_all_tasks(filters)
@@ -100,8 +169,12 @@ async def get_tasks(request: Request, user: dict = Depends(get_current_user)):
 
 # ===================== RUTA POST =====================
 @task.post("/api/tasks", response_model=Task)
-async def save_task(task: Task, user: dict = Depends(get_current_user)):
-    task_data = task.model_dump()
+async def save_task(
+    task: str = Form(...),
+    files: List[UploadFile] = File(None),
+    user: dict = Depends(get_current_user),
+):
+    task_data = json.loads(task)
     task_data["user_id"] = str(user["_id"])
     task_data["user_email"] = user["email"]
     task_data["creator"] = user["email"]
@@ -111,6 +184,9 @@ async def save_task(task: Task, user: dict = Depends(get_current_user)):
 
     if "collaborators" not in task_data or task_data["collaborators"] is None:
         task_data["collaborators"] = []
+
+    if files:
+        task_data["recurso"] = encode_files_to_base64(files)
 
     nueva_tarea = await create_task(task_data)
     if nueva_tarea:

@@ -82,6 +82,28 @@ const TaskFilters = ({ filters, onChange, onReset }) => {
                 />
             </div>
 
+            {/* Fecha de inicio */}
+            <div className="flex flex-col w-full sm:w-auto">
+                <label className="text-sm font-medium text-gray-700 dark:text-white mb-1">Fecha de inicio</label>
+                <DatePicker
+                    placeholder="Inicio"
+                    value={filters.startDate}
+                    onChange={(date) => onChange('startDate', date ? dayjs(date) : null)}
+                    className="w-full sm:w-[140px]"
+                />
+            </div>
+
+            {/* Fecha límite */}
+            <div className="flex flex-col w-full sm:w-auto">
+                <label className="text-sm font-medium text-gray-700 dark:text-white mb-1">Fecha límite</label>
+                <DatePicker
+                    placeholder="Límite"
+                    value={filters.deadline}
+                    onChange={(date) => onChange('deadline', date ? dayjs(date) : null)}
+                    className="w-full sm:w-[140px]"
+                />
+            </div>
+
             {/* Estado con colores */}
             <div className="flex flex-col w-full sm:w-auto">
                 <label className="text-sm font-medium text-gray-700 dark:text-white mb-1">Estado</label>
@@ -109,26 +131,19 @@ const TaskFilters = ({ filters, onChange, onReset }) => {
                 )}
             </div>
 
-            {/* Fecha de inicio */}
+            {/* Recursos adjuntos */}
             <div className="flex flex-col w-full sm:w-auto">
-                <label className="text-sm font-medium text-gray-700 dark:text-white mb-1">Fecha de inicio</label>
-                <DatePicker
-                    placeholder="Inicio"
-                    value={filters.startDate}
-                    onChange={(date) => onChange('startDate', date ? dayjs(date) : null)}
+                <label className="text-sm font-medium text-gray-700 dark:text-white mb-1">Recursos</label>
+                <Select
+                    placeholder="Todos"
+                    value={filters.has_recurso || undefined}
+                    onChange={(value) => onChange("has_recurso", value)}
+                    allowClear
                     className="w-full sm:w-[140px]"
-                />
-            </div>
-
-            {/* Fecha límite */}
-            <div className="flex flex-col w-full sm:w-auto">
-                <label className="text-sm font-medium text-gray-700 dark:text-white mb-1">Fecha límite</label>
-                <DatePicker
-                    placeholder="Límite"
-                    value={filters.deadline}
-                    onChange={(date) => onChange('deadline', date ? dayjs(date) : null)}
-                    className="w-full sm:w-[140px]"
-                />
+                >
+                    <Option value="yes">Con archivos</Option>
+                    <Option value="no">Sin archivos</Option>
+                </Select>
             </div>
 
             {/* Botón limpiar */}

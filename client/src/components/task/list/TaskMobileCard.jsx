@@ -1,7 +1,50 @@
-import { Button, Tag, Popconfirm } from 'antd';
-import { EditOutlined, CopyOutlined, DeleteOutlined } from '@ant-design/icons';
+import { Button, Tag, Popconfirm, message } from 'antd';
+import { EditOutlined, CopyOutlined, DeleteOutlined, DownloadOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { getPermission, getStatusTag, formatDate } from './utils.jsx';
+
+// Función para descargar archivos base64
+function descargarArchivo(file) {
+    try {
+        if (!file || !file.data || typeof file.data !== "string") {
+            console.error("Archivo inválido o sin contenido base64:", file);
+            return;
+        }
+
+        let base64Data = file.data;
+
+        const base64Match = file.data.match(/^data:(.*);base64,(.*)$/);
+        if (base64Match) {
+            base64Data = base64Match[2];
+        }
+
+        const byteCharacters = atob(base64Data.trim());
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: file.type || 'application/octet-stream' });
+
+        let safeFileName = file.name || 'archivo';
+        if (safeFileName.startsWith('.')) {
+            safeFileName = `descarga_${safeFileName.replace(/^\.+/, '')}`;
+        }
+
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = safeFileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        // Mensaje de éxito
+        message.success(`Descarga completada: ${safeFileName}`);
+    } catch (error) {
+        console.error('Error al intentar descargar el archivo:', error);
+        message.error('Error al descargar el archivo');
+    }
+}
 
 const TaskMobileCard = ({ tasks, userEmail, onDuplicate, onDelete, projectId }) => {
     const navigate = useNavigate();
@@ -55,6 +98,28 @@ const TaskMobileCard = ({ tasks, userEmail, onDuplicate, onDelete, projectId }) 
                         <p className="text-sm mb-2">
                             <strong>Estado:</strong> {getStatusTag(task.status)}
                         </p>
+
+                        {task.recurso && task.recurso.length > 0 && (
+                            <div className="text-sm mb-2">
+                                <strong>Archivos adjuntos:</strong>
+                                <ul className="list-disc list-inside mt-1 space-y-1">
+                                    {task.recurso.map((file, index) => (
+                                        <li key={index}>
+                                            <Button
+                                                type="link"
+                                                icon={<DownloadOutlined />}
+                                                onClick={() => descargarArchivo(file)}
+                                                className="px-0 text-blue-500 dark:text-blue-300 !whitespace-normal !break-words !text-left !p-0 max-w-full"
+                                                style={{ wordBreak: 'break-word', whiteSpace: 'normal' }}
+                                            >
+                                                {file.name}
+                                            </Button>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
+
 
                         {task.description && (
                             <details className="mb-3">

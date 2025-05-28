@@ -57,8 +57,11 @@ const Proyectos = () => {
         <div className="w-full bg-white text-black dark:bg-[#1A1A1A] dark:text-white p-4 sm:p-6 lg:p-8">
             {/* Header */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-                <Title level={3} className="text-black dark:text-white m-0">GESTION DE PROYECTOS
-                    <p className="text-sm text-neutral-600 dark:text-[#FED36A] font-medium mt-1"> FLUJO DE TRABAJO - PROYECTOS Y TAREAS </p>
+                <Title level={3} className="text-black dark:text-white m-0 !leading-snug !text-lg sm:!text-xl md:!text-2xl lg:!text-3xl whitespace-nowrap">
+                    GESTIÓN DE PROYECTOS
+                    <div className="text-xs sm:text-sm text-neutral-600 dark:text-[#FED36A] font-medium mt-1 whitespace-normal">
+                        FLUJO DE TRABAJO - PROYECTOS Y TAREAS
+                    </div>
                 </Title>
 
                 <CreateProjectButton
