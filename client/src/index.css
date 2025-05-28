@@ -166,6 +166,22 @@ body {
     font-weight: 500;
 }
 
+/* Estilo personalizado para el botón "Hoy" del DatePicker en modo oscuro */
+.dark .ant-picker-now-btn {
+    background-color: #2a2e33 !important;
+    color: white !important;
+    border: 1px solid #515457 !important;
+    border-radius: 4px;
+    padding: 4px 12px;
+    transition: background-color 0.2s ease-in-out;
+}
+
+/* Hover opcional */
+.dark .ant-picker-now-btn:hover {
+    background-color: #393e44 !important;
+    color: #fff !important;
+}
+
 /* ===== Tabla Ant Design en modo oscuro  ===== */
 
 .dark .ant-table,
@@ -176,7 +192,7 @@ body {
 .dark .ant-table-tbody>tr>td {
     background-color: #2a2e33 !important;
     color: white !important;
-    border-color: #FFFFFF !important; /* CAMBIO: de #FED36A a blanco */
+    border-color: #FFFFFF !important;
 }
 
 /* Borde externo de la tabla */
@@ -249,12 +265,14 @@ body {
 /* ================= DatePicker DESHABILITADO en modo oscuro ================= */
 
 .dark .ant-picker-disabled {
-    background-color: #e2e4e6 !important;  /* gris claro */
-    color: #1A1A1A !important;             /* texto negro */
+    background-color: #e2e4e6 !important;
+    /* gris claro */
+    color: #1A1A1A !important;
+    /* texto negro */
 }
 
 /* Placeholder dentro del input */
-.dark .ant-picker-disabled .ant-picker-input > input::placeholder {
+.dark .ant-picker-disabled .ant-picker-input>input::placeholder {
     color: #1A1A1A !important;
 }
 
@@ -267,17 +285,22 @@ body {
 
 /* Estilo base en modo claro */
 .ant-table-row-expand-icon {
-    background-color: #FFFFFF !important; /* fondo blanco */
-    color: #1A1A1A !important;            /* icono negro */
+    background-color: #FFFFFF !important;
+    /* fondo blanco */
+    color: #1A1A1A !important;
+    /* icono negro */
     border-radius: 4px;
-    border: 1px solid #d4d4d8; /* borde gris claro */
+    border: 1px solid #d4d4d8;
+    /* borde gris claro */
 }
 
 /* Estilo en modo oscuro */
 .dark .ant-table-row-expand-icon {
-    background-color: #FFFFFF !important; /* fondo blanco también */
-    color: #1A1A1A !important;            /* icono negro */
+    background-color: #FFFFFF !important;
+    /* fondo blanco también */
+    color: #1A1A1A !important;
+    /* icono negro */
     border-radius: 4px;
-    border: 1px solid #FFFFFF !important; /* borde blanco */
+    border: 1px solid #FFFFFF !important;
+    /* borde blanco */
 }
-
