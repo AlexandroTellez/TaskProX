@@ -149,7 +149,7 @@ function Calendario() {
                     </Title>
 
                     {getStartTasksForDate(selectedDate).length === 0 && getTasksForDate(selectedDate).length === 0 ? (
-                        <Empty description={<span className="text-neutral-700 dark:text-white">No hay tareas para este día</span>} />
+                        <Empty description={<span className="text-neutral-700 dark:text-white">¡Todo despejado por hoy! Sin tareas pendientes.</span>} />
                     ) : (
                         <div className="flex flex-col sm:flex-row sm:gap-8 mt-6">
                             {/* Tareas con fecha de inicio */}

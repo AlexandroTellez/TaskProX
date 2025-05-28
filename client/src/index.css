@@ -362,3 +362,11 @@ body {
 .dark .ant-upload .ant-btn[disabled] span {
     color: #d1d5db !important;
 }
+
+/* ================= Ant Design: Estilo personalizado para mensaje "No data" ================= */
+
+/* Modo oscuro: color blanco para el texto "No data" */
+.dark .ant-empty-description {
+    color: white !important;
+}
+
