@@ -8,15 +8,12 @@ import dayjs from 'dayjs';
  * - Evita desfase por conversión a Date o UTC innecesariamente.
  */
 const DatePickers = ({ startDate, deadline, noDeadline, onChange, setNoDeadline }) => {
-    // Maneja el cambio de fecha - usando la misma lógica que TaskFilters
     const handleDateChange = (field, date) => {
-        // Usar la misma lógica que en TaskFilters
         const processedDate = date ? dayjs(date) : null;
         console.log(`Fecha procesada para ${field}:`, processedDate?.format("DD/MM/YYYY") || 'nula');
         onChange(field, processedDate);
     };
 
-    // Función para procesar valores de fecha entrantes
     const processDateValue = (dateValue) => {
         if (!dateValue) return null;
         if (dayjs.isDayjs(dateValue)) return dateValue;
@@ -27,10 +24,10 @@ const DatePickers = ({ startDate, deadline, noDeadline, onChange, setNoDeadline 
         <div className="space-y-2">
             <h2 className="text-xl font-semibold">Fechas</h2>
             <div className="flex flex-col gap-2">
-                <div className="flex gap-4">
+                <div className="flex flex-col sm:flex-row gap-4">
                     {/* Fecha de inicio */}
                     <DatePicker
-                        style={{ width: '100%' }}
+                        className="w-full sm:w-[290px] sm:min-w-[200px]"
                         placeholder="Fecha de inicio"
                         value={processDateValue(startDate)}
                         onChange={(date) => handleDateChange('startDate', date)}
@@ -41,7 +38,7 @@ const DatePickers = ({ startDate, deadline, noDeadline, onChange, setNoDeadline 
 
                     {/* Fecha límite */}
                     <DatePicker
-                        style={{ width: '100%' }}
+                        className="w-full sm:w-[290px] sm:min-w-[200px]"
                         placeholder="Fecha límite"
                         value={noDeadline ? null : processDateValue(deadline)}
                         onChange={(date) => handleDateChange('deadline', date)}
@@ -50,11 +47,9 @@ const DatePickers = ({ startDate, deadline, noDeadline, onChange, setNoDeadline 
                         locale={esES}
                         allowClear
                     />
-                </div>
-
-                {/* Checkbox para indicar que no hay fecha límite */}
-                <div className="flex justify-end">
+                    {/* Checkbox para indicar que no hay fecha límite */}
                     <Checkbox
+                        className="self-center sm:self-center font-normal"
                         checked={noDeadline}
                         onChange={(e) => {
                             const checked = e.target.checked;
@@ -65,6 +60,7 @@ const DatePickers = ({ startDate, deadline, noDeadline, onChange, setNoDeadline 
                         Sin fecha límite.
                     </Checkbox>
                 </div>
+
             </div>
         </div>
     );
