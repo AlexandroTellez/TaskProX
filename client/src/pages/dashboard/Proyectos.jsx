@@ -230,7 +230,7 @@ const Proyectos = () => {
                         <Empty
                             description={
                                 <span className="text-neutral-700 dark:text-white">
-                                    Selecciona un proyecto para ver sus tareas
+                                    Selecciona un proyecto para ver sus tareas.
                                 </span>
                             }
                         />

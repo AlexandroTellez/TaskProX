@@ -10,7 +10,8 @@ import {
     ConfigProvider,
     Divider,
     Collapse,
-    Tooltip
+    Tooltip,
+    Empty
 } from "antd";
 import {
     FolderOpenOutlined,
@@ -143,6 +144,11 @@ function Dashboard() {
                         dataSource={dataSource}
                         pagination={false}
                         bordered
+                        locale={{
+                            emptyText: (
+                                <Empty description="Todo listo, pero aún no has creado ningún proyecto." />
+                            ),
+                        }}
                     />
                 </div>
             </div>
