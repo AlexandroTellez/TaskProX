@@ -71,13 +71,13 @@ body {
 .dark .ant-picker-calendar,
 .dark .ant-picker-calendar-full,
 .dark .ant-picker-panel {
-    background-color: #2a2e33 !important;
+    background-color: #1f1f1f !important;
     color: white !important;
 }
 
 /* Celdas de días */
 .dark .ant-picker-cell {
-    background-color: #2a2e33 !important;
+    background-color: #1f1f1f !important;
     color: white !important;
 }
 
@@ -168,7 +168,7 @@ body {
 
 /* Estilo personalizado para el botón "Hoy" del DatePicker en modo oscuro */
 .dark .ant-picker-now-btn {
-    background-color: #2a2e33 !important;
+    background-color: #1f1f1f !important;
     color: white !important;
     border: 1px solid #515457 !important;
     border-radius: 4px;
@@ -190,7 +190,7 @@ body {
 .dark .ant-table-cell,
 .dark .ant-table-thead>tr>th,
 .dark .ant-table-tbody>tr>td {
-    background-color: #2a2e33 !important;
+    background-color: #1f1f1f !important;
     color: white !important;
     border-color: #FFFFFF !important;
 }
@@ -237,7 +237,7 @@ body {
 }
 
 .dark .ant-checkbox-inner {
-    background-color: #2a2e33 !important;
+    background-color: #1f1f1f !important;
     /* Fondo oscuro base */
     border-color: #a1a1aa !important;
     /* Gris medio borde */
@@ -252,7 +252,7 @@ body {
 
 /* Check negro (✔) */
 .ant-checkbox-checked .ant-checkbox-inner::after {
-    border-color: #1A1A1A !important;
+    border-color: #1f1f1f !important;
     /* ✔ en negro para contraste */
 }
 
@@ -278,7 +278,7 @@ body {
 
 /* Icono de calendario (si está presente) */
 .dark .ant-picker-disabled .ant-picker-suffix {
-    color: #1A1A1A !important;
+    color: #1f1f1f !important;
 }
 
 /* ================= TABLA DE TAREAS EN PROYECTOS- Expansión de descripción (ícono + / -) ================= */
@@ -298,7 +298,7 @@ body {
 .dark .ant-table-row-expand-icon {
     background-color: #FFFFFF !important;
     /* fondo blanco también */
-    color: #1A1A1A !important;
+    color: #1f1f1f !important;
     /* icono negro */
     border-radius: 4px;
     border: 1px solid #FFFFFF !important;
@@ -309,7 +309,7 @@ body {
 
 /* Estilo para el texto de los archivos subidos */
 .ant-upload-list-item-name {
-    color: #1A1A1A;
+    color: #1f1f1f;
     /* Modo claro */
 }
 
@@ -321,7 +321,7 @@ body {
 /* Icono de eliminar en lista de archivos (modo claro) */
 .ant-upload-list-item-card-actions .anticon-delete,
 .ant-upload-list-item .anticon-delete {
-    color: #1A1A1A;
+    color: #1f1f1f;
 }
 
 /* Icono de eliminar en modo oscuro */
@@ -332,7 +332,7 @@ body {
 
 /* Icono de archivo (clip) en modo claro */
 .ant-upload-list-item .anticon-paper-clip {
-    color: #1A1A1A;
+    color: #1f1f1f;
 }
 
 /* Icono de archivo (clip) en modo oscuro */
@@ -344,7 +344,7 @@ body {
 
 /* Botón deshabilitado completo dentro de ant-upload */
 .dark .ant-upload .ant-btn[disabled] {
-    background-color: #2a2e33 !important;
+    background-color: #1f1f1f !important;
     /* gris oscuro */
     border-color: #4b5563 !important;
     /* gris medio */

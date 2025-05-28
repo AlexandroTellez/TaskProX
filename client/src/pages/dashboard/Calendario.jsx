@@ -71,6 +71,7 @@ function Calendario() {
         const startTasks = getStartTasksForDate(date);
 
         return (
+
             <div className="flex flex-row items-center justify-center gap-1 overflow-hidden max-w-full">
                 {startTasks.length > 0 && (
                     <div className="rounded-full w-4 h-4 flex items-center justify-center text-[10px] font-bold text-white bg-blue-500">
@@ -88,7 +89,8 @@ function Calendario() {
 
     return (
         <ConfigProvider locale={esES}>
-            <div className="p-4 sm:p-6 bg-white text-black dark:bg-[#1A1A1A] dark:text-white rounded-lg shadow-md mx-auto w-full">
+            <div className="w-full bg-gray-100 dark:bg-[#2a2e33] text-black dark:text-white rounded-lg space-y-6 p-4 overflow-x-auto overflow-y-visible min-h-[400px]">
+
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                     <Title level={3} className="text-black dark:text-white m-0">
@@ -101,7 +103,15 @@ function Calendario() {
                         size="middle"
                         icon={<FieldTimeOutlined />}
                         onClick={handleToday}
-                        className="font-bold border-none rounded-md bg-[#FED36A] hover:bg-[#fcd670] text-black"
+                        style={{
+                            background: '#FFFFFF',
+                            borderColor: '#3B82F6',
+                            color: '#3B82F6',
+                            fontWeight: 'bold',
+                            display: 'flex',
+                            alignItems: 'center',
+                            borderRadius: '6px',
+                        }}
                     >
                         Hoy
                     </Button>
@@ -109,7 +119,7 @@ function Calendario() {
 
                 {/* Calendario */}
                 <Calendar
-                    className="w-full bg-white dark:bg-[#2a2e33] border dark:border-[#FFFFFF] text-black dark:text-white rounded-md shadow-sm"
+                    className="w-full bg-white dark:bg-[#1f1f1f] border dark:border-[#FFFFFF] text-black dark:text-white rounded-md shadow-sm"
                     fullscreen={false}
                     value={selectedDate}
                     onSelect={handleSelect}
@@ -150,7 +160,7 @@ function Calendario() {
                                 <div className="border-t dark:border-white border-black my-4 opacity-20" />
                                 <ul className="space-y-4">
                                     {getStartTasksForDate(selectedDate).map((task) => (
-                                        <li key={task._id} className="border dark:border-[#FFFFFF] bg-white dark:bg-[#2a2e33] text-black dark:text-white p-4 rounded-md shadow-sm">
+                                        <li key={task._id} className="border dark:border-[#FFFFFF] bg-white dark:bg-[#1f1f1f] text-black dark:text-white p-4 rounded-md shadow-sm">
                                             <p className="text-lg font-bold break-words whitespace-normal">{task.title}</p>
                                             <div className="text-sm mt-2 space-y-1">
                                                 <Collapse ghost className="mt-2">
@@ -174,7 +184,15 @@ function Calendario() {
                                                         const url = task.projectId ? `/proyectos?projectId=${task.projectId}` : '/proyectos';
                                                         window.open(url, '_blank');
                                                     }}
-                                                    className="font-bold bg-[#FED36A] hover:bg-[#fcd670] text-black border-none rounded-md"
+                                                    style={{
+                                                        background: '#FFFFFF',
+                                                        borderColor: '#FED36A',
+                                                        color: '#1A1A1A',
+                                                        fontWeight: 'bold',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        borderRadius: '6px',
+                                                    }}
                                                 >
                                                     Ver tarea
                                                 </Button>
@@ -192,7 +210,7 @@ function Calendario() {
                                 <div className="border-t dark:border-white border-black my-4 opacity-20" />
                                 <ul className="space-y-4">
                                     {getTasksForDate(selectedDate).map((task) => (
-                                        <li key={task._id} className="border dark:border-[#FFFFFF] bg-white dark:bg-[#2a2e33] text-black dark:text-white p-4 rounded-md shadow-sm">
+                                        <li key={task._id} className="border dark:border-[#FFFFFF] bg-white dark:bg-[#1f1f1f] text-black dark:text-white p-4 rounded-md shadow-sm">
                                             <p className="text-lg font-bold break-words whitespace-normal">{task.title}</p>
                                             <div className="text-sm mt-2 space-y-1">
                                                 <Collapse ghost className="mt-2">
@@ -216,7 +234,15 @@ function Calendario() {
                                                         const url = task.projectId ? `/proyectos?projectId=${task.projectId}` : '/proyectos';
                                                         window.open(url, '_blank');
                                                     }}
-                                                    className="font-bold bg-[#FED36A] hover:bg-[#fcd670] text-black border-none rounded-md"
+                                                    style={{
+                                                        background: '#FFFFFF',
+                                                        borderColor: '#FED36A',
+                                                        color: '#1A1A1A',
+                                                        fontWeight: 'bold',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        borderRadius: '6px',
+                                                    }}
                                                 >
                                                     Ver tarea
                                                 </Button>

@@ -1,4 +1,5 @@
-import { Button, Popconfirm, Space } from 'antd';
+// client/src/components/task/list/TaskActions.jsx
+import { Button, Popconfirm } from 'antd';
 import { EditOutlined, DeleteOutlined, CopyOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { getPermission } from './utils.jsx';
@@ -6,59 +7,72 @@ import { getPermission } from './utils.jsx';
 const TaskActions = ({ task, userEmail, projectId, onDuplicate, onDelete }) => {
     const navigate = useNavigate();
     const permission = getPermission(task, userEmail);
+    const taskId = task.id || task._id;
 
     return (
-        <div className='= dark:bg-[#2a2e33]'>
+        <div className="flex items-center justify-center gap-2 mt-3">
             {(permission === 'write' || permission === 'admin') && (
                 <Button
                     icon={<EditOutlined />}
-                    onClick={() => navigate(`/tasks/${task.id}/edit?projectId=${projectId}`)}
+                    onClick={() => navigate(`/tasks/${taskId}/edit?projectId=${projectId}`)}
                     style={{
-                        backgroundColor: '#FED36A',
+                        background: '#FFFFFF',
                         borderColor: '#FED36A',
                         color: '#1A1A1A',
                         fontWeight: 'bold',
+                        display: 'flex',
+                        alignItems: 'center',
+                        borderRadius: '6px',
                     }}
                 >
                     Editar
                 </Button>
-            )}
+            )
+            }
 
-            {['read', 'write', 'admin'].includes(permission) && (
-                <Button
-                    onClick={() => onDuplicate(task)}
-                    icon={<CopyOutlined />}
-                    style={{
-                        borderColor: '#FED36A',
-                        color: '#1A1A1A',
-                        fontWeight: 'bold',
-                    }}
-                >
-                    Duplicar
-                </Button>
-            )}
-
-            {permission === 'admin' && (
-                <Popconfirm
-                    title="¿Estás seguro de borrar esta tarea?"
-                    onConfirm={() => onDelete(task.id)}
-                    okText="Sí"
-                    cancelText="No"
-                >
+            {
+                ['read', 'write', 'admin'].includes(permission) && (
                     <Button
-                        danger
-                        icon={<DeleteOutlined />}
+                        onClick={() => onDuplicate(task)}
+                        icon={<CopyOutlined />}
                         style={{
-                            borderColor: '#ff4d4f',
-                            color: '#ff4d4f',
+                            background: '#FFFFFF',
+                            borderColor: '#6D28D9',
+                            color: '#6D28D9',
                             fontWeight: 'bold',
+                            display: 'flex',
+                            alignItems: 'center',
+                            borderRadius: '6px',
                         }}
                     >
-                        Borrar
+                        Duplicar
                     </Button>
-                </Popconfirm>
-            )}
-        </div>
+                )
+            }
+
+            {
+                permission === 'admin' && (
+                    <Popconfirm
+                        title="¿Estás seguro de borrar esta tarea?"
+                        onConfirm={() => onDelete(taskId)}
+                        okText="Sí"
+                        cancelText="No"
+                    >
+                        <Button
+                            danger
+                            icon={<DeleteOutlined />}
+                            style={{
+                                borderColor: '#ff4d4f',
+                                color: '#ff4d4f',
+                                fontWeight: 'bold',
+                            }}
+                        >
+                            Borrar
+                        </Button>
+                    </Popconfirm>
+                )
+            }
+        </div >
     );
 };
 

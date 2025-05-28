@@ -104,10 +104,13 @@ function Dashboard() {
                     icon={<FolderOpenOutlined />}
                     onClick={() => navigate(`/proyectos?projectId=${record.id}`)}
                     style={{
-                        backgroundColor: '#FED36A',
+                        background: '#FFFFFF',
                         borderColor: '#FED36A',
                         color: '#1A1A1A',
                         fontWeight: 'bold',
+                        display: 'flex',
+                        alignItems: 'center',
+                        borderRadius: '6px',
                     }}
                 >
                     Ver Proyecto
@@ -129,7 +132,7 @@ function Dashboard() {
     const handleToday = () => setSelectedDate(dayjs());
 
     return (
-        <div className="w-full bg-white text-black dark:bg-[#1A1A1A] dark:text-white ">
+        <div className="w-full bg-gray-100 dark:bg-[#2a2e33] text-black dark:text-white rounded-lg space-y-6 p-4 overflow-x-auto overflow-y-visible min-h-[400px]">
             <Title level={3} className="dark:text-white">MIS PROYECTOS</Title>
             <p className="text-sm text-neutral-600 dark:text-[#FED36A] font-medium mb-4">RESUMEN - PROYECTOS</p>
 
@@ -169,7 +172,15 @@ function Dashboard() {
                                     size="small"
                                     icon={<FolderOpenOutlined />}
                                     onClick={() => navigate(`/proyectos?projectId=${project._id}`)}
-                                    className="font-bold bg-[#FED36A] hover:bg-[#fcd670] text-black border-none rounded-md"
+                                    style={{
+                                        background: '#FFFFFF',
+                                        borderColor: '#FED36A',
+                                        color: '#1A1A1A',
+                                        fontWeight: 'bold',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        borderRadius: '6px',
+                                    }}
                                 >
                                     Ver Proyecto
                                 </Button>
@@ -193,10 +204,12 @@ function Dashboard() {
                         icon={<FieldTimeOutlined />}
                         onClick={handleToday}
                         style={{
-                            backgroundColor: '#FED36A',
-                            color: '#1A1A1A',
+                            background: '#FFFFFF',
+                            borderColor: '#3B82F6',
+                            color: '#3B82F6',
                             fontWeight: 'bold',
-                            border: 'none',
+                            display: 'flex',
+                            alignItems: 'center',
                             borderRadius: '6px',
                         }}
                     >
@@ -207,10 +220,12 @@ function Dashboard() {
                         icon={<CalendarOutlined />}
                         onClick={() => navigate('/calendario')}
                         style={{
-                            backgroundColor: '#FFFFFF',
+                            background: '#FFFFFF',
                             borderColor: '#FED36A',
                             color: '#1A1A1A',
                             fontWeight: 'bold',
+                            display: 'flex',
+                            alignItems: 'center',
                             borderRadius: '6px',
                         }}
                     >
@@ -270,7 +285,7 @@ function Dashboard() {
                         {selectedDayTasks.map((task) => (
                             <li
                                 key={task._id}
-                                className="border dark:border-white bg-white dark:bg-[#2a2e33] dark:text-white text-black p-4 rounded-md shadow"
+                                className="border dark:border-white bg-white dark:bg-[#1f1f1f] dark:text-white text-black p-4 rounded-md shadow"
                             >
                                 <p className="text-lg font-semibold">{task.title}</p>
 
@@ -301,10 +316,12 @@ function Dashboard() {
                                             }
                                         }}
                                         style={{
-                                            backgroundColor: '#FED36A',
+                                            background: '#FFFFFF',
+                                            borderColor: '#FED36A',
                                             color: '#1A1A1A',
                                             fontWeight: 'bold',
-                                            border: 'none',
+                                            display: 'flex',
+                                            alignItems: 'center',
                                             borderRadius: '6px',
                                         }}
                                     >
@@ -319,10 +336,12 @@ function Dashboard() {
                                             window.open(url, '_blank');
                                         }}
                                         style={{
-                                            backgroundColor: '#FED36A',
+                                            background: '#FFFFFF',
+                                            borderColor: '#FED36A',
                                             color: '#1A1A1A',
                                             fontWeight: 'bold',
-                                            border: 'none',
+                                            display: 'flex',
+                                            alignItems: 'center',
                                             borderRadius: '6px',
                                         }}
                                     >

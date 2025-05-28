@@ -5,12 +5,12 @@ from config.database import collection, project_collection
 from services.utils import normalize_status
 
 
-# ================== Obtener tarea por ID ==================
+# ================== Obtener una tarea por ID ==================
 async def get_one_task_id(id: str):
     return await collection.find_one({"_id": ObjectId(id)})
 
 
-# ================== Obtener todas las tareas según filtros ==================
+# ================== Obtener todas las tareas con filtros y permisos ==================
 async def get_all_tasks(filters: dict):
     query = {}
     user_id = filters.get("user_id")
@@ -20,6 +20,7 @@ async def get_all_tasks(filters: dict):
     project_permissions = {}
     project_ids = []
 
+    # Buscar proyectos donde el usuario es dueño o colaborador
     project_query = {
         "$or": [
             {"user_id": user_id},
@@ -38,12 +39,14 @@ async def get_all_tasks(filters: dict):
                 if col["email"] == user_email:
                     project_permissions[str(pid)] = col["permission"]
 
+    # Condiciones base: tareas propias, colaborativas o por proyectos accesibles
     base_conditions = [
         {"creator": user_email},
         {"collaborators": {"$elemMatch": {"email": user_email}}},
         {"projectId": {"$in": project_ids}},
     ]
 
+    # Filtrado por un proyecto específico (si se proporciona)
     if project_id:
         try:
             project_oid = ObjectId(project_id)
@@ -54,12 +57,14 @@ async def get_all_tasks(filters: dict):
     else:
         query["$or"] = base_conditions
 
+    # Filtros adicionales
     if filters.get("title"):
         query["title"] = {"$regex": filters["title"], "$options": "i"}
     if filters.get("creator"):
         query["creator_name"] = {"$regex": filters["creator"], "$options": "i"}
     if filters.get("status"):
         query["status"] = normalize_status(filters["status"])
+
     if filters.get("startDate"):
         try:
             start_date = datetime.fromisoformat(filters["startDate"])
@@ -69,6 +74,7 @@ async def get_all_tasks(filters: dict):
             }
         except Exception as e:
             print(f"[WARN] Error al parsear startDate: {e}")
+
     if filters.get("deadline"):
         try:
             deadline = datetime.fromisoformat(filters["deadline"])
@@ -79,12 +85,13 @@ async def get_all_tasks(filters: dict):
         except Exception as e:
             print(f"[WARN] Error al parsear deadline: {e}")
 
-    # ================== FILTRO POR RECURSO ==================
+    # Filtrado por existencia de archivos adjuntos
     if filters.get("has_recurso") == "yes":
         query["recurso"] = {"$ne": None}
     elif filters.get("has_recurso") == "no":
         query["recurso"] = None
 
+    # Recorrer y procesar las tareas encontradas
     tasks = []
     cursor = collection.find(query)
     async for document in cursor:
@@ -113,7 +120,7 @@ async def get_all_tasks(filters: dict):
     return tasks
 
 
-# ================== Crear tarea ==================
+# ================== Crear una nueva tarea ==================
 async def create_task(task: dict):
     if "projectId" in task and isinstance(task["projectId"], str):
         try:
@@ -121,13 +128,9 @@ async def create_task(task: dict):
         except:
             raise ValueError("projectId inválido")
 
-    # Normalizar o capitalizar estado
-    task["status"] = normalize_status(task.get("status", ""))
-
+    task["status"] = normalize_status(task.get("status", "pendiente"))
     task.setdefault("deadline", None)
     task.setdefault("collaborators", [])
-
-    # Asegurar que 'recurso' sea lista si no se proporciona
     task.setdefault("recurso", [])
 
     new_task = await collection.insert_one(task)
@@ -135,7 +138,7 @@ async def create_task(task: dict):
     return Task(**created_task)
 
 
-# ================== Actualizar tarea ==================
+# ================== Actualizar una tarea existente ==================
 async def update_task(id: str, data: dict):
     task_data = data.copy()
 
@@ -148,21 +151,24 @@ async def update_task(id: str, data: dict):
     if "status" in task_data:
         task_data["status"] = normalize_status(task_data["status"])
 
-    if "deadline" in task_data:
-        if isinstance(task_data["deadline"], str):
-            try:
-                task_data["deadline"] = datetime.strptime(
-                    task_data["deadline"], "%Y-%m-%d"
-                ).date()
-            except ValueError:
-                task_data["deadline"] = None
-
     await collection.update_one({"_id": ObjectId(id)}, {"$set": task_data})
     updated_task = await collection.find_one({"_id": ObjectId(id)})
     return updated_task
 
 
-# ================== Eliminar tarea ==================
+# ================== Actualizar solo el estado de una tarea ==================
+async def update_task_status(id: str, new_status: str):
+    normalized = normalize_status(new_status)
+    result = await collection.update_one(
+        {"_id": ObjectId(id)}, {"$set": {"status": normalized}}
+    )
+    if result.modified_count == 1:
+        updated = await collection.find_one({"_id": ObjectId(id)})
+        return Task(**updated)
+    return None
+
+
+# ================== Eliminar una tarea por ID ==================
 async def delete_task(id: str):
     await collection.delete_one({"_id": ObjectId(id)})
     return True

@@ -175,7 +175,7 @@ function TaskForm() {
 
     return (
         <ConfigProvider locale={esES}>
-            <div className="flex items-start justify-center min-h-screen w-full bg-white dark:bg-[#1A1A1A] px-4 text-black dark:text-white">
+            <div className="flex items-start justify-center min-h-screen w-full bg-white dark:bg-[#1f1f1f] px-4 text-black dark:text-white">
                 <div className="w-full max-w-4xl py-10">
                     <form
                         className="bg-white dark:bg-[#2a2e33] border border-gray-200 dark:border-[#FFFFFF] p-8 rounded-xl shadow-md space-y-6"

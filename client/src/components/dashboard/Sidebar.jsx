@@ -77,7 +77,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     return (
         <>
             {/* Sidebar visible en pantallas grandes */}
-            <aside className="hidden lg:flex h-screen w-64 bg-gray-50 text-black dark:bg-[#2a2e33] dark:text-white flex-col justify-between">
+            <aside className="hidden lg:flex h-screen w-64 bg-gray-100 text-black dark:bg-[#2a2e33] dark:text-white flex-col justify-between">
                 {menuContent}
             </aside>
 
@@ -91,7 +91,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                     />
 
                     {/* Menú lateral */}
-                    <div className="relative z-50 w-64 h-full bg-gray-50 text-black dark:bg-[#2a2e33] dark:text-white flex flex-col justify-between">
+                    <div className="relative z-50 w-64 h-full bg-gray-100 text-black dark:bg-[#2a2e33] dark:text-white flex flex-col justify-between">
                         {/* Botón para cerrar el menú móvil */}
                         <button
                             onClick={() => setIsOpen(false)}

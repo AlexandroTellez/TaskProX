@@ -130,10 +130,13 @@ const ProjectButton = ({
     };
 
     const yellowStyle = {
-        backgroundColor: '#FED36A',
+        background: '#FFFFFF',
         borderColor: '#FED36A',
         color: '#1A1A1A',
         fontWeight: 'bold',
+        display: 'flex',
+        alignItems: 'center',
+        borderRadius: '6px',
     };
 
     return (
@@ -149,9 +152,13 @@ const ProjectButton = ({
                     onClick={handleDuplicate}
                     icon={<CopyOutlined />}
                     style={{
-                        borderColor: '#FED36A',
-                        color: '#1A1A1A',
+                        background: '#FFFFFF',
+                        borderColor: '#6D28D9',
+                        color: '#6D28D9',
                         fontWeight: 'bold',
+                        display: 'flex',
+                        alignItems: 'center',
+                        borderRadius: '6px',
                     }}
                 >
                     Duplicar Proyecto

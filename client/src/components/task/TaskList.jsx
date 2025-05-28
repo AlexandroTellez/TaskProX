@@ -1,16 +1,16 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { message, ConfigProvider } from 'antd';
+import { ConfigProvider, message } from 'antd';
 import esES from 'antd/es/locale/es_ES';
+import { useEffect, useMemo, useState } from 'react';
 import { useMediaQuery } from 'react-responsive';
+import { useSearchParams } from 'react-router-dom';
+import { createTask, deleteTask } from '../../api/tasks';
 import dayjs from '../../utils/dayjsConfig';
 import TaskFilters from './list/TaskFilters';
-import TaskTable from './list/TaskTable';
+import TaskKanbanBoard from './list/TaskKanbanBoard'; // ✅ AÑADIDO
 import TaskMobileCard from './list/TaskMobileCard';
-import { deleteTask, createTask } from '../../api/tasks';
+import TaskTable from './list/TaskTable';
 
-
-const TaskList = ({ tasks, projectId, onTaskChanged }) => {
+const TaskList = ({ tasks, projectId, onTaskChanged, kanban = false }) => {
     const [searchParams, setSearchParams] = useSearchParams();
     const user = JSON.parse(localStorage.getItem('user'));
     const userFullName = `${user?.nombre} ${user?.apellidos}`;
@@ -38,7 +38,6 @@ const TaskList = ({ tasks, projectId, onTaskChanged }) => {
         if (filters.creator) params.creator = filters.creator;
         if (filters.status) params.status = filters.status;
         if (filters.has_recurso) params.has_recurso = filters.has_recurso;
-        // Usar formato YYYY-MM-DD consistente con TaskForm
         if (filters.startDate) params.startDate = filters.startDate.format('YYYY-MM-DD');
         if (filters.deadline) params.deadline = filters.deadline.format('YYYY-MM-DD');
         setSearchParams(params);
@@ -66,7 +65,7 @@ const TaskList = ({ tasks, projectId, onTaskChanged }) => {
                     ? task.recurso && task.recurso.length > 0
                     : filters.has_recurso === 'no'
                         ? !task.recurso || task.recurso.length === 0
-                        : true
+                        : true;
             const matchesStartDate = filters.startDate
                 ? task.startDate && task.startDate.format('YYYY-MM-DD') === filters.startDate.format('YYYY-MM-DD')
                 : true;
@@ -96,7 +95,6 @@ const TaskList = ({ tasks, projectId, onTaskChanged }) => {
 
     const handleDuplicate = async (record) => {
         try {
-            // Preparar fechas para la duplicación - usar el mismo formato que TaskForm
             const prepareDate = (date) => {
                 if (!date) return null;
                 const dayjsDate = dayjs.isDayjs(date) ? date : dayjs(date);
@@ -116,11 +114,6 @@ const TaskList = ({ tasks, projectId, onTaskChanged }) => {
                 creator_name: userFullName,
             };
 
-            console.log('Duplicando tarea con fechas:', {
-                startDate: duplicatedTask.startDate,
-                deadline: duplicatedTask.deadline
-            });
-
             await createTask(duplicatedTask);
             message.success('Tarea duplicada correctamente');
             onTaskChanged && onTaskChanged();
@@ -131,7 +124,6 @@ const TaskList = ({ tasks, projectId, onTaskChanged }) => {
     };
 
     const handleFilterChange = (field, value) => {
-        console.log(`Filtro ${field} cambiado a:`, value?.format ? value.format('YYYY-MM-DD') : value);
         setFilters((prev) => ({ ...prev, [field]: value }));
     };
 
@@ -140,11 +132,32 @@ const TaskList = ({ tasks, projectId, onTaskChanged }) => {
         setSearchParams({});
     };
 
+    const handleStatusChange = (taskId, newStatus) => {
+        const updated = parsedTasks.map((task) =>
+            task._id === taskId || task.id === taskId
+                ? { ...task, status: newStatus }
+                : task
+        );
+        // local update only – in real case should call API
+        message.success('Estado actualizado');
+        onTaskChanged && onTaskChanged();
+    };
+
     return (
         <ConfigProvider locale={esES}>
-            <div className="w-full bg-white dark:bg-[#2a2e33] text-black dark:text-white rounded-lg space-y-6 p-4">
+            <div className="w-full bg-gray-100 dark:bg-[#2a2e33] text-black dark:text-white rounded-lg space-y-6 p-4">
                 <TaskFilters filters={filters} onChange={handleFilterChange} onReset={resetFilters} />
-                {isMobile ? (
+
+                {kanban ? (
+                    <TaskKanbanBoard
+                        tasks={filteredTasks}
+                        userEmail={userEmail}
+                        onDuplicate={handleDuplicate}
+                        onDelete={handleDelete}
+                        onStatusChange={handleStatusChange}
+                        projectId={projectId}
+                    />
+                ) : isMobile ? (
                     <TaskMobileCard
                         tasks={filteredTasks}
                         userFullName={userFullName}
@@ -166,7 +179,6 @@ const TaskList = ({ tasks, projectId, onTaskChanged }) => {
             </div>
         </ConfigProvider>
     );
-
 };
 
 export default TaskList;

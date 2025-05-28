@@ -7,7 +7,7 @@ const DashboardLayout = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
     return (
-        <div className="flex h-screen w-screen bg-white text-black dark:bg-[#1A1A1A] dark:text-white overflow-hidden">
+        <div className="flex h-screen w-screen bg-white text-black dark:bg-[#1f1f1f] dark:text-white overflow-hidden">
             {/* Sidebar fijo en escritorio y flotante en móviles */}
             <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
 
