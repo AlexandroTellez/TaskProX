@@ -43,7 +43,7 @@ const Topbar = ({ setSidebarOpen }) => {
     };
 
     return (
-        <header className="flex justify-between items-center px-4 sm:px-6 lg:px-8 py-4 bg-white dark:bg-[#1A1A1A] dark:text-white">
+        <header className="flex justify-between items-center px-4 sm:px-6 lg:px-8 py-4 bg-white dark:bg-[#1f1f1f] dark:text-white">
             {/* Botón hamburguesa visible solo en pantallas pequeñas */}
             <button
                 className="lg:hidden text-black dark:text-white text-xl"
@@ -60,9 +60,9 @@ const Topbar = ({ setSidebarOpen }) => {
                     shape="circle"
                     icon={isDarkMode ? <SunFilled /> : <MoonFilled />}
                     style={{
-                        backgroundColor: isDarkMode ? '#1A1A1A' : '#FFFFFF',
-                        borderColor: isDarkMode ? '#FED36A' : '#1A1A1A',
-                        color: isDarkMode ? '#FED36A' : '#1A1A1A',
+                        backgroundColor: isDarkMode ? '#1f1f1f' : '#FFFFFF',
+                        borderColor: isDarkMode ? '#FED36A' : '#1f1f1f',
+                        color: isDarkMode ? '#FED36A' : '#1f1f1f',
                         fontWeight: 'bold',
                         borderRadius: '6px',
                     }}

@@ -40,7 +40,15 @@ const CollaboratorsSection = ({
                     </Select>
                     <Button
                         onClick={addCollaborator}
-                        style={{ backgroundColor: '#FED36A', borderColor: '#FED36A', color: '#1A1A1A', fontWeight: 'bold' }}
+                        style={{
+                            background: '#FFFFFF',
+                            borderColor: '#FED36A',
+                            color: '#1A1A1A',
+                            fontWeight: 'bold',
+                            display: 'flex',
+                            alignItems: 'center',
+                            borderRadius: '6px',
+                        }}
                     >
                         Añadir
                     </Button>

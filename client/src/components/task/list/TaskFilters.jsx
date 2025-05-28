@@ -48,7 +48,7 @@ const TaskFilters = ({ filters, onChange, onReset }) => {
     };
 
     return (
-        <div className="flex flex-wrap gap-x-6 gap-y-4 sm:items-end bg-white dark:bg-[#2a2e33]">
+        <div className="flex flex-wrap gap-x-6 gap-y-4 sm:items-end bg-gray-100 dark:bg-[#2a2e33]">
             {/* Título */}
             <div className="flex flex-col w-full sm:w-auto">
                 <label className="text-sm font-medium text-gray-700 dark:text-white mb-1">Título</label>

@@ -6,6 +6,7 @@ from fastapi import (
     UploadFile,
     File,
     Form,
+    Body,
 )
 from services.task_service import (
     get_all_tasks,
@@ -13,12 +14,14 @@ from services.task_service import (
     get_one_task_id,
     update_task,
     delete_task,
+    update_task_status,
 )
-from models.models import Task, UpdateTask
+from models.models import Task
 from routes.auth import get_current_user
 import json
 import base64
 from typing import List
+
 
 task = APIRouter()
 
@@ -192,3 +195,28 @@ async def save_task(
     if nueva_tarea:
         return nueva_tarea
     raise HTTPException(400, "Algo salió mal al crear la tarea")
+
+# ===================== NUEVA RUTA PATCH PARA ACTUALIZAR SOLO STATUS =====================
+@task.patch("/api/tasks/{id}/status", response_model=Task)
+async def patch_task_status(
+    id: str,
+    status_data: dict = Body(...),  # espera {"status": "nuevo_estado"}
+    user: dict = Depends(get_current_user),
+):
+    existing_task = await get_one_task_id(id)
+    if not existing_task:
+        raise HTTPException(404, f"Tarea con id {id} no encontrada")
+
+    permission = get_permission(existing_task, user["email"])
+    if permission not in ["write", "admin"]:
+        raise HTTPException(403, "No tienes permiso para cambiar el estado")
+
+    new_status = status_data.get("status")
+    if not new_status:
+        raise HTTPException(400, "Se requiere el nuevo estado ('status')")
+
+    updated = await update_task_status(id, new_status)
+    if updated:
+        return updated
+
+    raise HTTPException(400, "No se pudo actualizar el estado de la tarea")

@@ -7,10 +7,13 @@ const FormActions = ({ isEditing, onCancel, onDelete }) => {
                 htmlType="submit"
                 block
                 style={{
-                    backgroundColor: '#FED36A',
+                    background: '#FFFFFF',
                     borderColor: '#FED36A',
                     color: '#1A1A1A',
-                    fontWeight: 'bold'
+                    fontWeight: 'bold',
+                    display: 'flex',
+                    alignItems: 'center',
+                    borderRadius: '6px',
                 }}
             >
                 {isEditing ? 'Actualizar Tarea' : 'Crear Tarea'}
@@ -21,10 +24,13 @@ const FormActions = ({ isEditing, onCancel, onDelete }) => {
                 onClick={onCancel}
                 block
                 style={{
-                    backgroundColor: 'white',
-                    color: 'black',
-                    border: '1px solid #D1D5DB',
-                    fontWeight: 'bold'
+                    background: '#FFFFFF',
+                    borderColor: '#3B82F6',
+                    color: '#3B82F6',
+                    fontWeight: 'bold',
+                    display: 'flex',
+                    alignItems: 'center',
+                    borderRadius: '6px',
                 }}
             >
                 Cancelar
@@ -42,9 +48,10 @@ const FormActions = ({ isEditing, onCancel, onDelete }) => {
                         block
                         className="mt-6 sm:mt-0"
                         style={{
+                            backgroundColor: '#FFFFFF',
+                            borderColor: '#ff4d4f',
+                            color: '#ff4d4f',
                             fontWeight: 'bold',
-                            backgroundColor: 'transparent',
-                            borderColor: '#ff4d4f'
                         }}
                     >
                         Borrar Tarea

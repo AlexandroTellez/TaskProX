@@ -2,7 +2,7 @@ import ProfileForm from "../../components/auth/account/ProfileForm";
 
 const Cuenta = () => {
     return (
-        <div className="w-full h-full p-4 sm:p-6 lg:p-8 bg-[#ffffff] dark:bg-[#1A1A1A] dark:text-white">
+        <div className="w-full bg-[#f5f5f6] dark:bg-[#2a2e33] text-black dark:text-white rounded-lg space-y-6 p-4 overflow-x-auto overflow-y-visible min-h-[400px]">
             <ProfileForm />
         </div>
     );
