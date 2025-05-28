@@ -1,6 +1,6 @@
 import { Select, Input } from 'antd';
 import { useState, useEffect } from 'react';
-import { getStatusTag } from '../list/utils'; // Importamos la función para mostrar colores
+import { getStatusTag } from '../list/utils';
 
 const { Option } = Select;
 
@@ -58,7 +58,7 @@ const StatusSelector = ({ value, onChange }) => {
                         {getStatusTag(status)}
                     </Option>
                 ))}
-                <Option value="__custom__">{getStatusTag("Otro...")}</Option>
+                <Option value="__custom__">{getStatusTag("Estado personalizado...")}</Option>
             </Select>
 
             {isCustom && (

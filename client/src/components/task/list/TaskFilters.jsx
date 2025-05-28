@@ -97,7 +97,7 @@ const TaskFilters = ({ filters, onChange, onReset }) => {
                             {getStatusTag(status)}
                         </Option>
                     ))}
-                    <Option value="__custom__">{getStatusTag("Otro...")}</Option>
+                    <Option value="__custom__">{getStatusTag("Estado personalizado...")}</Option>
                 </Select>
                 {isCustomStatus && (
                     <Input
