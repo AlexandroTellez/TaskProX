@@ -1,145 +1,197 @@
 import { useNavigate } from 'react-router-dom';
-import { deleteTask, updateTask } from '../../api/tasks';
-import { useState } from 'react';
-import { getPermission } from './list/utils'; // ✅ Añadido
+import { getPermission, getStatusTag, formatDate } from './list/utils';
+import { Button, Tag, Popconfirm } from 'antd';
+import {
+    EditOutlined,
+    CopyOutlined,
+    DeleteOutlined,
+    DownloadOutlined,
+} from '@ant-design/icons';
+import { deleteTask } from '../../api/tasks';
 
-function TaskCard({ task, onTaskChanged }) {
+// ===================== Función para descarga de archivos base64 =====================
+function descargarArchivo(file) {
+    try {
+        if (!file || !file.data || typeof file.data !== "string") return;
+
+        let base64Data = file.data;
+        const match = file.data.match(/^data:(.*);base64,(.*)$/);
+        if (match) base64Data = match[2];
+
+        const byteCharacters = atob(base64Data.trim());
+        const byteNumbers = Array.from(byteCharacters).map(c => c.charCodeAt(0));
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: file.type || 'application/octet-stream' });
+
+        const link = document.createElement('a');
+        link.href = window.URL.createObjectURL(blob);
+        link.download = file.name || 'archivo';
+        link.click();
+    } catch (err) {
+        console.error('Error al descargar archivo:', err);
+    }
+}
+
+function TaskCard({ task, onTaskChanged, onDuplicate, projectId }) {
     const navigate = useNavigate();
-    const [loading, setLoading] = useState(false);
 
     const user = JSON.parse(localStorage.getItem('user')) || {};
     const userEmail = user.email || '';
-
-    // ✅ Calcular permiso con lógica centralizada
-    const permission = getPermission(task, userEmail);
-    const canEdit = permission === 'writer' || permission === 'admin';
-    const canDelete = permission === 'admin';
-
-    // ============================
-    // Marcar tarea como completada
-    // ============================
-    const handleToggleCompleted = async (e) => {
-        e.stopPropagation();
-        try {
-            setLoading(true);
-            const taskId = task._id || task.id;
-            const res = await updateTask(taskId, { completed: !task.completed });
-            if (res.status === 200 && onTaskChanged) {
-                onTaskChanged();
-            }
-        } catch (err) {
-            console.error('Error al actualizar tarea:', err);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    // ============================
-    // Eliminar tarea con confirmación
-    // ============================
-    const handleDelete = async (e) => {
-        e.stopPropagation();
-        if (window.confirm('¿Estás seguro de eliminar esta tarea?')) {
-            try {
-                const taskId = task._id || task.id;
-                await deleteTask(taskId);
-                if (onTaskChanged) onTaskChanged();
-            } catch (err) {
-                console.error('Error al eliminar tarea:', err);
-            }
-        }
-    };
+    const permission =
+        getPermission(task, userEmail) ||
+        task.effective_permission ||
+        task.permission ||
+        task.project_permission ||
+        null;
 
     const taskId = task._id || task.id;
 
-    return (
-        <div
-            className="flex flex-col p-6 rounded-xl shadow-md border border-neutral-200 bg-white text-black transition-all duration-300 hover:scale-[1.02] cursor-pointer"
-            onClick={() => navigate(`/tasks/${taskId}`)}
-        >
-            {/* ========== Encabezado ========== */}
-            <div className="flex justify-between items-start mb-3">
-                <div>
-                    <h2 className="font-bold text-xl break-words whitespace-normal">
-                        {task.title}
-                    </h2>
-                    {task.creator_name && (
-                        <p className="text-sm text-neutral-500">
-                            Creado por: {task.creator_name}
-                        </p>
-                    )}
-                </div>
+    // ===================== Eliminar tarea =====================
+    const handleDelete = async () => {
+        try {
+            await deleteTask(taskId);
+            if (onTaskChanged) onTaskChanged();
+        } catch (err) {
+            console.error('Error al eliminar tarea:', err);
+        }
+    };
 
-                {/* Botón de completar */}
-                {canEdit && (
-                    <button
-                        onClick={handleToggleCompleted}
-                        title="Marcar como completado"
-                        aria-label="Marcar como completado"
-                    >
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            strokeWidth={1.5}
-                            stroke="currentColor"
-                            className={`w-6 h-6 ${task.completed ? 'text-green-500' : 'text-neutral-400'}`}
-                        >
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                        </svg>
-                    </button>
+    return (
+        <div className="border dark:border-white p-4 rounded-md shadow bg-white text-black dark:bg-[#1f1f1f] dark:text-white 
+                        max-w-screen-sm md:max-w-md lg:max-w-lg mx-auto">
+            <p className="font-bold text-lg mb-2">{task.title}</p>
+
+            <div className="space-y-1">
+                <p className="text-sm">
+                    <strong>Creador:</strong> {task.creator_name || 'Desconocido'}
+                </p>
+
+                <p className="text-sm">
+                    <strong>Colaboradores:</strong>{' '}
+                    {task.collaborators?.length > 0
+                        ? task.collaborators.map((c, i) => (
+                            <Tag
+                                key={i}
+                                color={
+                                    c.permission === 'admin'
+                                        ? 'red'
+                                        : c.permission === 'write'
+                                            ? 'blue'
+                                            : 'default'
+                                }
+                            >
+                                {c.email} ({c.permission})
+                            </Tag>
+                        ))
+                        : 'Ninguno'}
+                </p>
+
+                <p className="text-sm">
+                    <strong>Fecha de inicio:</strong> {formatDate(task.startDate)}
+                </p>
+                <p className="text-sm">
+                    <strong>Fecha límite:</strong> {formatDate(task.deadline)}
+                </p>
+                <p className="text-sm">
+                    <strong>Estado:</strong> {getStatusTag(task.status)}
+                </p>
+
+                {task.recurso?.length > 0 && (
+                    <div className="text-sm">
+                        <strong>Archivos adjuntos:</strong>
+                        <ul className="list-disc list-inside mt-1 space-y-1">
+                            {task.recurso.map((file, index) => (
+                                <li key={index}>
+                                    <Button
+                                        type="link"
+                                        icon={<DownloadOutlined />}
+                                        onClick={() => descargarArchivo(file)}
+                                        className="px-0 text-blue-500 dark:text-blue-300 !whitespace-normal !break-words !text-left !p-0 max-w-full"
+                                    >
+                                        {file.name}
+                                    </Button>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
+
+                {task.description && (
+                    <details className="mb-3">
+                        <summary className="cursor-pointer text-sm font-bold">
+                            📄 Haz clic para ver la descripción
+                        </summary>
+                        <div
+                            className="prose prose-sm max-w-none text-black dark:text-white dark:prose-invert mt-2"
+                            dangerouslySetInnerHTML={{ __html: task.description }}
+                        />
+                    </details>
                 )}
             </div>
 
-            {/* ========== Descripción ========== */}
             <div
-                className="text-neutral-700 mb-4 prose max-w-none dark:bg-[#2a2e33]"
-                dangerouslySetInnerHTML={{ __html: task.description }}
-            />
+                className="flex flex-wrap gap-2 mt-3"
+                onClick={(e) => e.stopPropagation()}
+            >
+                {(permission === 'write' || permission === 'admin') && (
+                    <Button
+                        icon={<EditOutlined />}
+                        onClick={() =>
+                            navigate(`/tasks/${taskId}/edit?projectId=${projectId}`)
+                        }
+                        style={{
+                            background: '#FFFFFF',
+                            borderColor: '#FED36A',
+                            color: '#1A1A1A',
+                            fontWeight: 'bold',
+                            display: 'flex',
+                            alignItems: 'center',
+                            borderRadius: '6px',
+                        }}
+                    >
+                        Editar
+                    </Button>
+                )}
 
-            {/* ========== Archivos adjuntos ========== */}
-            {task.recurso && task.recurso.length > 0 && (
-                <div className="mb-4">
-                    <h3 className="font-semibold text-sm text-neutral-800 mb-1">Archivos adjuntos:</h3>
-                    <ul className="list-disc list-inside text-blue-600 text-sm space-y-1">
-                        {task.recurso.map((file, index) => (
-                            <li key={index}>
-                                <a
-                                    href={file.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="underline break-words"
-                                >
-                                    {file.name}
-                                </a>
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-            )}
+                {['read', 'write', 'admin'].includes(permission) && (
+                    <Button
+                        onClick={() => onDuplicate(task)}
+                        icon={<CopyOutlined />}
+                        style={{
+                            background: '#FFFFFF',
+                            borderColor: '#6D28D9',
+                            color: '#6D28D9',
+                            fontWeight: 'bold',
+                            display: 'flex',
+                            alignItems: 'center',
+                            borderRadius: '6px',
+                        }}
+                    >
+                        Duplicar
+                    </Button>
+                )}
 
-            {/* ========== Acciones ========== */}
-            {(canEdit || canDelete) && (
-                <div className="flex gap-2 flex-wrap mt-auto" onClick={(e) => e.stopPropagation()}>
-                    {canEdit && (
-                        <button
-                            className="px-4 py-2 rounded-md text-sm font-semibold bg-yellow-400 text-black hover:bg-yellow-500"
-                            onClick={() => navigate(`/tasks/${taskId}/edit`)}
+                {permission === 'admin' && (
+                    <Popconfirm
+                        title="¿Estás seguro de borrar esta tarea?"
+                        onConfirm={handleDelete}
+                        okText="Sí"
+                        cancelText="No"
+                    >
+                        <Button
+                            danger
+                            icon={<DeleteOutlined />}
+                            style={{
+                                borderColor: '#ff4d4f',
+                                color: '#ff4d4f',
+                                fontWeight: 'bold',
+                            }}
                         >
-                            Editar
-                        </button>
-                    )}
-                    {canDelete && (
-                        <button
-                            className="px-4 py-2 rounded-md text-sm font-semibold bg-red-500 text-white hover:bg-red-600"
-                            onClick={handleDelete}
-                            disabled={loading}
-                        >
-                            {loading ? 'Eliminando...' : 'Borrar'}
-                        </button>
-                    )}
-                </div>
-            )}
+                            Borrar
+                        </Button>
+                    </Popconfirm>
+                )}
+            </div>
         </div>
     );
 }

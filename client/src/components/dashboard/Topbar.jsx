@@ -43,7 +43,7 @@ const Topbar = ({ setSidebarOpen }) => {
     };
 
     return (
-        <header className="flex justify-between items-center px-4 sm:px-6 lg:px-8 py-4 bg-white dark:bg-[#1f1f1f] dark:text-white">
+        <header className="flex flex-wrap justify-between items-center w-full min-w-0 px-4 sm:px-6 lg:px-8 py-4 bg-white dark:bg-[#1f1f1f] dark:text-white overflow-auto">
             {/* Botón hamburguesa visible solo en pantallas pequeñas */}
             <button
                 className="lg:hidden text-black dark:text-white text-xl"

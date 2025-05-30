@@ -35,7 +35,7 @@ const ProjectSelector = ({ projects = [], selectedProject, setSelectedProject })
     };
 
     return (
-        <div className="mb-4">
+        <div className=" mb-4">
             {/* ===================== Título selector ===================== */}
             <div className="flex items-center gap-2">
                 <Typography.Text strong className="underline text-sm text-black dark:text-white">

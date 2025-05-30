@@ -360,10 +360,17 @@ function Dashboard() {
                                         }
                                         key="1"
                                     >
-                                        <div
-                                            className="text-gray-700 dark:text-white prose prose-sm dark:prose-invert max-w-none"
-                                            dangerouslySetInnerHTML={{ __html: task.description }}
-                                        />
+                                        {task.description ? (
+                                            <div
+                                                className="text-gray-700 dark:text-white prose prose-sm dark:prose-invert max-w-none"
+                                                dangerouslySetInnerHTML={{ __html: task.description }}
+                                            />
+                                        ) : (
+                                            <p className="text-sm text-neutral-700 dark:text-white ">
+                                                No hay descripción.
+                                            </p>
+                                        )}
+
                                     </Panel>
                                 </Collapse>
 

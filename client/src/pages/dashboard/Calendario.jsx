@@ -215,7 +215,7 @@ function Calendario() {
                                         <li key={task._id} className="border dark:border-[#FFFFFF] bg-white dark:bg-[#1f1f1f] text-black dark:text-white p-4 rounded-md shadow-sm">
                                             <p className="text-lg font-bold break-words whitespace-normal">{task.title}</p>
                                             <div className="text-sm mt-2 space-y-1">
-                                                
+
                                                 <p><strong>Creador:</strong> {task.creator_name || task.creator || 'No especificado'}</p>
                                                 <p><strong>Colaboradores:</strong> {task.collaborators?.length > 0 ? task.collaborators.map(col => col.name || col.email).join(', ') : 'Ninguno'}</p>
                                                 <p><strong>Fecha Inicio:</strong> {dayjs(task.startDate).format('DD/MM/YYYY')}</p>
@@ -245,10 +245,16 @@ function Calendario() {
                                                     )}
 
                                                     <Panel header={<span className="text-sm font-bold dark:text-white">📄 Haz clic para ver la descripción</span>} key="desc-start">
-                                                        <div
-                                                            className="text-gray-700 dark:text-white prose prose-sm dark:prose-invert max-w-none"
-                                                            dangerouslySetInnerHTML={{ __html: task.description }}
-                                                        />
+                                                        {task.description ? (
+                                                            <div
+                                                                className="text-gray-700 dark:text-white prose prose-sm dark:prose-invert max-w-none"
+                                                                dangerouslySetInnerHTML={{ __html: task.description }}
+                                                            />
+                                                        ) : (
+                                                            <p className="text-sm text-neutral-700 dark:text-white ">
+                                                                No hay descripción.
+                                                            </p>
+                                                        )}
                                                     </Panel>
                                                 </Collapse>
                                             </div>
@@ -322,10 +328,16 @@ function Calendario() {
                                                     )}
 
                                                     <Panel header={<span className="text-sm font-bold dark:text-white">📄 Haz clic para ver la descripción</span>} key="desc-deadline">
-                                                        <div
-                                                            className="text-gray-700 dark:text-white prose prose-sm dark:prose-invert max-w-none"
-                                                            dangerouslySetInnerHTML={{ __html: task.description }}
-                                                        />
+                                                        {task.description ? (
+                                                            <div
+                                                                className="text-gray-700 dark:text-white prose prose-sm dark:prose-invert max-w-none"
+                                                                dangerouslySetInnerHTML={{ __html: task.description }}
+                                                            />
+                                                        ) : (
+                                                            <p className="text-sm text-neutral-700 dark:text-white ">
+                                                                No hay descripción.
+                                                            </p>
+                                                        )}
                                                     </Panel>
                                                 </Collapse>
                                             </div>

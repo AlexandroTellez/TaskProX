@@ -1,6 +1,6 @@
 import { ConfigProvider, message } from 'antd';
 import esES from 'antd/es/locale/es_ES';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useMediaQuery } from 'react-responsive';
 import { useSearchParams } from 'react-router-dom';
 import { createTask, deleteTask } from '../../api/tasks';
@@ -16,11 +16,24 @@ const TaskList = ({ tasks, projectId, onTaskChanged, kanban = false, projectPerm
     const user = JSON.parse(localStorage.getItem('user')) || {};
     const userFullName = `${user.nombre || ''} ${user.apellidos || ''}`.trim();
     const userEmail = user.email || '';
-    const isMobile = useMediaQuery({ maxWidth: 1024 });
+    const isMobile = useMediaQuery({ maxWidth: 1540 });
 
-    // =====================
-    // Estado para filtros de tareas
-    // =====================
+    // Ref para detectar overflow horizontal en tabla
+    const tableContainerRef = useRef(null);
+    const [forceMobileView, setForceMobileView] = useState(false);
+
+    useEffect(() => {
+        const checkOverflow = () => {
+            const container = tableContainerRef.current;
+            if (container) {
+                setForceMobileView(container.scrollWidth > container.clientWidth);
+            }
+        };
+        checkOverflow();
+        window.addEventListener('resize', checkOverflow);
+        return () => window.removeEventListener('resize', checkOverflow);
+    }, []);
+
     const [filters, setFilters] = useState({
         title: searchParams.get('title') || '',
         creator: searchParams.get('creator') || '',
@@ -36,9 +49,6 @@ const TaskList = ({ tasks, projectId, onTaskChanged, kanban = false, projectPerm
         })(),
     });
 
-    // =====================
-    // Actualizar la URL cuando cambian los filtros
-    // =====================
     useEffect(() => {
         const params = {};
         if (filters.title) params.title = filters.title;
@@ -50,29 +60,20 @@ const TaskList = ({ tasks, projectId, onTaskChanged, kanban = false, projectPerm
         setSearchParams(params);
     }, [filters, setSearchParams]);
 
-    // =====================
-    // Normalizar tareas: convertir fechas y calcular permisos
-    // =====================
     const parsedTasks = useMemo(() => {
         return tasks.map((task) => {
             const taskId = task._id || task.id;
-
-            // Calcular permiso con prioridad según utils.js
             const permission = getPermission(task, userEmail);
-
             return {
                 ...task,
                 id: taskId,
                 startDate: task.startDate ? dayjs(task.startDate) : null,
                 deadline: task.deadline ? dayjs(task.deadline) : null,
-                permission, // ⬅️ Campo usado por todos los componentes
+                permission,
             };
         });
     }, [tasks, userEmail]);
 
-    // =====================
-    // Filtrar tareas según los filtros aplicados
-    // =====================
     const filteredTasks = useMemo(() => {
         return parsedTasks.filter((task) => {
             const matchesTitle = filters.title
@@ -105,9 +106,6 @@ const TaskList = ({ tasks, projectId, onTaskChanged, kanban = false, projectPerm
         });
     }, [parsedTasks, filters]);
 
-    // =====================
-    // Eliminar tarea
-    // =====================
     const handleDelete = async (id) => {
         try {
             await deleteTask(id);
@@ -118,9 +116,6 @@ const TaskList = ({ tasks, projectId, onTaskChanged, kanban = false, projectPerm
         }
     };
 
-    // =====================
-    // Duplicar tarea
-    // =====================
     const handleDuplicate = async (record) => {
         try {
             const prepareDate = (date) => {
@@ -151,24 +146,15 @@ const TaskList = ({ tasks, projectId, onTaskChanged, kanban = false, projectPerm
         }
     };
 
-    // =====================
-    // Actualizar filtros desde componente hijo
-    // =====================
     const handleFilterChange = (field, value) => {
         setFilters((prev) => ({ ...prev, [field]: value }));
     };
 
-    // =====================
-    // Resetear filtros
-    // =====================
     const resetFilters = () => {
         setFilters({ title: '', creator: '', status: '', has_recurso: '', startDate: null, deadline: null });
         setSearchParams({});
     };
 
-    // =====================
-    // Callback para cambio de estado de tarea
-    // =====================
     const handleStatusChange = (taskId, newStatus) => {
         message.success('Estado actualizado');
         onTaskChanged && onTaskChanged();
@@ -176,7 +162,7 @@ const TaskList = ({ tasks, projectId, onTaskChanged, kanban = false, projectPerm
 
     return (
         <ConfigProvider locale={esES}>
-            <div className="w-full bg-gray-100 dark:bg-[#2a2e33] text-black dark:text-white rounded-lg space-y-6 p-4">
+            <div className="min-w-0 w-full overflow-auto bg-gray-100 dark:bg-[#2a2e33] text-black dark:text-white rounded-lg space-y-6 p-4">
                 <TaskFilters filters={filters} onChange={handleFilterChange} onReset={resetFilters} />
 
                 {kanban ? (
@@ -188,7 +174,7 @@ const TaskList = ({ tasks, projectId, onTaskChanged, kanban = false, projectPerm
                         onStatusChange={handleStatusChange}
                         projectId={projectId}
                     />
-                ) : isMobile ? (
+                ) : (isMobile || forceMobileView) ? (
                     <TaskMobileCard
                         tasks={filteredTasks}
                         userFullName={userFullName}
@@ -198,14 +184,16 @@ const TaskList = ({ tasks, projectId, onTaskChanged, kanban = false, projectPerm
                         projectId={projectId}
                     />
                 ) : (
-                    <TaskTable
-                        tasks={filteredTasks}
-                        userFullName={userFullName}
-                        userEmail={userEmail}
-                        onDuplicate={handleDuplicate}
-                        onDelete={handleDelete}
-                        projectId={projectId}
-                    />
+                    <div ref={tableContainerRef}>
+                        <TaskTable
+                            tasks={filteredTasks}
+                            userFullName={userFullName}
+                            userEmail={userEmail}
+                            onDuplicate={handleDuplicate}
+                            onDelete={handleDelete}
+                            projectId={projectId}
+                        />
+                    </div>
                 )}
             </div>
         </ConfigProvider>
