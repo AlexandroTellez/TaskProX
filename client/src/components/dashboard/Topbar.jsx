@@ -53,6 +53,7 @@ const Topbar = ({ setSidebarOpen }) => {
                 <MenuOutlined />
             </button>
 
+            {/* Botón modo claro/oscuro */}
             <div className='flex sm:justify-center items-center gap-4 ml-5'>
                 <Button
                     onClick={toggleDarkMode}
@@ -69,7 +70,7 @@ const Topbar = ({ setSidebarOpen }) => {
                 />
             </div>
 
-            {/* Usuario y botón modo oscuro */}
+            {/* Usuario */}
             {usuario && (
                 <div className="flex items-center gap-4 ml-auto">
                     <div
@@ -83,13 +84,13 @@ const Topbar = ({ setSidebarOpen }) => {
                             }
                         }}
                     >
-                        <span className="font-medium text-gray-800 dark:text-white">
+                        <span className="text-lg font-semibold text-gray-800 dark:text-white">
                             {usuario.nombre}
                         </span>
                         <Avatar
                             src={usuario.avatar}
                             style={{
-                                border: '2px solid',
+                                border: '2px solid #FFFFFF',
                                 backgroundColor: '#FFFFFF',
                             }}
                         />

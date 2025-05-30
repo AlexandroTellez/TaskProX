@@ -16,10 +16,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     // Cerrar sesión y redirigir a login
     const handleLogout = () => {
         removeToken(); // Elimina el token (de localStorage o sessionStorage) y los datos del usuario
-        // NOTA: No elimina savedEmail ni rememberMe, para mantener la experiencia de "Recuérdame"
         navigate('/login');
     };
-
 
     // Contenido principal del menú (navegación y logout)
     const menuContent = (
@@ -28,35 +26,35 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 {/* Logo y nombre de la app */}
                 <Link to="/dashboard" className="flex items-center gap-2 px-6 py-4 border-b border-gray-200 dark:border-gray-700">
                     <img src={logo} alt="TaskProX Logo" className="h-8 w-8 dark:invert" />
-                    <span className="font-bold text-lg dark:text-white">TaskProX</span>
+                    <span className="font-bold text-xl dark:text-white">TaskProX</span>
                 </Link>
 
                 {/* Enlaces de navegación */}
-                <nav className="flex flex-col gap-1 mt-4">
+                <nav className="flex flex-col gap-1 mt-4 text-lg">
                     <Link
                         to="/dashboard"
-                        className="flex items-center gap-3 px-6 py-3 hover:bg-gray-200 dark:hover:bg-gray-500 dark:text-white"
+                        className="flex items-center gap-3 px-6 py-3 hover:bg-gray-200 dark:hover:bg-gray-500 dark:text-white font-medium"
                         onClick={() => setIsOpen(false)}
                     >
                         <DashboardOutlined /> Dashboard
                     </Link>
                     <Link
                         to="/proyectos"
-                        className="flex items-center gap-3 px-6 py-3 hover:bg-gray-200 dark:hover:bg-gray-500 dark:text-white"
+                        className="flex items-center gap-3 px-6 py-3 hover:bg-gray-200 dark:hover:bg-gray-500 dark:text-white font-medium"
                         onClick={() => setIsOpen(false)}
                     >
                         <FolderOpenOutlined /> Proyectos
                     </Link>
                     <Link
                         to="/calendario"
-                        className="flex items-center gap-3 px-6 py-3 hover:bg-gray-200 dark:hover:bg-gray-500 dark:text-white"
+                        className="flex items-center gap-3 px-6 py-3 hover:bg-gray-200 dark:hover:bg-gray-500 dark:text-white font-medium"
                         onClick={() => setIsOpen(false)}
                     >
                         <CalendarOutlined /> Calendario
                     </Link>
                     <Link
                         to="/cuenta"
-                        className="flex items-center gap-3 px-6 py-3 hover:bg-gray-200 dark:hover:bg-gray-500 dark:text-white"
+                        className="flex items-center gap-3 px-6 py-3 hover:bg-gray-200 dark:hover:bg-gray-500 dark:text-white font-medium"
                         onClick={() => setIsOpen(false)}
                     >
                         <UserOutlined /> Cuenta
@@ -64,10 +62,10 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 </nav>
             </div>
 
-            {/* Botón para cerrar sesión */}
+            {/* Botón para cerrar sesión*/}
             <button
                 onClick={handleLogout}
-                className="flex items-center gap-3 px-6 py-4 text-red-600 hover:bg-red-100 dark:hover:bg-red-900 dark:text-red-400 transition-colors"
+                className="flex items-center gap-3 px-6 py-4 text-red-600 hover:bg-red-100 dark:hover:bg-red-900 dark:text-red-400 transition-colors text-lg font-medium"
             >
                 <LogoutOutlined /> Cerrar sesión
             </button>
