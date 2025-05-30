@@ -1,8 +1,13 @@
-import { Button, Popconfirm } from 'antd';
+import { Button, Popconfirm } from 'antd'
 
-const FormActions = ({ isEditing, onCancel, onDelete }) => {
+/**
+ * FormActions - Componente de acciones del formulario de tarea.
+ * Incluye botones para crear/actualizar, cancelar y eliminar (solo si se edita y tiene permiso).
+ */
+const FormActions = ({ isEditing, onCancel, onDelete, canDelete }) => {
     return (
         <div className="flex flex-col sm:flex-row justify-between gap-4">
+            {/* Botón de enviar: Crear o Actualizar */}
             <Button
                 htmlType="submit"
                 block
@@ -13,12 +18,14 @@ const FormActions = ({ isEditing, onCancel, onDelete }) => {
                     fontWeight: 'bold',
                     display: 'flex',
                     alignItems: 'center',
+                    justifyContent: 'center',
                     borderRadius: '6px',
                 }}
             >
                 {isEditing ? 'Actualizar Tarea' : 'Crear Tarea'}
             </Button>
 
+            {/* Botón de cancelar */}
             <Button
                 type="default"
                 onClick={onCancel}
@@ -30,13 +37,15 @@ const FormActions = ({ isEditing, onCancel, onDelete }) => {
                     fontWeight: 'bold',
                     display: 'flex',
                     alignItems: 'center',
+                    justifyContent: 'center',
                     borderRadius: '6px',
                 }}
             >
                 Cancelar
             </Button>
 
-            {isEditing && (
+            {/* Botón de borrar solo si se está editando y tiene permiso */}
+            {isEditing && canDelete && (
                 <Popconfirm
                     title="¿Seguro que deseas eliminar esta tarea?"
                     onConfirm={onDelete}
@@ -52,6 +61,10 @@ const FormActions = ({ isEditing, onCancel, onDelete }) => {
                             borderColor: '#ff4d4f',
                             color: '#ff4d4f',
                             fontWeight: 'bold',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            borderRadius: '6px',
                         }}
                     >
                         Borrar Tarea

@@ -1,4 +1,4 @@
-import { Input, Select, Button, Tag } from 'antd';
+import { Input, Select, Button, message } from 'antd';
 import {
     EyeOutlined,
     EditOutlined,
@@ -17,10 +17,23 @@ const CollaboratorsSection = ({
     removeCollaborator,
     updatePermission
 }) => {
+    // ===================== Obtener ID único del colaborador =====================
+    const getCollaboratorId = (col) => col._id || col.id || col.email;
+
+    // ===================== Validar y añadir colaborador =====================
+    const handleAdd = () => {
+        if (!newCollaborator || collaborators.some(col => col.email === newCollaborator)) {
+            message.warning("Colaborador inválido o ya existe.");
+            return;
+        }
+        addCollaborator();
+    };
+
     return (
         <div className="space-y-2">
-            <h2 className="text-xl font-semibold">Colaboradores</h2>
+            <h2 className="text-xl font-semibold dark:text-white">Colaboradores</h2>
 
+            {/* ===================== Formulario para añadir colaborador ===================== */}
             <div className="flex flex-col gap-2">
                 <Input
                     placeholder="Correo del colaborador"
@@ -32,14 +45,16 @@ const CollaboratorsSection = ({
                         value={newPermission}
                         onChange={(val) => setNewPermission(val)}
                         className="flex-1"
-                        dropdownStyle={{ zIndex: 1300 }}
+                        styles={{
+                            popup: { root: { zIndex: 1300 } }
+                        }}
                     >
                         <Option value="read"><EyeOutlined /> Ver</Option>
                         <Option value="write"><EditOutlined /> Editar</Option>
                         <Option value="admin"><ToolOutlined /> Administrador</Option>
                     </Select>
                     <Button
-                        onClick={addCollaborator}
+                        onClick={handleAdd}
                         style={{
                             background: '#FFFFFF',
                             borderColor: '#FED36A',
@@ -55,24 +70,27 @@ const CollaboratorsSection = ({
                 </div>
             </div>
 
+            {/* ===================== Lista de colaboradores existentes ===================== */}
             {collaborators.length === 0 ? (
-                <div className="bg-white text-black px-4 py-2 rounded text-center text-sm border border-neutral-600 mt-2">
+                <div className="bg-white text-black dark:bg-[#2a2e33] dark:text-white px-4 py-2 rounded text-center text-sm border border-neutral-600 mt-2">
                     Sin colaboradores asignados
                 </div>
             ) : (
                 <ul className="mt-2 space-y-2">
-                    {collaborators.map((col, idx) => (
+                    {collaborators.map((col) => (
                         <li
-                            key={idx}
-                            className="flex flex-col sm:flex-row sm:justify-between sm:items-center bg-white text-dark p-2 rounded gap-2"
+                            key={getCollaboratorId(col)}
+                            className="flex flex-col sm:flex-row sm:justify-between sm:items-center bg-gray-100 dark:bg-white text-black p-2 rounded gap-2"
                         >
                             <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full">
                                 <span>{col.email}</span>
                                 <Select
                                     value={col.permission}
-                                    onChange={(newPerm) => updatePermission(col.email, newPerm)}
+                                    onChange={(newPerm) => updatePermission(getCollaboratorId(col), newPerm)}
                                     className="flex-1 sm:w-48"
-                                    dropdownStyle={{ zIndex: 1300 }}
+                                    styles={{
+                                        popup: { root: { zIndex: 1300 } }
+                                    }}
                                 >
                                     <Option value="read"><EyeOutlined /> Ver</Option>
                                     <Option value="write"><EditOutlined /> Editar</Option>
@@ -82,9 +100,13 @@ const CollaboratorsSection = ({
                             <Button
                                 danger
                                 size="small"
-                                onClick={() => removeCollaborator(col.email)}
+                                onClick={() => removeCollaborator(getCollaboratorId(col))}
                                 className="self-end sm:self-auto"
-                                style={{ fontWeight: 'bold' }}
+                                style={{
+                                    fontWeight: 'bold',
+                                    color: '#ff4d4f',
+                                    borderColor: '#ff4d4f',
+                                }}
                             >
                                 Eliminar
                             </Button>

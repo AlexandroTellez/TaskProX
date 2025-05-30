@@ -11,7 +11,7 @@ import {
     Divider,
     Collapse,
     Tooltip,
-    Empty
+    Empty,
 } from "antd";
 import {
     FolderOpenOutlined,
@@ -22,7 +22,7 @@ import {
     FieldTimeOutlined,
     UserOutlined,
     CheckCircleFilled,
-    CloseCircleFilled
+    CloseCircleFilled,
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import esES from "antd/es/locale/es_ES";
@@ -36,24 +36,57 @@ function Dashboard() {
     const [selectedDate, setSelectedDate] = useState(dayjs());
     const navigate = useNavigate();
 
-    useEffect(() => {
-        fetchProjects()
-            .then((res) => setProjects(res.data))
-            .catch((err) => console.error("Error al obtener proyectos:", err));
+    // Función auxiliar para obtener id o _id de proyecto
+    const getProjectId = (project) => project?._id || project?.id;
 
-        fetchTasks()
-            .then((res) => setTasks(res.data))
-            .catch((err) => console.error("Error al obtener tareas:", err));
+    // Cargar proyectos y tareas al montar el componente
+    useEffect(() => {
+        const loadDashboardData = async () => {
+            try {
+                // fetchProjects() y fetchTasks() retornan array directamente
+                const projectsData = await fetchProjects();
+                const tasksData = await fetchTasks();
+
+                setProjects(Array.isArray(projectsData) ? projectsData : []);
+                setTasks(Array.isArray(tasksData) ? tasksData : []);
+            } catch (error) {
+                // En caso de error, limpiar estados para evitar fallos visuales
+                setProjects([]);
+                setTasks([]);
+            }
+        };
+
+        loadDashboardData();
     }, []);
 
-    const dataSource = projects.map((p, index) => ({
-        key: p._id || index,
-        id: p._id || p.id,
+    // Obtener tareas para una fecha específica (fecha inicio o fecha límite)
+    const getTasksForDate = (date) => {
+        const currentTasks = Array.isArray(tasks) ? tasks : [];
+        return currentTasks.filter((task) => {
+            const startMatch =
+                task.startDate && dayjs(task.startDate).isSame(date, "day");
+            const deadlineMatch =
+                task.deadline && dayjs(task.deadline).isSame(date, "day");
+            return startMatch || deadlineMatch;
+        });
+    };
+
+    // Memo para optimizar renderizado de tareas para la fecha seleccionada
+    const selectedDayTasks = useMemo(() => getTasksForDate(selectedDate), [
+        tasks,
+        selectedDate,
+    ]);
+
+    // Preparar datos para la tabla de proyectos
+    const dataSource = (Array.isArray(projects) ? projects : []).map((p, index) => ({
+        key: getProjectId(p) || index,
+        _id: getProjectId(p),
         name: p.name,
-        description: p.description || 'No hay descripción.',
+        description: p.description || "No hay descripción.",
         collaborators: p.collaborators || [],
     }));
 
+    // Columnas para la tabla de proyectos
     const columns = [
         {
             title: (
@@ -61,8 +94,8 @@ function Dashboard() {
                     <FolderOutlined className="mr-1" /> Nombre Proyecto
                 </span>
             ),
-            dataIndex: 'name',
-            key: 'name',
+            dataIndex: "name",
+            key: "name",
         },
         {
             title: (
@@ -70,8 +103,8 @@ function Dashboard() {
                     <FileTextOutlined className="mr-1" /> Descripción
                 </span>
             ),
-            dataIndex: 'description',
-            key: 'description',
+            dataIndex: "description",
+            key: "description",
         },
         {
             title: (
@@ -79,39 +112,43 @@ function Dashboard() {
                     <UserOutlined className="mr-1" /> Colaboradores
                 </span>
             ),
-            dataIndex: 'collaborators',
-            key: 'collaborators',
+            dataIndex: "collaborators",
+            key: "collaborators",
             render: (collaborators) =>
                 collaborators.length > 0 ? (
                     <ul className="list-disc list-inside text-sm text-gray-700 dark:text-gray-300">
                         {collaborators.map((col, idx) => (
-                            <li key={idx}>
-                                <Tooltip title={`Permiso: ${col.permission}`}>
+                            <li key={col.email || idx}>
+                                <Tooltip title={`Permiso: ${col.permission || "desconocido"}`}>
                                     {col.email}
                                 </Tooltip>
                             </li>
                         ))}
                     </ul>
                 ) : (
-                    <span className="text-neutral-500 dark:text-neutral-400 italic">Sin colaboradores</span>
+                    <span className="text-neutral-500 dark:text-neutral-400 italic">
+                        Sin colaboradores
+                    </span>
                 ),
         },
         {
-            title: '',
-            key: 'ver',
+            title: "",
+            key: "ver",
             render: (_, record) => (
                 <Button
                     size="small"
                     icon={<FolderOpenOutlined />}
-                    onClick={() => navigate(`/proyectos?projectId=${record.id}`)}
+                    onClick={() =>
+                        navigate(`/proyectos?projectId=${getProjectId(record)}`)
+                    }
                     style={{
-                        background: '#FFFFFF',
-                        borderColor: '#FED36A',
-                        color: '#1A1A1A',
-                        fontWeight: 'bold',
-                        display: 'flex',
-                        alignItems: 'center',
-                        borderRadius: '6px',
+                        background: "#FFFFFF",
+                        borderColor: "#FED36A",
+                        color: "#1A1A1A",
+                        fontWeight: "bold",
+                        display: "flex",
+                        alignItems: "center",
+                        borderRadius: "6px",
                     }}
                 >
                     Ver Proyecto
@@ -120,23 +157,19 @@ function Dashboard() {
         },
     ];
 
-    const getTasksForDate = (date) => {
-        return tasks.filter(task => {
-            const startMatch = task.startDate && dayjs(task.startDate).isSame(date, 'day');
-            const deadlineMatch = task.deadline && dayjs(task.deadline).isSame(date, 'day');
-            return startMatch || deadlineMatch;
-        });
-    };
-
-    const selectedDayTasks = useMemo(() => getTasksForDate(selectedDate), [tasks, selectedDate]);
-
+    // Botón para ir al día de hoy en el calendario
     const handleToday = () => setSelectedDate(dayjs());
 
     return (
         <div className="w-full bg-gray-100 dark:bg-[#2a2e33] text-black dark:text-white rounded-lg space-y-6 p-4 overflow-x-auto overflow-y-visible min-h-[400px]">
-            <Title level={3} className="dark:text-white">MIS PROYECTOS</Title>
-            <p className="text-sm text-neutral-600 dark:text-[#FED36A] font-medium mb-4">RESUMEN - PROYECTOS</p>
+            <Title level={3} className="dark:text-white">
+                MIS PROYECTOS
+            </Title>
+            <p className="text-sm text-neutral-600 dark:text-[#FED36A] font-medium mb-4">
+                RESUMEN - PROYECTOS
+            </p>
 
+            {/* Tabla para pantallas grandes */}
             <div className="hidden sm:block">
                 <div className="rounded-md border dark:border-white overflow-hidden shadow dark:bg-[#2a2e33]">
                     <Table
@@ -153,22 +186,27 @@ function Dashboard() {
                 </div>
             </div>
 
+            {/* Lista para pantallas pequeñas */}
             <div className="block sm:hidden mt-4">
                 <ul className="flex flex-col gap-4">
-                    {projects.map((project) => (
+                    {(Array.isArray(projects) ? projects : []).map((project) => (
                         <li
-                            key={project._id}
+                            key={getProjectId(project)}
                             className="border dark:border-white bg-white dark:bg-[#2a2e33] text-black dark:text-white p-4 rounded-md shadow"
                         >
                             <p className="text-lg font-semibold">{project.name}</p>
 
                             <Collapse ghost className="mt-2">
                                 <Panel
-                                    header={<span className="text-sm font-medium dark:text-white">📄 Haz clic para ver la descripción</span>}
+                                    header={
+                                        <span className="text-sm font-medium dark:text-white">
+                                            📄 Haz clic para ver la descripción
+                                        </span>
+                                    }
                                     key="desc"
                                 >
                                     <p className="text-sm text-neutral-700 dark:text-white whitespace-pre-wrap break-words">
-                                        {project.description || 'No hay descripción.'}
+                                        {project.description || "No hay descripción."}
                                     </p>
                                 </Panel>
                             </Collapse>
@@ -177,15 +215,17 @@ function Dashboard() {
                                 <Button
                                     size="small"
                                     icon={<FolderOpenOutlined />}
-                                    onClick={() => navigate(`/proyectos?projectId=${project._id}`)}
+                                    onClick={() =>
+                                        navigate(`/proyectos?projectId=${getProjectId(project)}`)
+                                    }
                                     style={{
-                                        background: '#FFFFFF',
-                                        borderColor: '#FED36A',
-                                        color: '#1A1A1A',
-                                        fontWeight: 'bold',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        borderRadius: '6px',
+                                        background: "#FFFFFF",
+                                        borderColor: "#FED36A",
+                                        color: "#1A1A1A",
+                                        fontWeight: "bold",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        borderRadius: "6px",
                                     }}
                                 >
                                     Ver Proyecto
@@ -198,10 +238,15 @@ function Dashboard() {
 
             <Divider className="my-8" />
 
+            {/* Sección Calendario */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4 ">
                 <div className="flex flex-col">
-                    <Title level={3} className="m-0 dark:text-white">CALENDARIO</Title>
-                    <p className="text-sm text-neutral-600 dark:text-[#FED36A] font-medium mt-1">RESUMEN - CALENDARIO </p>
+                    <Title level={3} className="m-0 dark:text-white">
+                        CALENDARIO
+                    </Title>
+                    <p className="text-sm text-neutral-600 dark:text-[#FED36A] font-medium mt-1">
+                        RESUMEN - CALENDARIO{" "}
+                    </p>
                 </div>
 
                 <div className="flex flex-wrap gap-2">
@@ -210,13 +255,13 @@ function Dashboard() {
                         icon={<FieldTimeOutlined />}
                         onClick={handleToday}
                         style={{
-                            background: '#FFFFFF',
-                            borderColor: '#3B82F6',
-                            color: '#3B82F6',
-                            fontWeight: 'bold',
-                            display: 'flex',
-                            alignItems: 'center',
-                            borderRadius: '6px',
+                            background: "#FFFFFF",
+                            borderColor: "#3B82F6",
+                            color: "#3B82F6",
+                            fontWeight: "bold",
+                            display: "flex",
+                            alignItems: "center",
+                            borderRadius: "6px",
                         }}
                     >
                         Hoy
@@ -224,15 +269,15 @@ function Dashboard() {
                     <Button
                         type="primary"
                         icon={<CalendarOutlined />}
-                        onClick={() => navigate('/calendario')}
+                        onClick={() => navigate("/calendario")}
                         style={{
-                            background: '#FFFFFF',
-                            borderColor: '#FED36A',
-                            color: '#1A1A1A',
-                            fontWeight: 'bold',
-                            display: 'flex',
-                            alignItems: 'center',
-                            borderRadius: '6px',
+                            background: "#FFFFFF",
+                            borderColor: "#FED36A",
+                            color: "#1A1A1A",
+                            fontWeight: "bold",
+                            display: "flex",
+                            alignItems: "center",
+                            borderRadius: "6px",
                         }}
                     >
                         Ver Calendario
@@ -247,8 +292,13 @@ function Dashboard() {
                     value={selectedDate}
                     onSelect={(date) => setSelectedDate(date)}
                     cellRender={(date) => {
-                        const deadlineTasks = tasks.filter(task => task.deadline && dayjs(task.deadline).isSame(date, 'day'));
-                        const startTasks = tasks.filter(task => task.startDate && dayjs(task.startDate).isSame(date, 'day'));
+                        const deadlineTasks = (Array.isArray(tasks) ? tasks : []).filter(
+                            (task) =>
+                                task.deadline && dayjs(task.deadline).isSame(date, "day")
+                        );
+                        const startTasks = (Array.isArray(tasks) ? tasks : []).filter(
+                            (task) => task.startDate && dayjs(task.startDate).isSame(date, "day")
+                        );
 
                         return (
                             <div className="flex flex-row items-center justify-center gap-1 overflow-hidden max-w-full">
@@ -271,20 +321,26 @@ function Dashboard() {
             {/* Leyenda */}
             <div className="mt-4 flex flex-col sm:flex-row justify-center items-start sm:items-center sm:gap-x-6 text-sm text-gray-600 dark:text-white text-start">
                 <span className="flex items-center gap-2">
-                    <CheckCircleFilled style={{ color: '#1890ff' }} />
-                    <span><strong>Fecha Inicio:</strong>&nbsp;Los números marcados en círculos azules.</span>
+                    <CheckCircleFilled style={{ color: "#1890ff" }} />
+                    <span>
+                        <strong>Fecha Inicio:</strong>&nbsp;Los números marcados en círculos azules.
+                    </span>
                 </span>
                 <span className="flex items-center gap-2 mt-1 sm:mt-0">
-                    <CloseCircleFilled style={{ color: '#ff4d4f' }} />
-                    <span><strong>Fecha Límite:</strong>&nbsp;Los números marcados en círculos rojos.</span>
+                    <CloseCircleFilled style={{ color: "#ff4d4f" }} />
+                    <span>
+                        <strong>Fecha Límite:</strong>&nbsp;Los números marcados en círculos rojos.
+                    </span>
                 </span>
             </div>
 
             <br />
             <div className="w-full mb-4">
                 <Title level={4} className="text-black dark:text-white">
-                    LISTA DE TAREAS DEL DÍA: {selectedDate.format('DD/MM/YYYY')}
-                    <p className="text-sm text-neutral-600 dark:text-[#FED36A] font-medium mt-1">RESUMEN - REGISTRO DE TAREAS</p>
+                    LISTA DE TAREAS DEL DÍA: {selectedDate.format("DD/MM/YYYY")}
+                    <p className="text-sm text-neutral-600 dark:text-[#FED36A] font-medium mt-1">
+                        RESUMEN - REGISTRO DE TAREAS
+                    </p>
                 </Title>
                 {selectedDayTasks.length > 0 ? (
                     <ul className="space-y-4 mt-4">
@@ -297,7 +353,11 @@ function Dashboard() {
 
                                 <Collapse ghost className="mt-2">
                                     <Panel
-                                        header={<span className="text-sm font-medium dark:text-white">📄 Haz clic para ver la descripción</span>}
+                                        header={
+                                            <span className="text-sm font-medium dark:text-white">
+                                                📄 Haz clic para ver la descripción
+                                            </span>
+                                        }
                                         key="1"
                                     >
                                         <div
@@ -315,20 +375,22 @@ function Dashboard() {
                                         onClick={() => {
                                             const dateToUse = task.deadline || task.startDate;
                                             if (dateToUse) {
-                                                const formattedDate = dayjs(dateToUse).format('YYYY-MM-DD');
+                                                const formattedDate = dayjs(dateToUse).format(
+                                                    "YYYY-MM-DD"
+                                                );
                                                 navigate(`/calendario?date=${formattedDate}`);
                                             } else {
-                                                navigate('/calendario');
+                                                navigate("/calendario");
                                             }
                                         }}
                                         style={{
-                                            background: '#FFFFFF',
-                                            borderColor: '#FED36A',
-                                            color: '#1A1A1A',
-                                            fontWeight: 'bold',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            borderRadius: '6px',
+                                            background: "#FFFFFF",
+                                            borderColor: "#FED36A",
+                                            color: "#1A1A1A",
+                                            fontWeight: "bold",
+                                            display: "flex",
+                                            alignItems: "center",
+                                            borderRadius: "6px",
                                         }}
                                     >
                                         Ver + detalles en Calendario
@@ -338,17 +400,21 @@ function Dashboard() {
                                         type="default"
                                         icon={<ArrowRightOutlined />}
                                         onClick={() => {
-                                            const url = task.projectId ? `/proyectos?projectId=${task.projectId}` : '/proyectos';
-                                            window.open(url, '_blank');
+                                            const url = task.projectId
+                                                ? `/proyectos?projectId=${task.projectId}`
+                                                : "/proyectos";
+                                            navigate(url, {
+                                                state: { taskId: task._id },
+                                            });
                                         }}
                                         style={{
-                                            background: '#FFFFFF',
-                                            borderColor: '#FED36A',
-                                            color: '#1A1A1A',
-                                            fontWeight: 'bold',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            borderRadius: '6px',
+                                            background: "#FFFFFF",
+                                            borderColor: "#FED36A",
+                                            color: "#1A1A1A",
+                                            fontWeight: "bold",
+                                            display: "flex",
+                                            alignItems: "center",
+                                            borderRadius: "6px",
                                         }}
                                     >
                                         Ver + detalles en Proyecto

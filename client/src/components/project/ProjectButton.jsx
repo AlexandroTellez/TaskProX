@@ -5,20 +5,29 @@ import {
     Form,
     Input,
     message,
-    Space,
     Popconfirm,
     ConfigProvider,
     Select,
     Row,
-    Col
+    Col,
 } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, CopyOutlined, MinusCircleOutlined } from '@ant-design/icons';
+import {
+    PlusOutlined,
+    EditOutlined,
+    DeleteOutlined,
+    CopyOutlined,
+    MinusCircleOutlined,
+} from '@ant-design/icons';
+
 import {
     createProject,
     updateProject,
     deleteProject,
 } from '../../api/projects';
-import { fetchTasksByProject, createTask } from '../../api/tasks';
+import {
+    fetchTasksByProject,
+    createTask,
+} from '../../api/tasks';
 
 const ProjectButton = ({
     selectedProject,
@@ -30,12 +39,17 @@ const ProjectButton = ({
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
 
+    // ===================== Obtener ID seguro del proyecto =====================
+    const getProjectId = (project) => project?._id || project?.id;
+
+    // ===================== Modal de creación =====================
     const showCreateModal = () => {
         form.resetFields();
         setIsEditing(false);
         setIsModalOpen(true);
     };
 
+    // ===================== Modal de edición =====================
     const showEditModal = () => {
         if (!selectedProject) {
             message.warning('Selecciona un proyecto para editar');
@@ -52,14 +66,16 @@ const ProjectButton = ({
         setIsModalOpen(true);
     };
 
+    // ===================== Cerrar modal =====================
     const closeModal = () => {
         setIsModalOpen(false);
     };
 
+    // ===================== Crear o actualizar proyecto =====================
     const handleSubmit = async (values) => {
         try {
             if (isEditing && selectedProject) {
-                const id = selectedProject._id || selectedProject.id;
+                const id = getProjectId(selectedProject);
                 await updateProject(id, values);
                 message.success('Proyecto actualizado');
                 onProjectUpdated?.(id);
@@ -76,12 +92,13 @@ const ProjectButton = ({
         }
     };
 
+    // ===================== Duplicar proyecto y tareas =====================
     const handleDuplicate = async () => {
-        try {
-            if (!selectedProject) {
-                return message.warning('Selecciona un proyecto para duplicar');
-            }
+        if (!selectedProject) {
+            return message.warning('Selecciona un proyecto para duplicar');
+        }
 
+        try {
             const duplicatedProject = {
                 name: `${selectedProject.name} (copia)`,
                 description: selectedProject.description || '',
@@ -91,7 +108,7 @@ const ProjectButton = ({
             const { data: newProject } = await createProject(duplicatedProject);
             message.success('Proyecto duplicado');
 
-            const { data: tasks } = await fetchTasksByProject(selectedProject._id || selectedProject.id);
+            const { data: tasks } = await fetchTasksByProject(getProjectId(selectedProject));
 
             for (const task of tasks) {
                 const duplicatedTask = {
@@ -100,27 +117,34 @@ const ProjectButton = ({
                     creator: task.creator,
                     startDate: task.startDate,
                     deadline: task.deadline,
-                    status: task.status || 'Pendiente',
-                    projectId: newProject._id || newProject.id,
+                    status: task.status || 'pendiente',
+                    projectId: getProjectId(newProject),
                 };
                 await createTask(duplicatedTask);
             }
 
             message.success('Tareas duplicadas correctamente');
             onProjectCreated?.();
-
         } catch (error) {
             console.error(error);
             message.error('Error al duplicar el proyecto y sus tareas');
         }
     };
 
+    // ===================== Eliminar proyecto =====================
     const handleDelete = async () => {
+        if (!selectedProject) {
+            return message.warning('Selecciona un proyecto para eliminar');
+        }
+
         try {
-            if (!selectedProject) {
-                return message.warning('Selecciona un proyecto para eliminar');
+            const id = getProjectId(selectedProject);
+            if (!id || typeof id !== 'string') {
+                console.error('ID de proyecto no válido:', id);
+                return message.error('Error: ID del proyecto no válido');
             }
-            await deleteProject(selectedProject._id || selectedProject.id);
+
+            await deleteProject(id);
             message.success('Proyecto eliminado');
             onProjectDeleted?.();
         } catch (error) {
@@ -129,6 +153,7 @@ const ProjectButton = ({
         }
     };
 
+    // ===================== Estilos comunes =====================
     const yellowStyle = {
         background: '#FFFFFF',
         borderColor: '#FED36A',
@@ -139,8 +164,10 @@ const ProjectButton = ({
         borderRadius: '6px',
     };
 
+    // ===================== Render UI =====================
     return (
         <>
+            {/* ====== Botones principales ====== */}
             <div className="flex flex-col sm:flex-row flex-wrap gap-2 sm:items-center sm:justify-start">
                 <Button icon={<PlusOutlined />} onClick={showCreateModal} style={yellowStyle}>
                     Crear Proyecto
@@ -149,8 +176,8 @@ const ProjectButton = ({
                     Editar Proyecto
                 </Button>
                 <Button
-                    onClick={handleDuplicate}
                     icon={<CopyOutlined />}
+                    onClick={handleDuplicate}
                     style={{
                         background: '#FFFFFF',
                         borderColor: '#6D28D9',
@@ -177,7 +204,6 @@ const ProjectButton = ({
                             background: '#FFFFFF',
                             borderColor: '#ff4d4f',
                             color: '#ff4d4f',
-                            fontWeight: 'bold',
                         }}
                     >
                         Borrar Proyecto
@@ -185,6 +211,7 @@ const ProjectButton = ({
                 </Popconfirm>
             </div>
 
+            {/* ====== Modal de creación/edición ====== */}
             <ConfigProvider
                 theme={{
                     token: {
@@ -192,15 +219,6 @@ const ProjectButton = ({
                         colorText: '#1A1A1A',
                         colorPrimaryTextHover: '#1A1A1A',
                         colorTextLightSolid: '#1A1A1A',
-                    },
-                    components: {
-                        Button: {
-                            defaultBg: '#FFFFFF',
-                            defaultColor: '#1A1A1A',
-                            defaultBorderColor: '#D9D9D9',
-                            defaultHoverColor: '#1A1A1A',
-                            defaultHoverBg: '#f5f5f5',
-                        },
                     },
                 }}
             >
@@ -213,6 +231,7 @@ const ProjectButton = ({
                     cancelText="Cancelar"
                 >
                     <Form form={form} layout="vertical" onFinish={handleSubmit}>
+                        {/* Nombre */}
                         <Form.Item
                             label="Nombre del Proyecto"
                             name="name"
@@ -221,10 +240,12 @@ const ProjectButton = ({
                             <Input placeholder="Ej. TaskProX" />
                         </Form.Item>
 
+                        {/* Descripción */}
                         <Form.Item label="Descripción" name="description">
                             <Input.TextArea rows={3} placeholder="Describe el proyecto..." />
                         </Form.Item>
 
+                        {/* Colaboradores */}
                         <Form.List name="collaborators">
                             {(fields, { add, remove }) => (
                                 <>

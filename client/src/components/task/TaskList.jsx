@@ -6,17 +6,21 @@ import { useSearchParams } from 'react-router-dom';
 import { createTask, deleteTask } from '../../api/tasks';
 import dayjs from '../../utils/dayjsConfig';
 import TaskFilters from './list/TaskFilters';
-import TaskKanbanBoard from './list/TaskKanbanBoard'; // ✅ AÑADIDO
+import TaskKanbanBoard from './list/TaskKanbanBoard';
 import TaskMobileCard from './list/TaskMobileCard';
 import TaskTable from './list/TaskTable';
+import { getPermission } from './list/utils';
 
-const TaskList = ({ tasks, projectId, onTaskChanged, kanban = false }) => {
+const TaskList = ({ tasks, projectId, onTaskChanged, kanban = false, projectPermission = null }) => {
     const [searchParams, setSearchParams] = useSearchParams();
-    const user = JSON.parse(localStorage.getItem('user'));
-    const userFullName = `${user?.nombre} ${user?.apellidos}`;
-    const userEmail = user?.email;
+    const user = JSON.parse(localStorage.getItem('user')) || {};
+    const userFullName = `${user.nombre || ''} ${user.apellidos || ''}`.trim();
+    const userEmail = user.email || '';
     const isMobile = useMediaQuery({ maxWidth: 1024 });
 
+    // =====================
+    // Estado para filtros de tareas
+    // =====================
     const [filters, setFilters] = useState({
         title: searchParams.get('title') || '',
         creator: searchParams.get('creator') || '',
@@ -32,6 +36,9 @@ const TaskList = ({ tasks, projectId, onTaskChanged, kanban = false }) => {
         })(),
     });
 
+    // =====================
+    // Actualizar la URL cuando cambian los filtros
+    // =====================
     useEffect(() => {
         const params = {};
         if (filters.title) params.title = filters.title;
@@ -43,14 +50,29 @@ const TaskList = ({ tasks, projectId, onTaskChanged, kanban = false }) => {
         setSearchParams(params);
     }, [filters, setSearchParams]);
 
+    // =====================
+    // Normalizar tareas: convertir fechas y calcular permisos
+    // =====================
     const parsedTasks = useMemo(() => {
-        return tasks.map((task) => ({
-            ...task,
-            startDate: task.startDate ? dayjs(task.startDate) : null,
-            deadline: task.deadline ? dayjs(task.deadline) : null,
-        }));
-    }, [tasks]);
+        return tasks.map((task) => {
+            const taskId = task._id || task.id;
 
+            // Calcular permiso con prioridad según utils.js
+            const permission = getPermission(task, userEmail);
+
+            return {
+                ...task,
+                id: taskId,
+                startDate: task.startDate ? dayjs(task.startDate) : null,
+                deadline: task.deadline ? dayjs(task.deadline) : null,
+                permission, // ⬅️ Campo usado por todos los componentes
+            };
+        });
+    }, [tasks, userEmail]);
+
+    // =====================
+    // Filtrar tareas según los filtros aplicados
+    // =====================
     const filteredTasks = useMemo(() => {
         return parsedTasks.filter((task) => {
             const matchesTitle = filters.title
@@ -83,6 +105,9 @@ const TaskList = ({ tasks, projectId, onTaskChanged, kanban = false }) => {
         });
     }, [parsedTasks, filters]);
 
+    // =====================
+    // Eliminar tarea
+    // =====================
     const handleDelete = async (id) => {
         try {
             await deleteTask(id);
@@ -93,6 +118,9 @@ const TaskList = ({ tasks, projectId, onTaskChanged, kanban = false }) => {
         }
     };
 
+    // =====================
+    // Duplicar tarea
+    // =====================
     const handleDuplicate = async (record) => {
         try {
             const prepareDate = (date) => {
@@ -123,22 +151,25 @@ const TaskList = ({ tasks, projectId, onTaskChanged, kanban = false }) => {
         }
     };
 
+    // =====================
+    // Actualizar filtros desde componente hijo
+    // =====================
     const handleFilterChange = (field, value) => {
         setFilters((prev) => ({ ...prev, [field]: value }));
     };
 
+    // =====================
+    // Resetear filtros
+    // =====================
     const resetFilters = () => {
         setFilters({ title: '', creator: '', status: '', has_recurso: '', startDate: null, deadline: null });
         setSearchParams({});
     };
 
+    // =====================
+    // Callback para cambio de estado de tarea
+    // =====================
     const handleStatusChange = (taskId, newStatus) => {
-        const updated = parsedTasks.map((task) =>
-            task._id === taskId || task.id === taskId
-                ? { ...task, status: newStatus }
-                : task
-        );
-        // local update only – in real case should call API
         message.success('Estado actualizado');
         onTaskChanged && onTaskChanged();
     };

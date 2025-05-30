@@ -3,7 +3,7 @@ import { EditOutlined, CopyOutlined, DeleteOutlined, DownloadOutlined } from '@a
 import { useNavigate } from 'react-router-dom';
 import { getPermission, getStatusTag, formatDate } from './utils.jsx';
 
-// Función para descargar archivos base64
+// ===================== Función para descarga de archivos base64 =====================
 function descargarArchivo(file) {
     try {
         if (!file || !file.data || typeof file.data !== "string") {
@@ -12,17 +12,13 @@ function descargarArchivo(file) {
         }
 
         let base64Data = file.data;
-
         const base64Match = file.data.match(/^data:(.*);base64,(.*)$/);
         if (base64Match) {
             base64Data = base64Match[2];
         }
 
         const byteCharacters = atob(base64Data.trim());
-        const byteNumbers = new Array(byteCharacters.length);
-        for (let i = 0; i < byteCharacters.length; i++) {
-            byteNumbers[i] = byteCharacters.charCodeAt(i);
-        }
+        const byteNumbers = Array.from(byteCharacters).map(char => char.charCodeAt(0));
         const byteArray = new Uint8Array(byteNumbers);
         const blob = new Blob([byteArray], { type: file.type || 'application/octet-stream' });
 
@@ -38,7 +34,6 @@ function descargarArchivo(file) {
         link.click();
         document.body.removeChild(link);
 
-        // Mensaje de éxito
         message.success(`Descarga completada: ${safeFileName}`);
     } catch (error) {
         console.error('Error al intentar descargar el archivo:', error);
@@ -46,24 +41,24 @@ function descargarArchivo(file) {
     }
 }
 
+// ===================== Tarjeta para vista móvil de tareas =====================
 const TaskMobileCard = ({ tasks, userEmail, onDuplicate, onDelete, projectId }) => {
     const navigate = useNavigate();
 
     return (
         <div className="space-y-4">
             {tasks.map((task) => {
-                const permission = getPermission(task, userEmail);
+                const taskId = task._id || task.id;
+                const permission = getPermission(task, userEmail) || task.effective_permission || task.permission || task.project_permission || null;
 
                 return (
                     <div
-                        key={task.id || task._id}
+                        key={taskId}
                         className="border dark:border-[#FFFFFF] p-4 rounded-md shadow bg-white text-black dark:bg-[#2a2e33] dark:text-white"
                     >
                         <p className="font-bold text-lg mb-2">{task.title}</p>
 
-                        <p className="text-sm mb-1">
-                            <strong>Creador:</strong> {task.creator_name || 'Desconocido'}
-                        </p>
+                        <p className="text-sm mb-1"><strong>Creador:</strong> {task.creator_name || 'Desconocido'}</p>
 
                         <p className="text-sm mb-1">
                             <strong>Colaboradores:</strong>{' '}
@@ -72,34 +67,22 @@ const TaskMobileCard = ({ tasks, userEmail, onDuplicate, onDelete, projectId }) 
                                     <Tag
                                         key={i}
                                         color={
-                                            c.permission === 'admin'
-                                                ? 'red'
-                                                : c.permission === 'write'
-                                                    ? 'blue'
-                                                    : 'default'
+                                            c.permission === 'admin' ? 'red' :
+                                                c.permission === 'write' ? 'blue' :
+                                                    'default'
                                         }
                                     >
                                         {c.email} ({c.permission})
                                     </Tag>
                                 ))
-                            ) : (
-                                'Ninguno'
-                            )}
+                            ) : 'Ninguno'}
                         </p>
 
-                        <p className="text-sm mb-1">
-                            <strong>Fecha de inicio:</strong> {formatDate(task.startDate)}
-                        </p>
+                        <p className="text-sm mb-1"><strong>Fecha de inicio:</strong> {formatDate(task.startDate)}</p>
+                        <p className="text-sm mb-1"><strong>Fecha límite:</strong> {formatDate(task.deadline)}</p>
+                        <p className="text-sm mb-2"><strong>Estado:</strong> {getStatusTag(task.status)}</p>
 
-                        <p className="text-sm mb-1">
-                            <strong>Fecha límite:</strong> {formatDate(task.deadline)}
-                        </p>
-
-                        <p className="text-sm mb-2">
-                            <strong>Estado:</strong> {getStatusTag(task.status)}
-                        </p>
-
-                        {task.recurso && task.recurso.length > 0 && (
+                        {task.recurso?.length > 0 && (
                             <div className="text-sm mb-2">
                                 <strong>Archivos adjuntos:</strong>
                                 <ul className="list-disc list-inside mt-1 space-y-1">
@@ -110,7 +93,6 @@ const TaskMobileCard = ({ tasks, userEmail, onDuplicate, onDelete, projectId }) 
                                                 icon={<DownloadOutlined />}
                                                 onClick={() => descargarArchivo(file)}
                                                 className="px-0 text-blue-500 dark:text-blue-300 !whitespace-normal !break-words !text-left !p-0 max-w-full"
-                                                style={{ wordBreak: 'break-word', whiteSpace: 'normal' }}
                                             >
                                                 {file.name}
                                             </Button>
@@ -120,11 +102,10 @@ const TaskMobileCard = ({ tasks, userEmail, onDuplicate, onDelete, projectId }) 
                             </div>
                         )}
 
-
                         {task.description && (
                             <details className="mb-3">
                                 <summary className="cursor-pointer text-sm font-bold">
-                                    📄 Ver descripción tarea:
+                                    📄 Haz clic para ver la descripción
                                 </summary>
                                 <div
                                     className="prose prose-sm max-w-none text-black dark:text-white dark:prose-invert mt-2"
@@ -137,9 +118,7 @@ const TaskMobileCard = ({ tasks, userEmail, onDuplicate, onDelete, projectId }) 
                             {(permission === 'write' || permission === 'admin') && (
                                 <Button
                                     icon={<EditOutlined />}
-                                    onClick={() =>
-                                        navigate(`/tasks/${task.id || task._id}/edit?projectId=${projectId}`)
-                                    }
+                                    onClick={() => navigate(`/tasks/${taskId}/edit?projectId=${projectId}`)}
                                     style={{
                                         background: '#FFFFFF',
                                         borderColor: '#FED36A',
@@ -175,7 +154,7 @@ const TaskMobileCard = ({ tasks, userEmail, onDuplicate, onDelete, projectId }) 
                             {permission === 'admin' && (
                                 <Popconfirm
                                     title="¿Estás seguro de borrar esta tarea?"
-                                    onConfirm={() => onDelete(task.id || task._id)}
+                                    onConfirm={() => onDelete(taskId)}
                                     okText="Sí"
                                     cancelText="No"
                                 >

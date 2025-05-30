@@ -1,9 +1,14 @@
 import { AppstoreOutlined, PlusOutlined, TableOutlined } from '@ant-design/icons';
 import { Button, Empty, Typography, message } from 'antd';
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { fetchProjects } from '../../api/projects';
-import { fetchTasksByProject, deleteTask, createTask } from '../../api/tasks';
+import {
+    fetchTasksByProject,
+    fetchTasksForCollaboratorByProject,
+    deleteTask,
+    createTask
+} from '../../api/tasks';
 import CreateProjectButton from '../../components/project/ProjectButton';
 import ProjectSelector from '../../components/project/ProjectSelector';
 import TaskList from '../../components/task/TaskList';
@@ -13,75 +18,120 @@ import dayjs from 'dayjs';
 const { Title, Paragraph } = Typography;
 
 const Proyectos = () => {
+    // Estados para proyectos, proyecto seleccionado, tareas y vista Kanban/tabla
     const [projects, setProjects] = useState([]);
     const [selectedProject, setSelectedProject] = useState(null);
     const [tasks, setTasks] = useState([]);
     const [isKanbanView, setIsKanbanView] = useState(false);
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams(); // <-- Para leer ?projectId
 
+    // Usuario actual almacenado en localStorage
     const user = JSON.parse(localStorage.getItem('user'));
     const userEmail = user?.email || '';
 
+    // Función para obtener identificador del proyecto (compatible con _id o id)
+    const getProjectId = (project) => project?._id || project?.id;
+
+    // Extraemos ID del proyecto seleccionado para facilitar uso
+    const selectedProjectId = getProjectId(selectedProject);
+
+    // Cargar proyectos y seleccionar según URL o el primero
     const loadProjects = async () => {
         try {
-            const res = await fetchProjects();
-            setProjects(res.data);
-            return res.data;
+            const filters = {
+                user_id: user?._id || '',
+                user_email: user?.email || '',
+            };
+            const projects = await fetchProjects(filters);
+
+            setProjects(projects);
+
+            const urlProjectId = searchParams.get('projectId'); // <-- Leemos de la URL
+            if (!selectedProject && projects.length > 0) {
+                // Si hay ID en URL, buscarlo y seleccionar
+                const found = projects.find(p => getProjectId(p) === urlProjectId);
+                setSelectedProject(found || projects[0]);
+            }
+
+            return projects;
         } catch (err) {
             console.error('Error al cargar proyectos:', err);
             return [];
         }
     };
 
+    // Cargar tareas del proyecto según permisos
     const loadTasks = async (projectId) => {
+        if (!projectId || typeof projectId !== 'string' || projectId.toLowerCase() === 'none') {
+            console.warn('ID de proyecto inválido para cargar tareas:', projectId);
+            setTasks([]);
+            return;
+        }
+
         try {
-            const res = await fetchTasksByProject(projectId);
-            if (Array.isArray(res.data)) {
-                setTasks(res.data);
+            const isProjectMember =
+                selectedProject?.collaborators?.some(c => c.email === userEmail) ||
+                selectedProject?.user_email === userEmail;
+
+            let tasksData = [];
+
+            if (isProjectMember) {
+                const res = await fetchTasksByProject(projectId);
+                tasksData = Array.isArray(res.data) ? res.data : [];
             } else {
-                setTasks([]);
+                const res = await fetchTasksForCollaboratorByProject(projectId);
+                tasksData = Array.isArray(res.data) ? res.data : [];
             }
+
+            console.log("📦 Tareas cargadas:", tasksData); // ⬅️ Añade esta línea para depurar
+
+            setTasks(tasksData);
+
         } catch (err) {
             console.error('Error al obtener tareas:', err);
             setTasks([]);
         }
     };
 
+    // Cargar proyectos al montar componente
     useEffect(() => {
         loadProjects();
     }, []);
 
+    // Cargar tareas cuando cambia el proyecto seleccionado
     useEffect(() => {
-        if (selectedProject?._id) {
-            loadTasks(selectedProject._id);
+        if (selectedProject && selectedProjectId && typeof selectedProjectId === 'string') {
+            loadTasks(selectedProjectId);
         } else {
             setTasks([]);
         }
-    }, [selectedProject]);
+    }, [selectedProject, selectedProjectId]);
 
+    // Actualizar tareas localmente al cambiar el estado
     const handleStatusChange = (taskId, newStatus) => {
         const updatedTasks = tasks.map(task =>
-            (task._id === taskId || task.id === taskId)
-                ? { ...task, status: newStatus }
-                : task
+            task._id === taskId ? { ...task, status: newStatus } : task
         );
         setTasks(updatedTasks);
-        // Puedes llamar a la API aquí si quieres persistir el cambio en el backend
     };
 
+    // Eliminar tarea y recargar tareas del proyecto
     const handleDelete = async (id) => {
         try {
             await deleteTask(id);
             message.success('Tarea eliminada');
-            if (selectedProject?._id) loadTasks(selectedProject._id);
+            if (selectedProjectId) loadTasks(selectedProjectId);
         } catch {
             message.error('Error al eliminar la tarea');
         }
     };
 
+    // Duplicar tarea y recargar tareas
     const handleDuplicate = async (record) => {
         try {
-            const userFullName = `${user?.nombre} ${user?.apellidos}`;
+            const userFullName = [user?.nombre, user?.apellidos].filter(Boolean).join(' ');
+
             const prepareDate = (date) => {
                 if (!date) return null;
                 const dayjsDate = dayjs.isDayjs(date) ? date : dayjs(date);
@@ -96,14 +146,15 @@ const Proyectos = () => {
                 collaborators: record.collaborators || [],
                 startDate: prepareDate(record.startDate),
                 deadline: prepareDate(record.deadline),
-                projectId: selectedProject._id,
+                projectId: selectedProjectId,
                 creator: userEmail,
                 creator_name: userFullName,
             };
 
             await createTask(duplicatedTask);
             message.success('Tarea duplicada correctamente');
-            if (selectedProject?._id) loadTasks(selectedProject._id);
+
+            if (selectedProjectId) loadTasks(selectedProjectId);
         } catch (error) {
             console.error('Error al duplicar:', error);
             message.error('Error al duplicar la tarea');
@@ -111,9 +162,12 @@ const Proyectos = () => {
     };
 
     return (
-        <div className="w-full bg-gray-100 dark:bg-[#2a2e33] text-black dark:text-white rounded-lg space-y-6 p-4 overflow-x-auto overflow-y-visible ">
+        <div className="w-full bg-gray-100 dark:bg-[#2a2e33] text-black dark:text-white rounded-lg space-y-6 p-4 overflow-x-auto overflow-y-visible">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-                <Title level={3} className="text-black dark:text-white m-0 !leading-snug !text-lg sm:!text-xl md:!text-2xl lg:!text-3xl whitespace-nowrap">
+                <Title
+                    level={3}
+                    className="text-black dark:text-white m-0 !leading-snug !text-lg sm:!text-xl md:!text-2xl lg:!text-3xl whitespace-nowrap"
+                >
                     GESTIÓN DE PROYECTOS
                     <div className="text-xs sm:text-sm text-neutral-600 dark:text-[#FED36A] font-medium mt-1 whitespace-normal">
                         FLUJO DE TRABAJO - PROYECTOS Y TAREAS
@@ -125,13 +179,17 @@ const Proyectos = () => {
                     onProjectCreated={loadProjects}
                     onProjectUpdated={async (updatedId) => {
                         const updatedProjects = await loadProjects();
-                        const updatedProject = updatedProjects.find(p => p._id === updatedId);
+                        const updatedProject = updatedProjects.find(p => getProjectId(p) === updatedId);
                         if (updatedProject) setSelectedProject(updatedProject);
                     }}
-                    onProjectDeleted={() => {
+                    onProjectDeleted={async () => {
                         setSelectedProject(null);
                         setTasks([]);
-                        loadProjects();
+                        const updatedProjects = await loadProjects();
+                        if (updatedProjects.length > 0) {
+                            setSelectedProject(updatedProjects[0]);
+                            loadTasks(getProjectId(updatedProjects[0]));
+                        }
                     }}
                 />
             </div>
@@ -146,29 +204,33 @@ const Proyectos = () => {
 
             {selectedProject ? (
                 <>
+                    {/* Descripción del proyecto */}
                     {selectedProject.description && (
                         <Paragraph className="italic text-sm text-black dark:text-white mb-4">
                             <span className="underline font-medium">Descripción del proyecto:</span> {selectedProject.description}
                         </Paragraph>
                     )}
 
-                    {selectedProject.collaborators && selectedProject.collaborators.length > 0 ? (
-                        <Paragraph className="text-sm text-black dark:text-white mb-4">
-                            <span className="underline font-medium">Colaboradores:</span>
+                    {/* Colaboradores del proyecto */}
+                    <Paragraph className="text-sm text-black dark:text-white mb-4">
+                        <span className="underline font-medium">Colaboradores:</span>
+                        {selectedProject.collaborators?.length > 0 ? (
                             <ul className="mt-1 list-disc list-inside">
                                 {selectedProject.collaborators.map((colab, index) => (
                                     <li key={index}>
-                                        {colab.name || colab.email} {colab.email && colab.name ? `- ${colab.email}` : ''}
+                                        {colab.name || colab.email}
+                                        {colab.email && colab.name ? ` - ${colab.email}` : ''}
+                                        {colab.permission ? ` (${colab.permission})` : ''}
                                     </li>
                                 ))}
                             </ul>
-                        </Paragraph>
-                    ) : (
-                        <Paragraph className="text-sm text-black dark:text-white mb-4">
-                            <span className="underline font-medium">Colaboradores:</span> sin colaboradores
-                        </Paragraph>
-                    )}
+                        ) : (
+                            <> sin colaboradores </>
+                        )}
+                    </Paragraph>
 
+
+                    {/* Botones: alternar vista + crear tarea */}
                     <div className="flex justify-between flex-wrap items-center gap-3 mb-4">
                         <Button
                             onClick={() => setIsKanbanView(!isKanbanView)}
@@ -189,7 +251,24 @@ const Proyectos = () => {
                         <Button
                             type="primary"
                             icon={<PlusOutlined />}
-                            onClick={() => navigate(`/tasks/new?projectId=${selectedProject._id}`)}
+                            onClick={() => {
+                                if (selectedProjectId) {
+                                    // Determinar permiso del usuario sobre el proyecto
+                                    let permission = 'read';
+                                    if (selectedProject.user_email === userEmail) {
+                                        permission = 'admin';
+                                    } else {
+                                        const colaborador = selectedProject.collaborators?.find(c => c.email === userEmail);
+                                        if (colaborador?.permission) {
+                                            permission = colaborador.permission;
+                                        }
+                                    }
+
+                                    navigate(`/tasks/new?projectId=${selectedProjectId}&projectPermission=${permission}`);
+                                } else {
+                                    message.warning('Proyecto no válido para crear tarea.');
+                                }
+                            }}
                             style={{
                                 background: '#FFFFFF',
                                 borderColor: '#FED36A',
@@ -203,8 +282,10 @@ const Proyectos = () => {
                         >
                             Crear Tarea
                         </Button>
+
                     </div>
 
+                    {/* Vista Kanban o Tabla */}
                     <div className="rounded-md border dark:border-[#FFFFFF] shadow-md dark:bg-[#2a2e33] p-4 overflow-x-auto overflow-y-visible min-h-[400px]">
                         {isKanbanView ? (
                             <TaskKanbanBoard
@@ -213,18 +294,19 @@ const Proyectos = () => {
                                 onDuplicate={handleDuplicate}
                                 onDelete={handleDelete}
                                 onStatusChange={handleStatusChange}
-                                projectId={selectedProject._id}
+                                projectId={selectedProjectId}
                             />
                         ) : (
                             <TaskList
                                 tasks={tasks}
-                                projectId={selectedProject._id}
-                                onTaskChanged={() => loadTasks(selectedProject._id)}
+                                projectId={selectedProjectId}
+                                onTaskChanged={() => loadTasks(selectedProjectId)}
                             />
                         )}
                     </div>
                 </>
             ) : (
+                // Vista cuando no hay proyecto seleccionado
                 <div className="flex justify-center items-center mt-12">
                     <div className="text-center">
                         <Empty

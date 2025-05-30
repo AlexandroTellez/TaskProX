@@ -50,11 +50,12 @@ function RegisterForm({ onSubmit }) {
         const dataToSend = {
             first_name: nombre,
             last_name: apellidos,
-            direccion,
-            codigoPostal,
+            address: direccion,
+            postal_code: codigoPostal,
             email,
             password
         };
+
 
         try {
             setLoading(true);

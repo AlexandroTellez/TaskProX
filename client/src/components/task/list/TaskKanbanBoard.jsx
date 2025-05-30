@@ -1,13 +1,13 @@
-// client/src/components/task/list/TaskKanbanBoard.jsx
 import { DownloadOutlined } from '@ant-design/icons';
 import {
     draggable,
-    dropTargetForElements
+    dropTargetForElements,
+    monitorForElements,
 } from '@atlaskit/pragmatic-drag-and-drop/element/adapter';
 import { Button, Tag, message } from 'antd';
 import { useEffect } from 'react';
-import { formatDate, getPermission, getStatusTag } from './utils';
-import TaskActions from './TaskActions'; // 👈 Importado aquí
+import { formatDate, getStatusTag, getPermission } from './utils';
+import TaskActions from './TaskActions';
 
 const predefinedStatuses = [
     'pendiente',
@@ -18,17 +18,17 @@ const predefinedStatuses = [
     'completado',
 ];
 
-// Función para descargar archivos base64
+// ===================== Función para descarga de archivos base64 =====================
 function descargarArchivo(file) {
     try {
-        if (!file || !file.data || typeof file.data !== "string") return;
+        if (!file || !file.data || typeof file.data !== 'string') return;
 
         let base64Data = file.data;
         const match = file.data.match(/^data:(.*);base64,(.*)$/);
         if (match) base64Data = match[2];
 
         const byteCharacters = atob(base64Data.trim());
-        const byteNumbers = Array.from(byteCharacters).map(char => char.charCodeAt(0));
+        const byteNumbers = Array.from(byteCharacters).map((char) => char.charCodeAt(0));
         const byteArray = new Uint8Array(byteNumbers);
         const blob = new Blob([byteArray], { type: file.type || 'application/octet-stream' });
 
@@ -46,13 +46,33 @@ function descargarArchivo(file) {
 }
 
 const TaskKanbanBoard = ({ tasks, userEmail, onDuplicate, onDelete, onStatusChange, projectId }) => {
-    const allStatuses = [...predefinedStatuses];
-    const taskStatuses = tasks.map((t) => t.status?.toLowerCase().trim()).filter(Boolean);
-    taskStatuses.forEach((s) => {
-        if (!allStatuses.includes(s)) allStatuses.push(s);
-    });
+    // Lista de estados única incluyendo personalizados
+    const predefinedStatuses = [
+        'pendiente',
+        'en espera',
+        'lista para comenzar',
+        'en progreso',
+        'en revisión',
+        'completado',
+    ];
 
+    const taskStatuses = tasks.map((t) => t.status?.toLowerCase().trim()).filter(Boolean);
+    const allStatuses = [...new Set([...predefinedStatuses, ...taskStatuses])];
+
+    // Calcular permisos fuera del render para cada tarea
+    const tasksWithPermissions = tasks.map((task) => ({
+        ...task,
+        effective_permission:
+            task.effective_permission ||
+            task.permission ||
+            task.project_permission ||
+            getPermission(task, userEmail),
+    }));
+
+
+    // Habilitamos zona drop por estado (solo con permisos de edición)
     useEffect(() => {
+        monitorForElements();
         allStatuses.forEach((status) => {
             const zone = document.getElementById(`drop-${status}`);
             if (zone) {
@@ -66,10 +86,11 @@ const TaskKanbanBoard = ({ tasks, userEmail, onDuplicate, onDelete, onStatusChan
                 });
             }
         });
-    }, [tasks]);
+    }, [allStatuses, onStatusChange]);
 
     const renderTaskCard = (task) => {
         const taskId = task._id || task.id;
+        const canEdit = task.effective_permission !== 'read';
 
         return (
             <div
@@ -77,6 +98,7 @@ const TaskKanbanBoard = ({ tasks, userEmail, onDuplicate, onDelete, onStatusChan
                 className="bg-white dark:bg-[#1f1f1f] dark:text-white text-black p-4 rounded-md border dark:border-[#FFFFFF] shadow space-y-2"
                 ref={(el) =>
                     el &&
+                    canEdit && // Solo si tiene permiso de edición
                     draggable({
                         element: el,
                         getInitialData: () => ({ type: 'task', taskId }),
@@ -130,7 +152,6 @@ const TaskKanbanBoard = ({ tasks, userEmail, onDuplicate, onDelete, onStatusChan
                     </details>
                 )}
 
-                {/* Acciones comunes reutilizadas */}
                 <div className="mt-3">
                     <TaskActions
                         task={task}
@@ -138,6 +159,7 @@ const TaskKanbanBoard = ({ tasks, userEmail, onDuplicate, onDelete, onStatusChan
                         projectId={projectId}
                         onDuplicate={onDuplicate}
                         onDelete={onDelete}
+                        permission={task.effective_permission}
                     />
                 </div>
             </div>
@@ -153,7 +175,9 @@ const TaskKanbanBoard = ({ tasks, userEmail, onDuplicate, onDelete, onStatusChan
                             {getStatusTag(status)}
                         </h3>
                         <div className="space-y-2">
-                            {tasks.filter((t) => t.status?.toLowerCase().trim() === status).map(renderTaskCard)}
+                            {tasksWithPermissions
+                                .filter((t) => t.status?.toLowerCase().trim() === status)
+                                .map(renderTaskCard)}
                         </div>
                     </div>
                 ))}

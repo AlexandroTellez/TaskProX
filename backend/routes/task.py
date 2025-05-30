@@ -15,35 +15,33 @@ from services.task_service import (
     update_task,
     delete_task,
     update_task_status,
+    serialize_task,
 )
-from models.models import Task
 from routes.auth import get_current_user
-import json
-import base64
+from config.database import collection
+from bson import ObjectId
+import json, base64
 from typing import List
-
 
 task = APIRouter()
 
 MAX_FILES = 3
-MAX_FILE_SIZE = 5 * 1024 * 1024  # 5 MB
+MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
 
 
-# ===================== CONVERSIÓN DE ARCHIVOS A BASE64 =====================
+# ===================== CONVERSIÓN DE ARCHIVOS =====================
 def encode_files_to_base64(files: List[UploadFile]) -> List[dict]:
     base64_files = []
-
     ALLOWED_TYPES = [
         "application/pdf",
-        "application/msword",  # .doc
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",  # .docx
-        "application/vnd.ms-excel",  # .xls
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",  # .xlsx
+        "application/msword",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "application/vnd.ms-excel",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         "image/jpeg",
         "image/png",
         "image/gif",
         "image/svg+xml",
-        # Se aceptarán tipos que empiecen con image/ incluso si no están listados explícitamente (como RAW)
     ]
 
     if len(files) > MAX_FILES:
@@ -51,17 +49,12 @@ def encode_files_to_base64(files: List[UploadFile]) -> List[dict]:
 
     for file in files:
         contents = file.file.read()
-
         if len(contents) > MAX_FILE_SIZE:
-            raise HTTPException(413, f"El archivo {file.filename} excede los 5MB")
-
+            raise HTTPException(413, f"Archivo {file.filename} excede los 5MB")
         if file.content_type not in ALLOWED_TYPES and not file.content_type.startswith(
             "image/"
         ):
-            raise HTTPException(
-                415,
-                f"Tipo de archivo no permitido: {file.content_type}. Solo se permiten documentos (PDF, Word, Excel) e imágenes.",
-            )
+            raise HTTPException(415, f"Tipo no permitido: {file.content_type}")
 
         encoded = base64.b64encode(contents).decode("utf-8")
         base64_files.append(
@@ -71,89 +64,102 @@ def encode_files_to_base64(files: List[UploadFile]) -> List[dict]:
                 "data": f"data:{file.content_type};base64,{encoded}",
             }
         )
-
     return base64_files
 
 
-# ===================== FUNCIÓN AUXILIAR DE PERMISOS =====================
+# ===================== PERMISOS =====================
 def get_permission(task: dict, user_email: str) -> str:
     if task.get("creator") == user_email:
         return "admin"
     if "effective_permission" in task:
         return task["effective_permission"]
-    for collaborator in task.get("collaborators", []):
-        if collaborator.get("email") == user_email:
-            return collaborator.get("permission", "read")
+    for col in task.get("collaborators", []):
+        if col.get("email") == user_email:
+            return col.get("permission", "read")
     return "none"
 
 
-# ===================== RUTA GET POR ID =====================
-@task.get("/api/tasks/{id}", response_model=Task)
+# ===================== GET POR ID =====================
+@task.get("/api/tasks/{id}")
 async def get_task(id: str, user: dict = Depends(get_current_user)):
-    tarea = await get_one_task_id(id)
+    print(f"[GET /tasks/{id}] Usuario: {user['email']}")
+
+    # Validar ID inválido explícitamente antes de consultar la base de datos
+    if not id or id.lower() == "undefined":
+        print(f"[GET /tasks/{id}] ID inválido recibido: {id}")
+        raise HTTPException(status_code=400, detail="ID de tarea inválido")
+
+    # ✅ MODIFICADO: ahora pasamos email e id del usuario para que calcule el permiso heredado del proyecto
+    tarea = await get_one_task_id(id, user_email=user["email"], user_id=user["id"])
+    print(f"[GET /tasks/{id}] Tarea encontrada: {tarea}")
+
     if not tarea:
         raise HTTPException(404, f"Tarea con id {id} no encontrada")
 
     permission = get_permission(tarea, user["email"])
+    print(f"[GET /tasks/{id}] Permiso del usuario: {permission}")
+
     if permission == "none":
         raise HTTPException(403, "No tienes acceso a esta tarea")
 
     tarea["effective_permission"] = permission
-
-    if "_id" in tarea and "id" not in tarea:
-        tarea["id"] = str(tarea["_id"])
-
-    return tarea
+    return tarea  # Ya está serializada
 
 
-# ===================== RUTA PUT =====================
-@task.put("/api/tasks/{id}", response_model=Task)
+# ===================== PUT =====================
+@task.put("/api/tasks/{id}")
 async def put_task(
     id: str,
     task: str = Form(...),
     files: List[UploadFile] = File(None),
     user: dict = Depends(get_current_user),
 ):
-    existing_task = await get_one_task_id(id)
+    print(f"[PUT /tasks/{id}] Usuario: {user['email']}")
+
+    # Añadido user_email y user_id
+    existing_task = await get_one_task_id(
+        id, user_email=user["email"], user_id=user["id"]
+    )
+    print(f"[PUT /tasks/{id}] Tarea original: {existing_task}")
+
     if not existing_task:
         raise HTTPException(404, f"Tarea con id {id} no encontrada")
 
-    permission = get_permission(existing_task, user["email"])
-    if permission not in ["write", "admin"]:
-        raise HTTPException(403, "No tienes permiso para editar esta tarea")
-
     task_data = json.loads(task)
+    task_data["user_email"] = user["email"]
+    task_data["user_id"] = user["id"]
 
     if files:
         task_data["recurso"] = encode_files_to_base64(files)
 
     updated = await update_task(id, task_data)
-    if updated:
-        return updated
-    raise HTTPException(400, "No se pudo actualizar la tarea")
+    print(f"[PUT /tasks/{id}] Tarea actualizada: {updated}")
+    return updated if updated else HTTPException(400, "No se pudo actualizar la tarea")
 
 
-# ===================== RUTA DELETE =====================
+# ===================== DELETE =====================
 @task.delete("/api/tasks/{id}")
 async def remove_task(id: str, user: dict = Depends(get_current_user)):
-    existing_task = await get_one_task_id(id)
-    if not existing_task:
-        raise HTTPException(404, f"Tarea con id {id} no encontrada")
+    print(f"[DELETE /tasks/{id}] Usuario: {user['email']}")
 
-    permission = get_permission(existing_task, user["email"])
-    if permission != "admin":
-        raise HTTPException(403, "Solo un administrador puede eliminar esta tarea")
+    try:
+        deleted = await delete_task(id, user_email=user["email"], user_id=user["id"])
+    except PermissionError as e:
+        raise HTTPException(403, str(e))
+    except ValueError as e:
+        raise HTTPException(404, str(e))
+    except Exception as e:
+        raise HTTPException(400, f"No se pudo eliminar la tarea: {e}")
 
-    deleted = await delete_task(id)
-    if deleted:
-        return {"message": "Tarea eliminada correctamente"}
-    raise HTTPException(400, "No se pudo eliminar la tarea")
+    print(f"[DELETE /tasks/{id}] Eliminada: {deleted}")
+    return {"message": "Tarea eliminada correctamente"}
 
 
-# ===================== RUTA GET CON FILTROS =====================
+# ===================== GET GENERAL =====================
 @task.get("/api/tasks")
 async def get_tasks(request: Request, user: dict = Depends(get_current_user)):
     params = request.query_params
+    print(f"[GET /tasks] Usuario: {user['email']} - Parámetros: {params}")
 
     filters = {
         "project_id": params.get("projectId"),
@@ -162,52 +168,68 @@ async def get_tasks(request: Request, user: dict = Depends(get_current_user)):
         "status": params.get("status"),
         "startDate": params.get("startDate"),
         "deadline": params.get("deadline"),
-        "user_id": str(user["_id"]),
+        "user_id": user["id"],
         "user_email": user["email"],
         "has_recurso": params.get("hasRecurso"),
     }
 
-    return await get_all_tasks(filters)
+    tareas = await get_all_tasks(filters)
+    print(f"[GET /tasks] Tareas encontradas: {len(tareas)}")
+    return tareas  # Ya serializadas
 
 
-# ===================== RUTA POST =====================
-@task.post("/api/tasks", response_model=Task)
+# ===================== POST =====================
+@task.post("/api/tasks")
 async def save_task(
     task: str = Form(...),
     files: List[UploadFile] = File(None),
     user: dict = Depends(get_current_user),
 ):
     task_data = json.loads(task)
-    task_data["user_id"] = str(user["_id"])
-    task_data["user_email"] = user["email"]
-    task_data["creator"] = user["email"]
-    task_data["creator_name"] = (
-        f"{user.get('first_name', '')} {user.get('last_name', '')}".strip()
+    task_data.update(
+        {
+            "user_id": user["id"],
+            "user_email": user["email"],
+            "creator": user["email"],
+            "creator_name": f"{user.get('first_name', '')} {user.get('last_name', '')}".strip(),
+            "collaborators": task_data.get("collaborators", []),
+        }
     )
-
-    if "collaborators" not in task_data or task_data["collaborators"] is None:
-        task_data["collaborators"] = []
 
     if files:
         task_data["recurso"] = encode_files_to_base64(files)
 
+    print(f"[POST /tasks] Datos para nueva tarea: {task_data}")
     nueva_tarea = await create_task(task_data)
-    if nueva_tarea:
-        return nueva_tarea
-    raise HTTPException(400, "Algo salió mal al crear la tarea")
+    print(f"[POST /tasks] Tarea creada: {nueva_tarea}")
+    return (
+        nueva_tarea
+        if nueva_tarea
+        else HTTPException(400, "Algo salió mal al crear la tarea")
+    )
 
-# ===================== NUEVA RUTA PATCH PARA ACTUALIZAR SOLO STATUS =====================
-@task.patch("/api/tasks/{id}/status", response_model=Task)
+
+# ===================== PATCH STATUS =====================
+@task.patch("/api/tasks/{id}/status")
 async def patch_task_status(
     id: str,
-    status_data: dict = Body(...),  # espera {"status": "nuevo_estado"}
+    status_data: dict = Body(...),
     user: dict = Depends(get_current_user),
 ):
-    existing_task = await get_one_task_id(id)
+    print(f"[PATCH /tasks/{id}/status] Usuario: {user['email']} - Datos: {status_data}")
+
+    # ✅ Añadido user_email y user_id
+    existing_task = await get_one_task_id(
+        id, user_email=user["email"], user_id=user["id"]
+    )
+    print(f"[PATCH /tasks/{id}/status] Tarea original: {existing_task}")
+
     if not existing_task:
         raise HTTPException(404, f"Tarea con id {id} no encontrada")
 
     permission = get_permission(existing_task, user["email"])
+    print(f"[PATCH /tasks/{id}/status] Permiso del usuario: {permission}")
+
     if permission not in ["write", "admin"]:
         raise HTTPException(403, "No tienes permiso para cambiar el estado")
 
@@ -216,7 +238,31 @@ async def patch_task_status(
         raise HTTPException(400, "Se requiere el nuevo estado ('status')")
 
     updated = await update_task_status(id, new_status)
-    if updated:
-        return updated
+    print(f"[PATCH /tasks/{id}/status] Tarea actualizada: {updated}")
+    return updated if updated else HTTPException(400, "No se pudo actualizar el estado")
 
-    raise HTTPException(400, "No se pudo actualizar el estado de la tarea")
+
+# ===================== TAREAS POR PROYECTO =====================
+@task.get("/api/tasks/by-project/{project_id}")
+async def get_tasks_by_project(project_id: str, user: dict = Depends(get_current_user)):
+    print(f"[GET /tasks/by-project/{project_id}] Usuario: {user['email']}")
+    try:
+        query = {
+            "projectId": ObjectId(project_id),
+            "$or": [
+                {"creator": user["email"]},
+                {"collaborators": {"$elemMatch": {"email": user["email"]}}},
+            ],
+        }
+
+        tasks = []
+        async for doc in collection.find(query):
+            print(f"[GET /tasks/by-project/{project_id}] Tarea encontrada: {doc}")
+            serialized = serialize_task(doc)  # Convertir ObjectId a str
+            tasks.append(serialized)
+
+        print(f"[GET /tasks/by-project/{project_id}] Total tareas: {len(tasks)}")
+        return tasks
+    except Exception as e:
+        print(f"[ERROR] Error en /tasks/by-project: {e}")
+        raise HTTPException(status_code=500, detail=str(e))

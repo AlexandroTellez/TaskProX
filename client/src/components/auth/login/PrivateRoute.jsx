@@ -12,7 +12,7 @@ export default function PrivateRoute() {
                 const token = getToken();
 
                 if (!token) {
-                    console.warn('🔒 No hay token. Redirigiendo a login.');
+                    console.warn(' No hay token. Redirigiendo a login.');
                     setAuthStatus('unauthenticated');
                     return;
                 }
@@ -20,7 +20,7 @@ export default function PrivateRoute() {
                 await getCurrentUser();
                 setAuthStatus('authenticated');
             } catch (err) {
-                console.error('❌ Error en validación de sesión:', err);
+                console.error(' Error en validación de sesión:', err);
                 removeToken();
                 setAuthStatus('unauthenticated');
             }

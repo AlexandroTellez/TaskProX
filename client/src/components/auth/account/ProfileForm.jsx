@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 import { deleteAccount, getCurrentUser, updateProfile } from "../../../api/auth";
 
 const ProfileForm = () => {
+    // Estado del formulario
     const [formData, setFormData] = useState({
         first_name: "",
         last_name: "",
@@ -24,6 +25,7 @@ const ProfileForm = () => {
     const [loading, setLoading] = useState(false);
     const [previewImage, setPreviewImage] = useState(null);
 
+    // Al montar el componente, obtener los datos actuales del usuario
     useEffect(() => {
         const fetchUser = async () => {
             try {
@@ -45,10 +47,12 @@ const ProfileForm = () => {
         fetchUser();
     }, []);
 
+    // Actualiza el estado del formulario cuando cambia un campo
     const handleChange = (field, value) => {
         setFormData((prev) => ({ ...prev, [field]: value }));
     };
 
+    // Guarda los cambios realizados en el perfil
     const handleSave = async () => {
         const formDataCopy = { ...formData };
         delete formDataCopy.profile_image;
@@ -84,6 +88,7 @@ const ProfileForm = () => {
         }
     };
 
+    // Confirma y elimina la cuenta del usuario
     const handleDelete = async () => {
         Modal.confirm({
             title: "¿Estás seguro de eliminar tu cuenta?",
@@ -102,6 +107,7 @@ const ProfileForm = () => {
         });
     };
 
+    // Elimina la imagen de perfil cargada
     const handleRemoveImage = () => {
         setFormData((prev) => ({
             ...prev,
@@ -113,7 +119,7 @@ const ProfileForm = () => {
     return (
         <div className="w-full bg-[#f5f5f6] dark:bg-[#2a2e33] text-black dark:text-white rounded-lg space-y-6 p-4 overflow-x-auto overflow-y-visible min-h-[400px]">
 
-            {/* Imagen + título centrado */}
+            {/* Vista previa de la imagen de perfil + acciones */}
             <div className="flex flex-col items-center justify-center gap-4 mb-6 text-center">
                 {previewImage || (formData.profile_image && typeof formData.profile_image === "string") ? (
                     <img
@@ -123,6 +129,7 @@ const ProfileForm = () => {
                     />
                 ) : null}
 
+                {/* Subida de nueva imagen de perfil */}
                 <Upload
                     beforeUpload={(file) => {
                         const allowedTypes = [
@@ -157,18 +164,20 @@ const ProfileForm = () => {
                     </Button>
                 </Upload>
 
+                {/* Eliminar imagen cargada */}
                 {(previewImage || formData.profileImage) && (
                     <Button icon={<CloseCircleOutlined />} onClick={handleRemoveImage} danger size="small">
                         Eliminar imagen
                     </Button>
                 )}
 
+                {/* Nombre completo del usuario */}
                 <h2 className="text-3xl font-bold text-black dark:text-white mt-4">
                     {formData.first_name} {formData.last_name}
                 </h2>
             </div>
 
-            {/* Datos del perfil */}
+            {/* Campos del formulario */}
             <Row gutter={[16, 16]}>
                 <Col xs={24} md={12}>
                     <label className="inline-block font-medium mb-1 dark:text-white w-fit">Nombre</label>
@@ -235,6 +244,7 @@ const ProfileForm = () => {
                 </Col>
             </Row>
 
+            {/* Botones de acción */}
             <div className="flex flex-wrap gap-4 justify-end mt-8">
                 <Button
                     icon={<SaveOutlined />}

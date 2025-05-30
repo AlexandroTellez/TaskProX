@@ -9,8 +9,8 @@ function Login() {
     const navigate = useNavigate();
 
     /**
-     * Maneja el envío del formulario de login.
-     * Guarda el estado del checkbox "Recuérdame" y redirige al dashboard.
+     * Envía los datos de inicio de sesión.
+     * Si es exitoso, guarda la opción "Recuérdame" y redirige al dashboard.
      */
     const handleLogin = async ({ email, password, rememberMe }) => {
         try {
@@ -29,19 +29,19 @@ function Login() {
     };
 
     /**
-     * Verifica si el usuario ya tiene una sesión activa al cargar el componente.
-     * Si el token existe y es válido, redirige automáticamente al dashboard.
+     * Comprueba si ya hay una sesión activa al montar el componente.
+     * Si el token es válido, redirige automáticamente al dashboard.
      */
     useEffect(() => {
         const validateSession = async () => {
-            const token = getToken(); // Verifica en localStorage o sessionStorage
+            const token = getToken(); // Busca en localStorage o sessionStorage
             if (!token) return;
 
             try {
                 await getCurrentUser();
                 navigate('/dashboard');
             } catch (err) {
-                // Token inválido o expirado: no redirigimos
+                // Si el token es inválido o ha expirado, no se redirige
             }
         };
 

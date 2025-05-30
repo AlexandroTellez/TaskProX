@@ -6,6 +6,10 @@ import RegisterForm from '../../components/auth/login/RegisterForm';
 function Register() {
     const navigate = useNavigate();
 
+    /**
+     * Envía los datos del formulario de registro al backend.
+     * Si se registra correctamente, muestra un mensaje y redirige al login.
+     */
     const handleRegister = async (formData) => {
         try {
             await registerUser(formData);
