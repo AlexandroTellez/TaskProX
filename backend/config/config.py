@@ -11,19 +11,20 @@ load_dotenv()
 ENV = os.getenv("ENV", "development")
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
 
-# Lista dinámica de orígenes permitidos (usada en main.py)
-if ENV == "production":
-    ALLOWED_ORIGINS = ["https://task-pro-x.vercel.app"]
-else:
-    ALLOWED_ORIGINS = ["http://localhost:5173"]
+# ================== CORS – Orígenes permitidos ==================
+# Permitir múltiples orígenes, tanto para desarrollo como producción
+ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "https://task-pro-x.vercel.app",  # Reemplaza si usas dominio propio
+]
 
 # ================== JWT CONFIG ==================
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = "HS256"
 
 # Expiraciones personalizadas
-ACCESS_TOKEN_EXPIRE_MINUTES_DEFAULT = 480  # 8 horas para usuarios sin "recuérdame"
-ACCESS_TOKEN_EXPIRE_MINUTES_REMEMBER = 43200  # 30 días para usuarios con "recuérdame"
+ACCESS_TOKEN_EXPIRE_MINUTES_DEFAULT = 480  # 8 horas
+ACCESS_TOKEN_EXPIRE_MINUTES_REMEMBER = 43200  # 30 días
 
 if not SECRET_KEY:
     raise ValueError("SECRET_KEY no está definido en el archivo .env")
