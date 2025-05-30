@@ -47,7 +47,7 @@ async def get_all_projects(filters: dict = None):
         {"collaborators": {"$elemMatch": {"email": user_email}}},
     ]
 
-    # ================== 🔁 Obtener projectId de tareas individuales ==================
+    # ================== Obtener projectId de tareas individuales ==================
     task_project_ids = set()
     task_cursor = task_collection.find({"collaborators.email": user_email})
     async for task in task_cursor:

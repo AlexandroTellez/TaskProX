@@ -152,7 +152,8 @@ const TaskKanbanBoard = ({ tasks, userEmail, onDuplicate, onDelete, onStatusChan
                     </details>
                 )}
 
-                <div className="mt-3">
+                <div className="flex flex-wrap gap-2 mt-3 w-full justify-start">
+
                     <TaskActions
                         task={task}
                         userEmail={userEmail}
@@ -168,7 +169,7 @@ const TaskKanbanBoard = ({ tasks, userEmail, onDuplicate, onDelete, onStatusChan
 
     return (
         <div className="overflow-x-auto w-full">
-            <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-6 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-2 gap-4">
                 {allStatuses.map((status) => (
                     <div key={status} id={`drop-${status}`} className="bg-gray-100 dark:bg-[#2a2e33] p-3 rounded">
                         <h3 className="text-center text-sm font-bold text-black dark:text-white mb-2">

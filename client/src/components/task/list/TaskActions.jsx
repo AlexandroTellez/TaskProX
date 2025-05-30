@@ -22,7 +22,7 @@ const TaskActions = ({ task, userEmail, projectId, onDuplicate, onDelete, permis
     };
 
     return (
-        <div className="flex items-center justify-center gap-2 mt-3">
+        <div className="flex flex-wrap gap-2 mt-3 w-full justify-start">
             {(permission === 'write' || permission === 'admin') && (
                 <Button
                     icon={<EditOutlined />}
