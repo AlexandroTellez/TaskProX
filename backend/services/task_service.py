@@ -109,9 +109,7 @@ async def get_all_tasks(filters: dict):
         pid = project["_id"]
         project_ids.append(pid)
 
-        # Convertimos el ObjectId a string para el diccionario de permisos
         pid_str = str(pid)
-
         if project.get("user_id") == user_id:
             project_permissions[pid_str] = "admin"
         else:
@@ -127,19 +125,39 @@ async def get_all_tasks(filters: dict):
     if project_ids:
         base_conditions.append({"projectId": {"$in": project_ids}})
 
-    # === Si se filtra por un projectId específico, no limitamos por permisos del proyecto ===
+    # === Si se filtra por un projectId específico, ajustamos la lógica para incluir tareas si tiene acceso al proyecto ===
     if project_id:
         try:
             project_oid = ObjectId(project_id)
-            query["$and"] = [
-                {"projectId": project_oid},
-                {
-                    "$or": [
-                        {"creator": user_email},
-                        {"collaborators": {"$elemMatch": {"email": user_email}}},
-                    ]
-                },
-        ]
+            query["projectId"] = project_oid
+
+            has_project_access = False
+            project_doc = await project_collection.find_one({"_id": project_oid})
+
+            if project_doc:
+                if project_doc.get("user_id") == user_id:
+                    has_project_access = True
+                else:
+                    for col in project_doc.get("collaborators", []):
+                        if col["email"] == user_email:
+                            has_project_access = True
+                            break
+
+            print(
+                f"[get_all_tasks] ¿Usuario tiene acceso al proyecto {project_id}? {has_project_access}"
+            )
+
+            if not has_project_access:
+                # Si no tiene acceso directo al proyecto, limitar tareas visibles
+                query["$and"] = [
+                    {"projectId": project_oid},
+                    {
+                        "$or": [
+                            {"creator": user_email},
+                            {"collaborators": {"$elemMatch": {"email": user_email}}},
+                        ]
+                    },
+                ]
         except Exception as e:
             print(f"[ERROR] ID de proyecto inválido: {project_id} -> {e}")
             query["$or"] = base_conditions
