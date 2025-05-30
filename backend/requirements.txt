@@ -6,3 +6,4 @@ python-dotenv
 passlib[bcrypt]
 pydantic[email]
 python-dateutil
+aiosmtplib
