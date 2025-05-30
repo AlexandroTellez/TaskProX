@@ -3,7 +3,14 @@ import esES from 'antd/es/locale/es_ES';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useMediaQuery } from 'react-responsive';
 import { useSearchParams } from 'react-router-dom';
-import { createTask, deleteTask } from '../../api/tasks';
+import {
+    createTask,
+    deleteTask,
+    fetchTasksByProject,
+    fetchTasksForCollaboratorByProject,
+    fetchTask,
+    updateTask,
+} from '../../api/tasks';
 import dayjs from '../../utils/dayjsConfig';
 import TaskFilters from './list/TaskFilters';
 import TaskKanbanBoard from './list/TaskKanbanBoard';
@@ -11,14 +18,45 @@ import TaskMobileCard from './list/TaskMobileCard';
 import TaskTable from './list/TaskTable';
 import { getPermission } from './list/utils';
 
-const TaskList = ({ tasks, projectId, onTaskChanged, kanban = false, projectPermission = null }) => {
+const TaskList = ({ projectId, kanban = false, projectPermission = null }) => {
     const [searchParams, setSearchParams] = useSearchParams();
     const user = JSON.parse(localStorage.getItem('user')) || {};
     const userFullName = `${user.nombre || ''} ${user.apellidos || ''}`.trim();
     const userEmail = user.email || '';
     const isMobile = useMediaQuery({ maxWidth: 1540 });
 
-    // Ref para detectar overflow horizontal en tabla
+    const [localTasks, setLocalTasks] = useState([]);
+
+    // ===================== Actualizar una tarea específica localmente =====================
+    const updateTaskInLocalState = (updatedTask) => {
+        setLocalTasks((prevTasks) =>
+            prevTasks.map((task) =>
+                (task._id || task.id) === (updatedTask._id || updatedTask.id) ? updatedTask : task
+            )
+        );
+    };
+
+    // ===================== Cargar tareas según permisos del proyecto =====================
+    const loadTasks = async () => {
+        try {
+            let result;
+            if (projectPermission) {
+                result = await fetchTasksByProject(projectId);
+            } else {
+                result = await fetchTasksForCollaboratorByProject(projectId);
+            }
+            setLocalTasks(Array.isArray(result.data) ? result.data : []);
+        } catch (err) {
+            console.error('Error al cargar tareas:', err);
+            message.error('Error al cargar tareas');
+        }
+    };
+
+    useEffect(() => {
+        loadTasks();
+    }, [projectId]);
+
+    // ===================== Scroll horizontal para tabla =====================
     const tableContainerRef = useRef(null);
     const [forceMobileView, setForceMobileView] = useState(false);
 
@@ -34,6 +72,7 @@ const TaskList = ({ tasks, projectId, onTaskChanged, kanban = false, projectPerm
         return () => window.removeEventListener('resize', checkOverflow);
     }, []);
 
+    // ===================== Filtros =====================
     const [filters, setFilters] = useState({
         title: searchParams.get('title') || '',
         creator: searchParams.get('creator') || '',
@@ -60,8 +99,9 @@ const TaskList = ({ tasks, projectId, onTaskChanged, kanban = false, projectPerm
         setSearchParams(params);
     }, [filters, setSearchParams]);
 
+    // ===================== Preparar tareas con permisos y fechas =====================
     const parsedTasks = useMemo(() => {
-        return tasks.map((task) => {
+        return localTasks.map((task) => {
             const taskId = task._id || task.id;
             const permission = getPermission(task, userEmail);
             return {
@@ -72,8 +112,9 @@ const TaskList = ({ tasks, projectId, onTaskChanged, kanban = false, projectPerm
                 permission,
             };
         });
-    }, [tasks, userEmail]);
+    }, [localTasks, userEmail]);
 
+    // ===================== Aplicar filtros =====================
     const filteredTasks = useMemo(() => {
         return parsedTasks.filter((task) => {
             const matchesTitle = filters.title
@@ -106,11 +147,12 @@ const TaskList = ({ tasks, projectId, onTaskChanged, kanban = false, projectPerm
         });
     }, [parsedTasks, filters]);
 
+    // ===================== Acciones =====================
     const handleDelete = async (id) => {
         try {
             await deleteTask(id);
             message.success('Tarea eliminada');
-            onTaskChanged && onTaskChanged();
+            loadTasks();
         } catch {
             message.error('Error al eliminar la tarea');
         }
@@ -139,13 +181,32 @@ const TaskList = ({ tasks, projectId, onTaskChanged, kanban = false, projectPerm
 
             await createTask(duplicatedTask);
             message.success('Tarea duplicada correctamente');
-            onTaskChanged && onTaskChanged();
+            loadTasks();
         } catch (error) {
             console.error('Error al duplicar:', error);
             message.error('Error al duplicar la tarea');
         }
     };
 
+    const handleStatusChange = async (taskId, newStatus) => {
+        try {
+            const response = await updateTask(taskId, { status: newStatus });
+            const updatedTask = response.data;
+
+            // Actualiza solo esa tarea en el estado local
+            updateTaskInLocalState(updatedTask);
+
+            message.success('Estado actualizado');
+        } catch (err) {
+            console.error('Error al actualizar estado:', err);
+            message.error('Error al actualizar el estado');
+        }
+    };
+
+
+
+
+    // ===================== Filtros UI =====================
     const handleFilterChange = (field, value) => {
         setFilters((prev) => ({ ...prev, [field]: value }));
     };
@@ -155,11 +216,7 @@ const TaskList = ({ tasks, projectId, onTaskChanged, kanban = false, projectPerm
         setSearchParams({});
     };
 
-    const handleStatusChange = (taskId, newStatus) => {
-        message.success('Estado actualizado');
-        onTaskChanged && onTaskChanged();
-    };
-
+    // ===================== Renderizado =====================
     return (
         <ConfigProvider locale={esES}>
             <div className="min-w-0 w-full overflow-auto bg-gray-100 dark:bg-[#2a2e33] text-black dark:text-white rounded-lg space-y-6 p-4">
@@ -168,11 +225,13 @@ const TaskList = ({ tasks, projectId, onTaskChanged, kanban = false, projectPerm
                 {kanban ? (
                     <TaskKanbanBoard
                         tasks={filteredTasks}
+                        setTasks={setLocalTasks} // pasa setTasks para actualización por arrastre
                         userEmail={userEmail}
                         onDuplicate={handleDuplicate}
                         onDelete={handleDelete}
                         onStatusChange={handleStatusChange}
                         projectId={projectId}
+                        onTaskChanged={updateTaskInLocalState}  //  Actualiza solo la tarea
                     />
                 ) : (isMobile || forceMobileView) ? (
                     <TaskMobileCard

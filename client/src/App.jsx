@@ -6,6 +6,8 @@ import {
   useLocation,
   Navigate,
 } from 'react-router-dom';
+import { App as AntdApp, ConfigProvider } from 'antd';
+import esES from 'antd/es/locale/es_ES';
 
 import TaskForm from './components/task/TaskForm';
 import Dashboard from './pages/dashboard/Dashboard';
@@ -30,49 +32,53 @@ function AppContent() {
   }, [location]);
 
   return (
-      <Routes>
-        {/* Ruta raíz redirige según autenticación */}
-        <Route
-          path="/"
-          element={
-            getToken()
-              ? <Navigate to="/dashboard" replace />
-              : <Navigate to="/login" replace />
-          }
-        />
+    <Routes>
+      {/* Ruta raíz redirige según autenticación */}
+      <Route
+        path="/"
+        element={
+          getToken()
+            ? <Navigate to="/dashboard" replace />
+            : <Navigate to="/login" replace />
+        }
+      />
 
-        {/* Rutas públicas */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/legal/terminos" element={<Terms />} />
-        <Route path="/legal/privacidad" element={<Privacy />} />
+      {/* Rutas públicas */}
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/legal/terminos" element={<Terms />} />
+      <Route path="/legal/privacidad" element={<Privacy />} />
 
-        {/* Rutas protegidas con layout */}
-        <Route element={<PrivateRoute />}>
-          <Route element={<DashboardLayout />}>
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/proyectos" element={<Proyectos />} />
-            <Route path="/calendario" element={<Calendario />} />
-            <Route path="/cuenta" element={<Cuenta />} />
-            <Route path="/tasks/new" element={<TaskForm mode="create" />} />
-            <Route path="/tasks/:id" element={<TaskForm mode="view" />} />
-            <Route path="/tasks/:id/edit" element={<TaskForm mode="edit" />} />
-          </Route>
+      {/* Rutas protegidas con layout */}
+      <Route element={<PrivateRoute />}>
+        <Route element={<DashboardLayout />}>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/proyectos" element={<Proyectos />} />
+          <Route path="/calendario" element={<Calendario />} />
+          <Route path="/cuenta" element={<Cuenta />} />
+          <Route path="/tasks/new" element={<TaskForm mode="create" />} />
+          <Route path="/tasks/:id" element={<TaskForm mode="view" />} />
+          <Route path="/tasks/:id/edit" element={<TaskForm mode="edit" />} />
         </Route>
+      </Route>
 
-        {/* Ruta por defecto (catch-all) */}
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
-      </Routes>
+      {/* Ruta por defecto */}
+      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+    </Routes>
   );
 }
 
 function App() {
   return (
-    <BrowserRouter>
-      <AppContent />
-    </BrowserRouter>
+    <ConfigProvider locale={esES}>
+      <AntdApp> 
+        <BrowserRouter>
+          <AppContent />
+        </BrowserRouter>
+      </AntdApp>
+    </ConfigProvider>
   );
 }
 
