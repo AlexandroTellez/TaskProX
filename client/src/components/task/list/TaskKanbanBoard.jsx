@@ -1,14 +1,8 @@
-import { useEffect } from 'react';
-import { useMediaQuery } from 'react-responsive'; // ✅ Importa hook
-import {
-    draggable,
-    dropTargetForElements,
-    monitorForElements,
-} from '@atlaskit/pragmatic-drag-and-drop/element/adapter';
+import { useMediaQuery } from 'react-responsive';
 import TaskCard from '../TaskCard';
 import { getStatusTag } from './utils';
 
-// ===================== Estados predefinidos del tablero =====================
+// ========== Estados predefinidos que se usarán como columnas del tablero ==========
 const predefinedStatuses = [
     'pendiente',
     'en espera',
@@ -20,6 +14,7 @@ const predefinedStatuses = [
 
 const TaskKanbanBoard = ({
     tasks,
+    setTasks,
     userEmail,
     onDuplicate,
     onDelete,
@@ -27,6 +22,8 @@ const TaskKanbanBoard = ({
     projectId,
     onTaskChanged,
 }) => {
+    const isSmallScreen = useMediaQuery({ maxWidth: 1540 });
+
     const taskStatuses = tasks
         .map((t) => t.status?.toLowerCase().trim())
         .filter(Boolean);
@@ -42,70 +39,48 @@ const TaskKanbanBoard = ({
             'read',
     }));
 
-    // ✅ Detectar si la pantalla es menor a 1540px
-    const isSmallScreen = useMediaQuery({ maxWidth: 1540 });
+    const handleTaskChanged = async (updatedTask) => {
+        if (!updatedTask) {
+            if (onTaskChanged) await onTaskChanged();
+            return;
+        }
 
-    useEffect(() => {
-        monitorForElements();
-        allStatuses.forEach((status) => {
-            const zone = document.getElementById(`drop-${status}`);
-            if (zone) {
-                dropTargetForElements({
-                    element: zone,
-                    getData: () => ({ type: 'status-zone', status }),
-                    onDrop: (args) => {
-                        const taskId = args.source.data.taskId;
-                        onStatusChange(taskId, status);
-                    },
-                });
-            }
-        });
-    }, [allStatuses, onStatusChange]);
+        setTasks((prevTasks) =>
+            prevTasks.map((task) =>
+                task.id === updatedTask.id || task._id === updatedTask.id
+                    ? updatedTask
+                    : task
+            )
+        );
+    };
+
 
     return (
         <div className="w-full">
-            <div
-                className={`grid grid-cols-1 ${isSmallScreen ? 'md:grid-cols-2' : 'lg:grid-cols-3'
-                    } gap-4 overflow-x-auto px-2`}
-            >
+            <div className={`grid grid-cols-1 ${isSmallScreen ? 'md:grid-cols-2' : 'lg:grid-cols-3'} gap-4 overflow-x-auto px-2`}>
                 {allStatuses.map((status) => {
                     const normalizedStatus = status.toLowerCase().trim();
 
                     return (
                         <div
                             key={status}
-                            id={`drop-${status}`}
                             className="flex-shrink-0 w-full lg:min-w-[300px] bg-gray-100 dark:bg-[#2a2e33] p-3 rounded"
                         >
-                            <div className="text-center mb-2">
-                                {getStatusTag(status)}
-                            </div>
+                            <div className="text-center mb-2">{getStatusTag(status)}</div>
 
                             <div className="space-y-2">
                                 {tasksWithPermissions
                                     .filter((t) => t.status?.toLowerCase().trim() === normalizedStatus)
                                     .map((task) => {
                                         const taskId = task._id || task.id;
-                                        const canEdit = task.effective_permission !== 'read';
 
                                         return (
-                                            <div
-                                                key={taskId}
-                                                ref={(el) =>
-                                                    el &&
-                                                    canEdit &&
-                                                    draggable({
-                                                        element: el,
-                                                        getInitialData: () => ({
-                                                            type: 'task',
-                                                            taskId,
-                                                        }),
-                                                    })
-                                                }
-                                            >
+                                            <div key={taskId}>
                                                 <TaskCard
                                                     task={task}
-                                                    onTaskChanged={onTaskChanged}
+                                                    onTaskChanged={handleTaskChanged}
+                                                    onDuplicate={onDuplicate}
+                                                    projectId={projectId}
                                                 />
                                             </div>
                                         );

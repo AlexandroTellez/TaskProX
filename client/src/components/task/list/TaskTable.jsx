@@ -163,7 +163,7 @@ const TaskTable = ({ tasks, userEmail, onDuplicate, onDelete, projectId }) => {
 
     const tableData = tasks.map((task) => ({
         ...task,
-        key: task._id,
+        key: task.id || task._id,
         permission: getPermission(task, userEmail),
     }));
 

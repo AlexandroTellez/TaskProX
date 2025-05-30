@@ -18,25 +18,22 @@ import dayjs from 'dayjs';
 const { Title, Paragraph } = Typography;
 
 const Proyectos = () => {
-    // Estados para proyectos, proyecto seleccionado, tareas y vista Kanban/tabla
     const [projects, setProjects] = useState([]);
     const [selectedProject, setSelectedProject] = useState(null);
     const [tasks, setTasks] = useState([]);
-    const [isKanbanView, setIsKanbanView] = useState(false);
+    const [searchParams, setSearchParams] = useSearchParams(); // <-- para leer/escribir en la URL
     const navigate = useNavigate();
-    const [searchParams] = useSearchParams(); // <-- Para leer ?projectId
 
-    // Usuario actual almacenado en localStorage
+    // Leer el modo de vista desde la URL (?view=kanban)
+    const viewMode = searchParams.get("view");
+    const [isKanbanView, setIsKanbanView] = useState(viewMode === "kanban");
+
     const user = JSON.parse(localStorage.getItem('user'));
     const userEmail = user?.email || '';
 
-    // Función para obtener identificador del proyecto (compatible con _id o id)
     const getProjectId = (project) => project?._id || project?.id;
-
-    // Extraemos ID del proyecto seleccionado para facilitar uso
     const selectedProjectId = getProjectId(selectedProject);
 
-    // Cargar proyectos y seleccionar según URL o el primero
     const loadProjects = async () => {
         try {
             const filters = {
@@ -47,9 +44,8 @@ const Proyectos = () => {
 
             setProjects(projects);
 
-            const urlProjectId = searchParams.get('projectId'); // <-- Leemos de la URL
+            const urlProjectId = searchParams.get('projectId');
             if (!selectedProject && projects.length > 0) {
-                // Si hay ID en URL, buscarlo y seleccionar
                 const found = projects.find(p => getProjectId(p) === urlProjectId);
                 setSelectedProject(found || projects[0]);
             }
@@ -61,7 +57,6 @@ const Proyectos = () => {
         }
     };
 
-    // Cargar tareas del proyecto según permisos
     const loadTasks = async (projectId) => {
         if (!projectId || typeof projectId !== 'string' || projectId.toLowerCase() === 'none') {
             console.warn('ID de proyecto inválido para cargar tareas:', projectId);
@@ -84,22 +79,17 @@ const Proyectos = () => {
                 tasksData = Array.isArray(res.data) ? res.data : [];
             }
 
-            console.log("📦 Tareas cargadas:", tasksData); // Línea para depurar
-
             setTasks(tasksData);
-
         } catch (err) {
             console.error('Error al obtener tareas:', err);
             setTasks([]);
         }
     };
 
-    // Cargar proyectos al montar componente
     useEffect(() => {
         loadProjects();
     }, []);
 
-    // Cargar tareas cuando cambia el proyecto seleccionado
     useEffect(() => {
         if (selectedProject && selectedProjectId && typeof selectedProjectId === 'string') {
             loadTasks(selectedProjectId);
@@ -108,7 +98,6 @@ const Proyectos = () => {
         }
     }, [selectedProject, selectedProjectId]);
 
-    // Actualizar tareas localmente al cambiar el estado
     const handleStatusChange = (taskId, newStatus) => {
         const updatedTasks = tasks.map(task =>
             task._id === taskId ? { ...task, status: newStatus } : task
@@ -116,7 +105,17 @@ const Proyectos = () => {
         setTasks(updatedTasks);
     };
 
-    // Eliminar tarea y recargar tareas del proyecto
+    const updateTaskInLocalState = (updatedTask) => {
+        if (!updatedTask || !updatedTask._id) return;
+
+        setTasks((prevTasks) =>
+            prevTasks.map((task) =>
+                task._id === updatedTask._id ? updatedTask : task
+            )
+        );
+    };
+
+
     const handleDelete = async (id) => {
         try {
             await deleteTask(id);
@@ -127,7 +126,6 @@ const Proyectos = () => {
         }
     };
 
-    // Duplicar tarea y recargar tareas
     const handleDuplicate = async (record) => {
         try {
             const userFullName = [user?.nombre, user?.apellidos].filter(Boolean).join(' ');
@@ -159,6 +157,14 @@ const Proyectos = () => {
             console.error('Error al duplicar:', error);
             message.error('Error al duplicar la tarea');
         }
+    };
+
+    // Cambiar entre vista Kanban y Tabla y actualizar la URL
+    const toggleView = () => {
+        const newView = !isKanbanView;
+        setIsKanbanView(newView);
+        searchParams.set("view", newView ? "kanban" : "tabla");
+        setSearchParams(searchParams); // <-- actualiza la URL
     };
 
     return (
@@ -229,7 +235,7 @@ const Proyectos = () => {
 
                     <div className="flex justify-between flex-wrap items-center gap-3 mb-4">
                         <Button
-                            onClick={() => setIsKanbanView(!isKanbanView)}
+                            onClick={toggleView}
                             icon={isKanbanView ? <TableOutlined /> : <AppstoreOutlined />}
                             style={{
                                 background: '#FFFFFF',
@@ -288,6 +294,7 @@ const Proyectos = () => {
                                 onDelete={handleDelete}
                                 onStatusChange={handleStatusChange}
                                 projectId={selectedProjectId}
+                                onTaskChanged={updateTaskInLocalState}
                             />
                         ) : (
                             <TaskList
@@ -313,7 +320,6 @@ const Proyectos = () => {
             )}
         </div>
     );
-
 };
 
 export default Proyectos;
