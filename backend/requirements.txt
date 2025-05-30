@@ -7,3 +7,5 @@ passlib[bcrypt]
 pydantic[email]
 python-dateutil
 aiosmtplib
+python-multipart
+email-validator
