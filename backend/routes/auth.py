@@ -31,6 +31,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 # ========== OBTENER USUARIO ACTUAL DESDE TOKEN ==========
 
+
 async def get_current_user(token: str = Depends(oauth2_scheme)):
     try:
         payload = decode_access_token(token)
@@ -216,5 +217,10 @@ async def update_profile(
 
 @router.delete("/delete")
 async def delete_account(current_user: dict = Depends(get_current_user)):
-    await user_collection.delete_one({"_id": ObjectId(current_user["_id"])})
+    user_id = current_user.get("id")  # ya viene del token como string
+
+    if not user_id:
+        raise HTTPException(status_code=400, detail="ID de usuario no disponible")
+
+    await user_collection.delete_one({"_id": ObjectId(user_id)})
     return {"message": "Cuenta eliminada correctamente"}
