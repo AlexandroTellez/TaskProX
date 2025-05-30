@@ -1,6 +1,6 @@
 import axios from 'axios';
 import api from './axiosConfig';
-import { setToken } from '../utils/auth'; // ✅ Importación del helper actualizado
+import { setToken } from '../utils/auth';
 
 // URL base desde variables de entorno o localhost por defecto
 const API = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -16,7 +16,7 @@ export const loginUser = async ({ email, password, rememberMe }) => {
         const loginResponse = await axios.post(`${API}/auth/login`, { email, password });
         const { access_token } = loginResponse.data;
 
-        // ✅ Guardar token en el almacenamiento correspondiente (según rememberMe)
+        // Guardar token en el almacenamiento correspondiente (según rememberMe)
         setToken(access_token, rememberMe);
 
         // Obtener y guardar datos del usuario

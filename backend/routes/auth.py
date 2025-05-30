@@ -31,7 +31,6 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 # ========== OBTENER USUARIO ACTUAL DESDE TOKEN ==========
 
-
 async def get_current_user(token: str = Depends(oauth2_scheme)):
     try:
         payload = decode_access_token(token)
@@ -47,7 +46,8 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
 
         user["first_name"] = payload.get("first_name", "")
         user["last_name"] = payload.get("last_name", "")
-        user["_id"] = user_id
+        user["id"] = user_id  # Alias para MongoDB _id
+        user.pop("_id", None)  # Eliminar _id para evitar duplicados/confusión
 
         return user
 

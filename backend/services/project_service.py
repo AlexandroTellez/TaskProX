@@ -1,9 +1,37 @@
 from bson import ObjectId
-from models.models import Project
-from config.database import project_collection, collection
-from services.utils import normalize_status
+from bson.errors import InvalidId
+from config.database import (
+    project_collection,
+    collection as task_collection,  # Colección de tareas
+)
 
 
+# ================== Serializador para proyectos ==================
+def serialize_project(document):
+    """
+    Convierte ObjectId a string y garantiza estructura limpia del proyecto.
+    """
+    if not document:
+        return None
+
+    # _id → id
+    if "_id" in document and isinstance(document["_id"], ObjectId):
+        document["id"] = str(document["_id"])
+        document.pop("_id", None)
+
+    if "user_id" in document and isinstance(document["user_id"], ObjectId):
+        document["user_id"] = str(document["user_id"])
+
+    if "collaborators" in document and isinstance(document["collaborators"], list):
+        for colab in document["collaborators"]:
+            for k, v in colab.items():
+                if isinstance(v, ObjectId):
+                    colab[k] = str(v)
+
+    return document
+
+
+# ================== Obtener todos los proyectos accesibles al usuario ==================
 async def get_all_projects(filters: dict = None):
     filters = filters or {}
     query = {}
@@ -11,84 +39,109 @@ async def get_all_projects(filters: dict = None):
     user_id = filters.get("user_id")
     user_email = filters.get("user_email")
 
-    if user_id and user_email:
-        query["$or"] = [
-            {"user_id": user_id},
-            {"collaborators": {"$elemMatch": {"email": user_email}}},
-        ]
+    if not user_id or not user_email:
+        raise ValueError("Faltan datos del usuario (user_id o user_email)")
 
+    base_or = [
+        {"user_id": user_id},
+        {"collaborators": {"$elemMatch": {"email": user_email}}},
+    ]
+
+    # ================== 🔁 Obtener projectId de tareas individuales ==================
+    task_project_ids = set()
+    task_cursor = task_collection.find({"collaborators.email": user_email})
+    async for task in task_cursor:
+        if "projectId" in task:
+            try:
+                # Convertir a ObjectId aunque sea string
+                project_oid = ObjectId(task["projectId"])
+                task_project_ids.add(project_oid)
+            except Exception as e:
+                print(f"⚠️ ProjectId inválido en tarea: {task.get('projectId')} → {e}")
+                continue
+
+    if task_project_ids:
+        base_or.append({"_id": {"$in": list(task_project_ids)}})
+
+    query["$or"] = base_or
+
+    # ================== Filtros opcionales ==================
     if filters.get("name"):
         query["name"] = {"$regex": filters["name"], "$options": "i"}
-
     if filters.get("description"):
         query["description"] = {"$regex": filters["description"], "$options": "i"}
 
+    print(f"[get_all_projects] Consulta: {query}")
+    print(f"[get_all_projects] Proyectos desde tareas individuales: {task_project_ids}")
+
+    # ================== Obtener proyectos ==================
     projects = []
     cursor = project_collection.find(query)
     async for document in cursor:
-        projects.append(Project(**document))
+        project = serialize_project(document)
+
+        # Calcular permiso efectivo
+        if project.get("user_id") == user_id:
+            project["effective_permission"] = "admin"
+        else:
+            permiso = "read"
+            for col in project.get("collaborators", []):
+                if col.get("email") == user_email:
+                    permiso = col.get("permission", "read")
+                    break
+            project["effective_permission"] = permiso
+
+        projects.append(project)
+
+    print(f"[get_all_projects] Total proyectos: {len(projects)}")
     return projects
 
 
+# ================== Obtener un proyecto por ID ==================
 async def get_project_by_id(id: str):
-    return await project_collection.find_one({"_id": ObjectId(id)})
+    if not id or not isinstance(id, str) or id.lower() == "none":
+        raise ValueError(f"ID de proyecto inválido: {id}")
+
+    try:
+        obj_id = ObjectId(id)
+    except (InvalidId, TypeError):
+        raise ValueError(f"ID de proyecto inválido: {id}")
+
+    document = await project_collection.find_one({"_id": obj_id})
+    return serialize_project(document)
 
 
+# ================== Crear un nuevo proyecto ==================
 async def create_project(data: dict):
-    if "collaborators" not in data or data["collaborators"] is None:
-        data["collaborators"] = []
-
+    data.setdefault("collaborators", [])
     result = await project_collection.insert_one(data)
     created = await project_collection.find_one({"_id": result.inserted_id})
-    return Project(**created)
+    return serialize_project(created)
 
 
-async def update_project(id: str, data):
-    if isinstance(data, Project):
-        data = data.model_dump(exclude_none=True)
+# ================== Actualizar proyecto ==================
+async def update_project(id: str, data: dict):
+    if not id or not isinstance(id, str) or id.lower() == "none":
+        raise ValueError(f"ID de proyecto inválido: {id}")
+    try:
+        obj_id = ObjectId(id)
+    except (InvalidId, TypeError):
+        raise ValueError(f"ID de proyecto inválido: {id}")
 
-    await project_collection.update_one({"_id": ObjectId(id)}, {"$set": data})
-    updated = await project_collection.find_one({"_id": ObjectId(id)})
-    return Project(**updated)
+    await project_collection.update_one({"_id": obj_id}, {"$set": data})
+    updated = await project_collection.find_one({"_id": obj_id})
+    return serialize_project(updated)
 
 
+# ================== Eliminar proyecto y sus tareas asociadas ==================
 async def delete_project(id: str):
-    await project_collection.delete_one({"_id": ObjectId(id)})
-    return True
+    if not id or not isinstance(id, str) or id.lower() == "none":
+        raise ValueError(f"ID de proyecto inválido: {id}")
+    try:
+        project_oid = ObjectId(id)
+    except (InvalidId, TypeError):
+        raise ValueError(f"ID de proyecto inválido: {id}")
 
-
-async def get_projects_with_progress(user_id: str = None):
-    query = {"user_id": user_id} if user_id else {}
-    projects_cursor = project_collection.find(query)
-    projects = []
-
-    async for project in projects_cursor:
-        project_id = project["_id"]
-        task_cursor = collection.find({"projectId": project_id, "user_id": user_id})
-        total_tasks = 0
-        completed_tasks = 0
-
-        async for task in task_cursor:
-            total_tasks += 1
-            if normalize_status(task.get("status", "")) == "Completado":
-                completed_tasks += 1
-
-        if total_tasks == 0:
-            status = "Pendiente"
-        elif completed_tasks == total_tasks:
-            status = "Completado"
-        else:
-            status = "En proceso"
-
-        projects.append(
-            {
-                "_id": str(project_id),
-                "name": project.get("name"),
-                "description": project.get(
-                    "description", "No hay descripción disponible"
-                ),
-                "status": status,
-            }
-        )
-
-    return projects
+    await task_collection.delete_many({"projectId": project_oid})
+    result = await project_collection.delete_one({"_id": project_oid})
+    return result.deleted_count == 1

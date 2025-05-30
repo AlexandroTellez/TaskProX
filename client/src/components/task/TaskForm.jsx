@@ -14,6 +14,7 @@ import FormActions from './form/FormActions';
 import FileUploader from './form/FileUploader';
 
 import { createTask, updateTask, deleteTask, fetchTask } from '../../api/tasks';
+import { getPermission } from './list/utils';
 
 function TaskForm() {
     const [taskData, setTaskData] = useState({
@@ -31,6 +32,7 @@ function TaskForm() {
     const [noDeadline, setNoDeadline] = useState(false);
     const [newCollaborator, setNewCollaborator] = useState('');
     const [newPermission, setNewPermission] = useState('read');
+    const [permission, setPermission] = useState('none');
 
     const params = useParams();
     const navigate = useNavigate();
@@ -49,6 +51,11 @@ function TaskForm() {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        if (params.id && permission !== 'write' && permission !== 'admin') {
+            message.error('No tienes permiso para editar esta tarea.');
+            return;
+        }
+
         const prepareDate = (date) => {
             if (!date) return null;
             const dayjsDate = dayjs.isDayjs(date) ? date : dayjs(date);
@@ -58,7 +65,6 @@ function TaskForm() {
         const nuevosArchivos = (taskData.recurso || []).filter(file => file instanceof File);
         const archivosExistentes = (taskData.recurso || []).filter(file => !(file instanceof File));
 
-        // Validar nombres conflictivos
         const archivosInvalidos = nuevosArchivos.filter(file => file.name.startsWith('.'));
         if (archivosInvalidos.length > 0) {
             message.warning('Algunos archivos tienen nombres que comienzan con "." y serán renombrados automáticamente al descargarlos.');
@@ -71,10 +77,13 @@ function TaskForm() {
             collaborators: taskData.collaborators,
             startDate: prepareDate(taskData.startDate),
             deadline: noDeadline ? null : prepareDate(taskData.deadline),
-            recurso: archivosExistentes, // solo los base64 (ya existentes)
+            recurso: archivosExistentes,
         };
 
-        const dataToSend = params.id
+        const validId = params.id && params.id !== 'undefined' && params.id !== 'null' && params.id !== '';
+        const id = validId ? params.id : taskData._id || taskData.id;
+
+        const dataToSend = id
             ? { ...baseData, projectId }
             : {
                 ...baseData,
@@ -84,21 +93,14 @@ function TaskForm() {
             };
 
         try {
-            const formData = new FormData();
-            const jsonData = JSON.stringify(dataToSend);
-            formData.append("task", jsonData);
+            await (id
+                ? updateTask(id, dataToSend, nuevosArchivos)
+                : createTask(dataToSend, nuevosArchivos)
+            );
 
-            nuevosArchivos.forEach((file) => {
-                formData.append("files", file);
-            });
+            if (!id) setPermission('admin');
 
-            if (params.id) {
-                await updateTask(params.id, dataToSend, nuevosArchivos);
-                message.success("Tarea actualizada correctamente");
-            } else {
-                await createTask(dataToSend, nuevosArchivos);
-                message.success("Tarea creada correctamente");
-            }
+            message.success(id ? "Tarea actualizada correctamente" : "Tarea creada correctamente");
             navigate(`/proyectos?projectId=${projectId}`);
         } catch (err) {
             console.error(err);
@@ -107,8 +109,21 @@ function TaskForm() {
     };
 
     const handleDelete = async () => {
+        if (permission !== 'admin') {
+            message.error('No tienes permiso para eliminar esta tarea.');
+            return;
+        }
+
         try {
-            await deleteTask(params.id);
+            const validId = params.id && params.id !== 'undefined' && params.id !== 'null' && params.id !== '';
+            const id = validId ? params.id : taskData._id || taskData.id;
+
+            if (!id) {
+                message.error('ID inválido para eliminar tarea');
+                return;
+            }
+
+            await deleteTask(id);
             message.success('Tarea eliminada correctamente');
             navigate(`/proyectos?projectId=${projectId}`);
         } catch (err) {
@@ -123,23 +138,30 @@ function TaskForm() {
             message.warning('Este colaborador ya está añadido');
             return;
         }
+
         setTaskData((prev) => ({
             ...prev,
             collaborators: [...prev.collaborators, { email: newCollaborator, permission: newPermission }],
         }));
+
         setNewCollaborator('');
         setNewPermission('read');
     };
 
-    const removeCollaborator = (email) => {
+    const removeCollaborator = (id) => {
         setTaskData((prev) => ({
             ...prev,
-            collaborators: prev.collaborators.filter((c) => c.email !== email),
+            collaborators: prev.collaborators.filter((c) => {
+                const identifier = c._id || c.id || c.email;
+                return identifier !== id;
+            }),
         }));
     };
 
     useEffect(() => {
-        if (params.id) {
+        const validId = params.id && params.id !== 'undefined' && params.id !== 'null' && params.id !== '';
+
+        if (validId) {
             fetchTask(params.id)
                 .then((res) => {
                     const processDate = (dateValue) => {
@@ -156,7 +178,14 @@ function TaskForm() {
                         creator: res.data.creator || userEmail,
                         creator_name: res.data.creator_name || userFullName,
                         recurso: res.data.recurso || [],
+                        _id: res.data._id || res.data.id,
                     });
+
+                    //  Validación de permiso obtenido
+                    const perm = getPermission(res.data, userEmail);
+                    const validPerms = ['read', 'write', 'admin'];
+                    const finalPerm = validPerms.includes(perm) ? perm : 'none';
+                    setPermission(finalPerm);
 
                     setNoDeadline(!res.data.deadline);
                 })
@@ -170,8 +199,18 @@ function TaskForm() {
                 creator: userEmail,
                 creator_name: userFullName,
             }));
+            setPermission('admin');
         }
     }, [params.id, userEmail, userFullName]);
+
+
+    if (params.id && permission === 'read') {
+        return (
+            <div className="text-center mt-10 text-xl text-red-500">
+                No tienes permisos para editar esta tarea.
+            </div>
+        );
+    }
 
     return (
         <ConfigProvider locale={esES}>
@@ -188,6 +227,7 @@ function TaskForm() {
                         <TitleInput value={taskData.title} onChange={(val) => handleChange('title', val)} />
                         <DescriptionEditor value={taskData.description} onChange={(val) => handleChange('description', val)} />
                         <CreatorField value={taskData.creator_name || 'Desconocido'} />
+
                         <CollaboratorsSection
                             collaborators={taskData.collaborators}
                             newCollaborator={newCollaborator}
@@ -196,13 +236,15 @@ function TaskForm() {
                             setNewPermission={setNewPermission}
                             addCollaborator={addCollaborator}
                             removeCollaborator={removeCollaborator}
-                            updatePermission={(email, perm) => {
-                                const updated = taskData.collaborators.map((c) =>
-                                    c.email === email ? { ...c, permission: perm } : c
-                                );
+                            updatePermission={(id, perm) => {
+                                const updated = taskData.collaborators.map((c) => {
+                                    const identifier = c._id || c.id || c.email;
+                                    return identifier === id ? { ...c, permission: perm } : c;
+                                });
                                 setTaskData((prev) => ({ ...prev, collaborators: updated }));
                             }}
                         />
+
                         <DatePickers
                             startDate={taskData.startDate}
                             deadline={taskData.deadline}
@@ -210,6 +252,7 @@ function TaskForm() {
                             onChange={handleChange}
                             setNoDeadline={setNoDeadline}
                         />
+
                         <StatusSelector value={taskData.status} onChange={(val) => handleChange('status', val)} />
 
                         <FileUploader
@@ -221,6 +264,7 @@ function TaskForm() {
                             isEditing={!!params.id}
                             onCancel={() => navigate(`/proyectos?projectId=${projectId}`)}
                             onDelete={handleDelete}
+                            canDelete={permission === 'admin'}
                         />
                     </form>
                 </div>

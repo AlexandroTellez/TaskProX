@@ -4,9 +4,10 @@ import { EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
 import logo from "@assets/images/Logo.png";
 
 /**
- * Formulario de inicio de sesión
- * - Guarda el correo si se activa "Recuérdame"
- * - El token se guarda automáticamente en localStorage o sessionStorage desde auth.js
+ * Formulario de inicio de sesión de usuario.
+ * - Si "Recuérdame" está activado, guarda el correo en localStorage.
+ * - El token de autenticación es gestionado desde `auth.js`.
+ * - Requiere aceptar Términos y Política de Privacidad antes de enviar.
  */
 function LoginForm({ onSubmit }) {
     const [email, setEmail] = useState('');
@@ -17,7 +18,7 @@ function LoginForm({ onSubmit }) {
     const [showPassword, setShowPassword] = useState(false);
     const [rememberMe, setRememberMe] = useState(false);
 
-    // Al cargar el componente, restaurar el correo si "Recuérdame" estaba activo
+    // Al montar el componente, recuperar el correo guardado si estaba activado "Recuérdame"
     useEffect(() => {
         const remember = localStorage.getItem("rememberMe") === "true";
         if (remember) {
@@ -27,7 +28,7 @@ function LoginForm({ onSubmit }) {
         }
     }, []);
 
-    // Enviar el formulario de login
+    // Manejador de envío del formulario
     const handleSubmit = async (e) => {
         e.preventDefault();
 
