@@ -84,7 +84,7 @@ const Proyectos = () => {
                 tasksData = Array.isArray(res.data) ? res.data : [];
             }
 
-            console.log("📦 Tareas cargadas:", tasksData); // ⬅️ Añade esta línea para depurar
+            console.log("📦 Tareas cargadas:", tasksData); // Línea para depurar
 
             setTasks(tasksData);
 
@@ -162,7 +162,7 @@ const Proyectos = () => {
     };
 
     return (
-        <div className="w-full bg-gray-100 dark:bg-[#2a2e33] text-black dark:text-white rounded-lg space-y-6 p-4 overflow-x-auto overflow-y-visible">
+        <div className="min-w-full bg-gray-100 dark:bg-[#2a2e33] text-black dark:text-white rounded-lg space-y-6 p-4 overflow-x-auto overflow-y-auto">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                 <Title
                     level={3}
@@ -204,14 +204,12 @@ const Proyectos = () => {
 
             {selectedProject ? (
                 <>
-                    {/* Descripción del proyecto */}
                     {selectedProject.description && (
                         <Paragraph className="italic text-sm text-black dark:text-white mb-4">
                             <span className="underline font-medium">Descripción del proyecto:</span> {selectedProject.description}
                         </Paragraph>
                     )}
 
-                    {/* Colaboradores del proyecto */}
                     <Paragraph className="text-sm text-black dark:text-white mb-4">
                         <span className="underline font-medium">Colaboradores:</span>
                         {selectedProject.collaborators?.length > 0 ? (
@@ -229,8 +227,6 @@ const Proyectos = () => {
                         )}
                     </Paragraph>
 
-
-                    {/* Botones: alternar vista + crear tarea */}
                     <div className="flex justify-between flex-wrap items-center gap-3 mb-4">
                         <Button
                             onClick={() => setIsKanbanView(!isKanbanView)}
@@ -253,7 +249,6 @@ const Proyectos = () => {
                             icon={<PlusOutlined />}
                             onClick={() => {
                                 if (selectedProjectId) {
-                                    // Determinar permiso del usuario sobre el proyecto
                                     let permission = 'read';
                                     if (selectedProject.user_email === userEmail) {
                                         permission = 'admin';
@@ -282,11 +277,9 @@ const Proyectos = () => {
                         >
                             Crear Tarea
                         </Button>
-
                     </div>
 
-                    {/* Vista Kanban o Tabla */}
-                    <div className="rounded-md border dark:border-[#FFFFFF] shadow-md dark:bg-[#2a2e33] p-4 overflow-x-auto overflow-y-visible min-h-[400px]">
+                    <div className="w-full rounded-md border dark:border-[#FFFFFF] shadow-md dark:bg-[#2a2e33] p-4 overflow-x-hidden min-h-[400px]">
                         {isKanbanView ? (
                             <TaskKanbanBoard
                                 tasks={tasks}
@@ -306,7 +299,6 @@ const Proyectos = () => {
                     </div>
                 </>
             ) : (
-                // Vista cuando no hay proyecto seleccionado
                 <div className="flex justify-center items-center mt-12">
                     <div className="text-center">
                         <Empty
@@ -321,6 +313,7 @@ const Proyectos = () => {
             )}
         </div>
     );
+
 };
 
 export default Proyectos;

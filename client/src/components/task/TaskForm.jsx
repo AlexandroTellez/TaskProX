@@ -38,7 +38,8 @@ function TaskForm() {
     const navigate = useNavigate();
     const location = useLocation();
     const queryParams = new URLSearchParams(location.search);
-    const projectId = queryParams.get('projectId');
+    const rawProjectId = queryParams.get('projectId');
+    const projectId = (!rawProjectId || rawProjectId === 'undefined' || rawProjectId === 'null') ? null : rawProjectId;
 
     const user = JSON.parse(localStorage.getItem('user')) || {};
     const userFullName = `${user.nombre || ''} ${user.apellidos || ''}`.trim();
@@ -82,15 +83,17 @@ function TaskForm() {
 
         const validId = params.id && params.id !== 'undefined' && params.id !== 'null' && params.id !== '';
         const id = validId ? params.id : taskData._id || taskData.id;
+        const taskProjectId = taskData.projectId || projectId || null;
 
         const dataToSend = id
-            ? { ...baseData, projectId }
+            ? { ...baseData, projectId: taskProjectId }
             : {
                 ...baseData,
-                projectId: projectId || null,
+                projectId: taskProjectId,
                 creator: userEmail,
                 creator_name: userFullName,
             };
+
 
         try {
             await (id

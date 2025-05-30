@@ -30,7 +30,6 @@ function AppContent() {
   }, [location]);
 
   return (
-    <div className="min-h-screen w-full">
       <Routes>
         {/* Ruta raíz redirige según autenticación */}
         <Route
@@ -66,7 +65,6 @@ function AppContent() {
         {/* Ruta por defecto (catch-all) */}
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
-    </div>
   );
 }
 

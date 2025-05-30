@@ -43,12 +43,6 @@ function descargarArchivo(file) {
 
 // ===================== Componente principal =====================
 const TaskTable = ({ tasks, userEmail, onDuplicate, onDelete, projectId }) => {
-    // Log general para validar permisos al cargar las tareas
-    console.log("🟡 Lista de tareas recibidas:");
-    tasks.forEach((task) => {
-        console.log(`🔹 ${task.title} - Permiso efectivo: ${task.permission}`);
-    });
-
     const columns = [
         {
             title: <div className="text-center w-full dark:text-white">Título</div>,
@@ -151,8 +145,7 @@ const TaskTable = ({ tasks, userEmail, onDuplicate, onDelete, projectId }) => {
             key: 'acciones',
             align: 'center',
             render: (_, task) => {
-                const permission = getPermission(task, userEmail); // 🔧 Aplicar función de permisos
-
+                const permission = getPermission(task, userEmail);
                 return (
                     <TaskActions
                         task={task}
@@ -160,7 +153,8 @@ const TaskTable = ({ tasks, userEmail, onDuplicate, onDelete, projectId }) => {
                         projectId={projectId}
                         onDuplicate={onDuplicate}
                         onDelete={onDelete}
-                        permission={permission} // 🔧 Aquí sí se envía el correcto
+                        permission={permission}
+                        className="flex flex-wrap gap-2 mt-3 w-full justify-start"
                     />
                 );
             },
@@ -170,39 +164,40 @@ const TaskTable = ({ tasks, userEmail, onDuplicate, onDelete, projectId }) => {
     const tableData = tasks.map((task) => ({
         ...task,
         key: task._id,
-        permission: getPermission(task, userEmail), // Añadir permiso aquí también
+        permission: getPermission(task, userEmail),
     }));
 
     return (
-        <div className="overflow-x-auto rounded-md border dark:border-[#FFFFFF] shadow bg-white dark:bg-[#2a2e33]">
-            <Table
-                columns={columns}
-                dataSource={tableData}
-                pagination={false}
-                bordered
-                expandable={{
-                    expandedRowRender: (record) => (
-                        <div
-                            className="prose max-w-none text-black dark:text-white dark:prose-invert"
-                            dangerouslySetInnerHTML={{ __html: record.description }}
-                        />
-                    ),
-                    rowExpandable: (record) =>
-                        record.description && record.description.length > 0,
-                }}
-                scroll={{ x: true }}
-                locale={{
-                    emptyText: (
-                        <Empty
-                            description={
-                                <span className="font-semibold text-white">
-                                    No hay tareas disponibles
-                                </span>
-                            }
-                        />
-                    ),
-                }}
-            />
+        <div className="w-full overflow-x-auto rounded-md border dark:border-white shadow bg-white dark:bg-[#2a2e33]">
+            <div className="min-w-[900px]">
+                <Table
+                    columns={columns}
+                    dataSource={tableData}
+                    pagination={false}
+                    bordered
+                    expandable={{
+                        expandedRowRender: (record) => (
+                            <div
+                                className="prose max-w-none text-black dark:text-white dark:prose-invert"
+                                dangerouslySetInnerHTML={{ __html: record.description }}
+                            />
+                        ),
+                        rowExpandable: (record) =>
+                            record.description && record.description.length > 0,
+                    }}
+                    locale={{
+                        emptyText: (
+                            <Empty
+                                description={
+                                    <span className="font-semibold text-white">
+                                        No hay tareas disponibles
+                                    </span>
+                                }
+                            />
+                        ),
+                    }}
+                />
+            </div>
         </div>
     );
 };
