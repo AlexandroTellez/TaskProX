@@ -13,14 +13,5 @@
                 "distDir": "client/dist"
             }
         }
-    ],
-    "routes": [
-        {
-            "handle": "filesystem"
-        },
-        {
-            "src": "/(.*)",
-            "dest": "/client/index.html"
-        }
     ]
 }
