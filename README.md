@@ -1,4 +1,4 @@
-# TaskProX 
+# ☑️TaskProX 
 
 **TaskProX** is a modern and collaborative task and project management web application. Built with FastAPI, MongoDB, React, TailwindCSS, and Ant Design, it provides teams and individuals with an intuitive platform to organize projects, manage tasks, assign roles, set deadlines, and work efficiently—whether solo or with collaborators.
 
