@@ -85,30 +85,52 @@ npm run dev
 
 ## 🌐 Deployment
 
-- Frontend: Vercel → https://task-pro-x.vercel.app
+- Frontend: Vercel → [task-pro-x.vercel.app](https://task-pro-x.vercel.app).
 
-- Backend: Render or other FastAPI-compatible hosting (HTTPS required for production)
-
+- **Backend**: Deployed on **Render** (in this project), but any FastAPI-compatible hosting with HTTPS will work.
+  
+---
 ## 👤 User Roles & Permissions
 
-| Feature        | Creator   | Admin  | Writer  | Reader | 
-| -------------- | ---------   ------   -------   ------  
-| View Project   | ✅       | ✅     | ✅      | ✅    |
-| Edit Project   | ✅       | ✅     | ✅      | ❌    |
-| Delete Project | ✅       | ✅     | ❌      | ❌    |
-| View Tasks     | ✅       | ✅     | ✅      | ✅    |
-| Edit Tasks     | ✅       | ✅     | ✅      | ❌    |
-| Delete Tasks   | ✅       | ✅     | ❌      | ❌    |
+| Feature        | Creator | Admin | Writer | Reader |
+| -------------- | :-----: | :---: | :----: | :----: |
+| View Project   |    ✅    |   ✅   |    ✅   |    ✅   |
+| Duplicate Tasks   |    ✅    |   ✅   |    ✅   |    ✅  |
+| Edit Project   |    ✅    |   ✅   |    ✅   |    ❌   |
+| Delete Project |    ✅    |   ✅   |    ❌   |    ❌   |
+| View Tasks     |    ✅    |   ✅   |    ✅   |    ✅   |
+| Edit Tasks     |    ✅    |   ✅   |    ✅   |    ❌   |
+| Delete Tasks   |    ✅    |   ✅   |    ❌   |    ❌   |
 
+---
 ## 📸 Screenshots
 
+### 🔐 Login 
+![Login Screenshot](docs/Login.png)
 
+### 📊 Dashboard (Dark Mode)
+![Dashboard Dark](docs/Dashboard-dark.png)
+
+### 📋 Project View – Table (Dark Mode)
+![Projects Table View Dark](docs/Proyectos-vista%20tabla-dark.png)
+
+### 🧩 Project View – Kanban (Dark Mode)
+![Projects Kanban View Dark](docs/Proyectos-Vista-kanban-dark.png)
+
+### 📆 Calendar (Dark Mode)
+![Calendar Dark](docs/Calendario-dark.png)
+
+---
+### 👤 Account Settings (Dark Mode)
+![Account Page Dark](docs/Cuenta-dark.png)
+---
 ## 📄 License
 - This project is licensed under the MIT License.
-
+- 
+---
 ### 6. Contact me 👨‍💻
 
 * **Author**: Alexandro Tellez
 * **Email**: alextellezyanes@gmail.com
 * **LinkedIn**: [Alexandro Tellez](https://www.linkedin.com/in/alex-tellez-y/)
-
+---
