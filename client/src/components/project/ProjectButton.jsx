@@ -45,18 +45,16 @@ const ProjectButton = ({
     const userId = localUser.id || localUser._id;
 
     // ===================== Verificar si usuario es admin =====================
-    const isAdmin = selectedProject?.user_id === userId ||
-        selectedProject?.collaborators?.some(
-            (col) => col.email === userEmail && col.permission === 'admin'
-        );
-
+    const [userIsAdmin, setUserIsAdmin] = useState(false);
     const getProjectId = (project) => project?._id || project?.id;
 
     const showCreateModal = () => {
         form.resetFields();
         setIsEditing(false);
+        setUserIsAdmin(true); // Siempre admin al crear
         setIsModalOpen(true);
     };
+
 
     const showEditModal = () => {
         if (!selectedProject) {
@@ -70,15 +68,19 @@ const ProjectButton = ({
             collaborators: selectedProject.collaborators || [],
         });
 
+        // Evaluar permisos aquí con selectedProject ya disponible
+        const isOwner = selectedProject?.user_id === userId || selectedProject?.userId === userId;
+        const isAdminCollaborator = selectedProject.collaborators?.some(
+            (col) => col.email === userEmail && col.permission === 'admin'
+        );
+        setUserIsAdmin(isOwner || isAdminCollaborator);
+
         setIsEditing(true);
         setIsModalOpen(true);
     };
 
-    const closeModal = () => {
-        setIsModalOpen(false);
-    };
-
     const handleSubmit = async (values) => {
+
         try {
             if (isEditing && selectedProject) {
                 const id = getProjectId(selectedProject);
@@ -155,6 +157,11 @@ const ProjectButton = ({
             message.error('Error al eliminar el proyecto');
             console.error(error);
         }
+    };
+
+    const closeModal = () => {
+        setIsModalOpen(false);
+        setUserIsAdmin(false); // opcional: resetear permisos
     };
 
     const yellowStyle = {
@@ -244,47 +251,69 @@ const ProjectButton = ({
                         </Form.Item>
 
                         {/* === Mostrar sección solo si el usuario es admin === */}
-                        {isAdmin && (
+                        {userIsAdmin && (
                             <Form.List name="collaborators">
                                 {(fields, { add, remove }) => (
                                     <>
                                         <label className="block text-sm font-medium mb-2">
                                             Colaboradores
                                         </label>
-                                        {fields.map(({ key, name, ...restField }) => (
-                                            <Row gutter={8} key={key} className="mb-2">
-                                                <Col span={14}>
-                                                    <Form.Item
-                                                        {...restField}
-                                                        name={[name, 'email']}
-                                                        rules={[{ required: true, message: 'Email requerido' }]}
-                                                    >
-                                                        <Input placeholder="Email del colaborador" />
-                                                    </Form.Item>
-                                                </Col>
-                                                <Col span={8}>
-                                                    <Form.Item
-                                                        {...restField}
-                                                        name={[name, 'permission']}
-                                                        rules={[{ required: true, message: 'Permiso requerido' }]}
-                                                    >
-                                                        <Select placeholder="Permiso">
-                                                            <Select.Option value="read">Ver</Select.Option>
-                                                            <Select.Option value="write">Editar</Select.Option>
-                                                            <Select.Option value="admin">Administrador</Select.Option>
-                                                        </Select>
-                                                    </Form.Item>
-                                                </Col>
-                                                <Col span={2}>
-                                                    <MinusCircleOutlined
-                                                        onClick={() => remove(name)}
-                                                        className="text-red-500 mt-2 cursor-pointer"
-                                                    />
-                                                </Col>
-                                            </Row>
-                                        ))}
+                                        {fields.map(({ key, name, ...restField }) => {
+                                            const collaborators = form.getFieldValue('collaborators') || [];
+                                            const currentEmail = collaborators[name]?.email;
+                                            const isEditingSelf = currentEmail === userEmail;
+
+                                            return (
+                                                <Row gutter={8} key={key} className="mb-2">
+                                                    <Col span={14}>
+                                                        <Form.Item
+                                                            {...restField}
+                                                            name={[name, 'email']}
+                                                            rules={[{ required: true, message: 'Email requerido' }]}
+                                                        >
+                                                            <Input
+                                                                placeholder="Email del colaborador"
+                                                                disabled={!userIsAdmin}
+                                                            />
+                                                        </Form.Item>
+                                                    </Col>
+                                                    <Col span={8}>
+                                                        <Form.Item
+                                                            {...restField}
+                                                            name={[name, 'permission']}
+                                                            rules={[{ required: true, message: 'Permiso requerido' }]}
+                                                        >
+                                                            <Select
+                                                                placeholder="Permiso"
+                                                                disabled={!userIsAdmin || isEditingSelf}
+                                                            >
+                                                                <Select.Option value="read">Ver</Select.Option>
+                                                                <Select.Option value="write">Editar</Select.Option>
+                                                                <Select.Option value="admin">Administrador</Select.Option>
+                                                            </Select>
+                                                        </Form.Item>
+                                                    </Col>
+                                                    <Col span={2}>
+                                                        <MinusCircleOutlined
+                                                            onClick={() => {
+                                                                if (userIsAdmin && !isEditingSelf) remove(name);
+                                                            }}
+                                                            className={`mt-2 cursor-pointer ${userIsAdmin && !isEditingSelf
+                                                                    ? 'text-red-500'
+                                                                    : 'text-gray-400 cursor-not-allowed'
+                                                                }`}
+                                                        />
+                                                    </Col>
+                                                </Row>
+                                            );
+                                        })}
                                         <Form.Item>
-                                            <Button type="dashed" onClick={() => add()} block>
+                                            <Button
+                                                type="dashed"
+                                                onClick={() => add()}
+                                                block
+                                                disabled={!userIsAdmin}
+                                            >
                                                 + Añadir colaborador
                                             </Button>
                                         </Form.Item>

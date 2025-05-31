@@ -252,7 +252,9 @@ function TaskForm() {
                                 });
                                 setTaskData((prev) => ({ ...prev, collaborators: updated }));
                             }}
+                            userPermission={permission}
                         />
+
 
                         <DatePickers
                             startDate={taskData.startDate}
