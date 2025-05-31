@@ -39,17 +39,25 @@ const ProjectButton = ({
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
 
-    // ===================== Obtener ID seguro del proyecto =====================
+    // ===================== Obtener usuario actual =====================
+    const localUser = JSON.parse(localStorage.getItem('user')) || {};
+    const userEmail = localUser.email;
+    const userId = localUser.id || localUser._id;
+
+    // ===================== Verificar si usuario es admin =====================
+    const isAdmin = selectedProject?.user_id === userId ||
+        selectedProject?.collaborators?.some(
+            (col) => col.email === userEmail && col.permission === 'admin'
+        );
+
     const getProjectId = (project) => project?._id || project?.id;
 
-    // ===================== Modal de creación =====================
     const showCreateModal = () => {
         form.resetFields();
         setIsEditing(false);
         setIsModalOpen(true);
     };
 
-    // ===================== Modal de edición =====================
     const showEditModal = () => {
         if (!selectedProject) {
             message.warning('Selecciona un proyecto para editar');
@@ -66,12 +74,10 @@ const ProjectButton = ({
         setIsModalOpen(true);
     };
 
-    // ===================== Cerrar modal =====================
     const closeModal = () => {
         setIsModalOpen(false);
     };
 
-    // ===================== Crear o actualizar proyecto =====================
     const handleSubmit = async (values) => {
         try {
             if (isEditing && selectedProject) {
@@ -92,7 +98,6 @@ const ProjectButton = ({
         }
     };
 
-    // ===================== Duplicar proyecto y tareas =====================
     const handleDuplicate = async () => {
         if (!selectedProject) {
             return message.warning('Selecciona un proyecto para duplicar');
@@ -131,7 +136,6 @@ const ProjectButton = ({
         }
     };
 
-    // ===================== Eliminar proyecto =====================
     const handleDelete = async () => {
         if (!selectedProject) {
             return message.warning('Selecciona un proyecto para eliminar');
@@ -153,7 +157,6 @@ const ProjectButton = ({
         }
     };
 
-    // ===================== Estilos comunes =====================
     const yellowStyle = {
         background: '#FFFFFF',
         borderColor: '#FED36A',
@@ -164,10 +167,8 @@ const ProjectButton = ({
         borderRadius: '6px',
     };
 
-    // ===================== Render UI =====================
     return (
         <>
-            {/* ====== Botones principales ====== */}
             <div className="flex flex-col sm:flex-row flex-wrap gap-2 sm:items-center sm:justify-start">
                 <Button icon={<PlusOutlined />} onClick={showCreateModal} style={yellowStyle}>
                     Crear Proyecto
@@ -211,7 +212,6 @@ const ProjectButton = ({
                 </Popconfirm>
             </div>
 
-            {/* ====== Modal de creación/edición ====== */}
             <ConfigProvider
                 theme={{
                     token: {
@@ -231,7 +231,6 @@ const ProjectButton = ({
                     cancelText="Cancelar"
                 >
                     <Form form={form} layout="vertical" onFinish={handleSubmit}>
-                        {/* Nombre */}
                         <Form.Item
                             label="Nombre del Proyecto"
                             name="name"
@@ -240,58 +239,59 @@ const ProjectButton = ({
                             <Input placeholder="Ej. TaskProX" />
                         </Form.Item>
 
-                        {/* Descripción */}
                         <Form.Item label="Descripción" name="description">
                             <Input.TextArea rows={3} placeholder="Describe el proyecto..." />
                         </Form.Item>
 
-                        {/* Colaboradores */}
-                        <Form.List name="collaborators">
-                            {(fields, { add, remove }) => (
-                                <>
-                                    <label className="block text-sm font-medium mb-2">
-                                        Colaboradores
-                                    </label>
-                                    {fields.map(({ key, name, ...restField }) => (
-                                        <Row gutter={8} key={key} className="mb-2">
-                                            <Col span={14}>
-                                                <Form.Item
-                                                    {...restField}
-                                                    name={[name, 'email']}
-                                                    rules={[{ required: true, message: 'Email requerido' }]}
-                                                >
-                                                    <Input placeholder="Email del colaborador" />
-                                                </Form.Item>
-                                            </Col>
-                                            <Col span={8}>
-                                                <Form.Item
-                                                    {...restField}
-                                                    name={[name, 'permission']}
-                                                    rules={[{ required: true, message: 'Permiso requerido' }]}
-                                                >
-                                                    <Select placeholder="Permiso">
-                                                        <Select.Option value="read">Ver</Select.Option>
-                                                        <Select.Option value="write">Editar</Select.Option>
-                                                        <Select.Option value="admin">Administrador</Select.Option>
-                                                    </Select>
-                                                </Form.Item>
-                                            </Col>
-                                            <Col span={2}>
-                                                <MinusCircleOutlined
-                                                    onClick={() => remove(name)}
-                                                    className="text-red-500 mt-2 cursor-pointer"
-                                                />
-                                            </Col>
-                                        </Row>
-                                    ))}
-                                    <Form.Item>
-                                        <Button type="dashed" onClick={() => add()} block>
-                                            + Añadir colaborador
-                                        </Button>
-                                    </Form.Item>
-                                </>
-                            )}
-                        </Form.List>
+                        {/* === Mostrar sección solo si el usuario es admin === */}
+                        {isAdmin && (
+                            <Form.List name="collaborators">
+                                {(fields, { add, remove }) => (
+                                    <>
+                                        <label className="block text-sm font-medium mb-2">
+                                            Colaboradores
+                                        </label>
+                                        {fields.map(({ key, name, ...restField }) => (
+                                            <Row gutter={8} key={key} className="mb-2">
+                                                <Col span={14}>
+                                                    <Form.Item
+                                                        {...restField}
+                                                        name={[name, 'email']}
+                                                        rules={[{ required: true, message: 'Email requerido' }]}
+                                                    >
+                                                        <Input placeholder="Email del colaborador" />
+                                                    </Form.Item>
+                                                </Col>
+                                                <Col span={8}>
+                                                    <Form.Item
+                                                        {...restField}
+                                                        name={[name, 'permission']}
+                                                        rules={[{ required: true, message: 'Permiso requerido' }]}
+                                                    >
+                                                        <Select placeholder="Permiso">
+                                                            <Select.Option value="read">Ver</Select.Option>
+                                                            <Select.Option value="write">Editar</Select.Option>
+                                                            <Select.Option value="admin">Administrador</Select.Option>
+                                                        </Select>
+                                                    </Form.Item>
+                                                </Col>
+                                                <Col span={2}>
+                                                    <MinusCircleOutlined
+                                                        onClick={() => remove(name)}
+                                                        className="text-red-500 mt-2 cursor-pointer"
+                                                    />
+                                                </Col>
+                                            </Row>
+                                        ))}
+                                        <Form.Item>
+                                            <Button type="dashed" onClick={() => add()} block>
+                                                + Añadir colaborador
+                                            </Button>
+                                        </Form.Item>
+                                    </>
+                                )}
+                            </Form.List>
+                        )}
                     </Form>
                 </Modal>
             </ConfigProvider>

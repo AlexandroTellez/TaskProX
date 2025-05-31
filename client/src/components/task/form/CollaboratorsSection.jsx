@@ -15,8 +15,12 @@ const CollaboratorsSection = ({
     setNewPermission,
     addCollaborator,
     removeCollaborator,
-    updatePermission
+    updatePermission,
+    userPermission // NUEVO: permiso efectivo del usuario ("read", "write", "admin")
 }) => {
+    // ===================== Ocultar si no es admin =====================
+    if (userPermission !== 'admin') return null;
+
     // ===================== Obtener ID único del colaborador =====================
     const getCollaboratorId = (col) => col._id || col.id || col.email;
 

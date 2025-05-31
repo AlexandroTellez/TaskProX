@@ -15,8 +15,8 @@ import dayjs from '../../utils/dayjsConfig';
 import TaskFilters from './list/TaskFilters';
 import TaskKanbanBoard from './list/TaskKanbanBoard';
 import TaskMobileCard from './list/TaskMobileCard';
-import TaskTable from './list/TaskTable';
-import { getPermission } from './list/utils';
+import TaskTable from './list/TaskTable.jsx';
+import { getPermission } from './list/utils.jsx';
 
 const TaskList = ({ projectId, kanban = false, projectPermission = null }) => {
     const [searchParams, setSearchParams] = useSearchParams();
@@ -27,7 +27,6 @@ const TaskList = ({ projectId, kanban = false, projectPermission = null }) => {
 
     const [localTasks, setLocalTasks] = useState([]);
 
-    // ===================== Actualizar una tarea específica localmente =====================
     const updateTaskInLocalState = (updatedTask) => {
         setLocalTasks((prevTasks) =>
             prevTasks.map((task) =>
@@ -36,16 +35,13 @@ const TaskList = ({ projectId, kanban = false, projectPermission = null }) => {
         );
     };
 
-    // ===================== Cargar tareas según permisos del proyecto =====================
     const loadTasks = async () => {
         try {
             let result;
-            if (projectPermission) {
-                result = await fetchTasksByProject(projectId);
-            } else {
-                result = await fetchTasksForCollaboratorByProject(projectId);
-            }
+            result = await fetchTasksByProject(projectId);
             setLocalTasks(Array.isArray(result.data) ? result.data : []);
+
+
         } catch (err) {
             console.error('Error al cargar tareas:', err);
             message.error('Error al cargar tareas');
@@ -56,7 +52,6 @@ const TaskList = ({ projectId, kanban = false, projectPermission = null }) => {
         loadTasks();
     }, [projectId]);
 
-    // ===================== Scroll horizontal para tabla =====================
     const tableContainerRef = useRef(null);
     const [forceMobileView, setForceMobileView] = useState(false);
 
@@ -72,7 +67,6 @@ const TaskList = ({ projectId, kanban = false, projectPermission = null }) => {
         return () => window.removeEventListener('resize', checkOverflow);
     }, []);
 
-    // ===================== Filtros =====================
     const [filters, setFilters] = useState({
         title: searchParams.get('title') || '',
         creator: searchParams.get('creator') || '',
@@ -99,55 +93,62 @@ const TaskList = ({ projectId, kanban = false, projectPermission = null }) => {
         setSearchParams(params);
     }, [filters, setSearchParams]);
 
-    // ===================== Preparar tareas con permisos y fechas =====================
     const parsedTasks = useMemo(() => {
         return localTasks.map((task) => {
             const taskId = task._id || task.id;
-            const permission = getPermission(task, userEmail);
             return {
                 ...task,
                 id: taskId,
+                key: taskId,
                 startDate: task.startDate ? dayjs(task.startDate) : null,
                 deadline: task.deadline ? dayjs(task.deadline) : null,
-                permission,
             };
         });
-    }, [localTasks, userEmail]);
+    }, [localTasks]);
 
-    // ===================== Aplicar filtros =====================
     const filteredTasks = useMemo(() => {
-        return parsedTasks.filter((task) => {
-            const matchesTitle = filters.title
-                ? task.title?.toLowerCase().includes(filters.title.toLowerCase())
-                : true;
-            const matchesCreator = filters.creator
-                ? task.creator_name?.toLowerCase().includes(filters.creator.toLowerCase())
-                : true;
-            const matchesStatus = filters.status ? task.status === filters.status : true;
-            const matchesRecurso =
-                filters.has_recurso === 'yes'
-                    ? task.recurso && task.recurso.length > 0
-                    : filters.has_recurso === 'no'
-                        ? !task.recurso || task.recurso.length === 0
-                        : true;
-            const matchesStartDate = filters.startDate
-                ? task.startDate && task.startDate.format('YYYY-MM-DD') === filters.startDate.format('YYYY-MM-DD')
-                : true;
-            const matchesDeadline = filters.deadline
-                ? task.deadline && task.deadline.format('YYYY-MM-DD') === filters.deadline.format('YYYY-MM-DD')
-                : true;
-            return (
-                matchesTitle &&
-                matchesCreator &&
-                matchesStatus &&
-                matchesStartDate &&
-                matchesDeadline &&
-                matchesRecurso
-            );
-        });
+        return parsedTasks
+            .filter((task) => ['read', 'write', 'admin'].includes(task.effective_permission))
+            .filter((task) => {
+                const matchesTitle = filters.title
+                    ? task.title?.toLowerCase().includes(filters.title.toLowerCase())
+                    : true;
+
+                const matchesCreator = filters.creator
+                    ? (task.creator_name || '').toLowerCase().includes(filters.creator.toLowerCase())
+                    : true;
+
+                const matchesStatus = filters.status
+                    ? (task.status || '').toLowerCase() === filters.status.toLowerCase()
+                    : true;
+
+                const matchesRecurso =
+                    filters.has_recurso === 'yes'
+                        ? Array.isArray(task.recurso) && task.recurso.length > 0
+                        : filters.has_recurso === 'no'
+                            ? !task.recurso || task.recurso.length === 0
+                            : true;
+
+                const matchesStartDate = filters.startDate
+                    ? task.startDate?.format('YYYY-MM-DD') === filters.startDate.format('YYYY-MM-DD')
+                    : true;
+
+                const matchesDeadline = filters.deadline
+                    ? task.deadline?.format('YYYY-MM-DD') === filters.deadline.format('YYYY-MM-DD')
+                    : true;
+
+                return (
+                    matchesTitle &&
+                    matchesCreator &&
+                    matchesStatus &&
+                    matchesRecurso &&
+                    matchesStartDate &&
+                    matchesDeadline
+                );
+            });
     }, [parsedTasks, filters]);
 
-    // ===================== Acciones =====================
+
     const handleDelete = async (id) => {
         try {
             await deleteTask(id);
@@ -192,10 +193,7 @@ const TaskList = ({ projectId, kanban = false, projectPermission = null }) => {
         try {
             const response = await updateTask(taskId, { status: newStatus });
             const updatedTask = response.data;
-
-            // Actualiza solo esa tarea en el estado local
             updateTaskInLocalState(updatedTask);
-
             message.success('Estado actualizado');
         } catch (err) {
             console.error('Error al actualizar estado:', err);
@@ -203,10 +201,6 @@ const TaskList = ({ projectId, kanban = false, projectPermission = null }) => {
         }
     };
 
-
-
-
-    // ===================== Filtros UI =====================
     const handleFilterChange = (field, value) => {
         setFilters((prev) => ({ ...prev, [field]: value }));
     };
@@ -216,7 +210,6 @@ const TaskList = ({ projectId, kanban = false, projectPermission = null }) => {
         setSearchParams({});
     };
 
-    // ===================== Renderizado =====================
     return (
         <ConfigProvider locale={esES}>
             <div className="min-w-0 w-full overflow-auto bg-gray-100 dark:bg-[#2a2e33] text-black dark:text-white rounded-lg space-y-6 p-4">
@@ -225,18 +218,17 @@ const TaskList = ({ projectId, kanban = false, projectPermission = null }) => {
                 {kanban ? (
                     <TaskKanbanBoard
                         tasks={filteredTasks}
-                        setTasks={setLocalTasks} // pasa setTasks para actualización por arrastre
+                        setTasks={setLocalTasks}
                         userEmail={userEmail}
                         onDuplicate={handleDuplicate}
                         onDelete={handleDelete}
                         onStatusChange={handleStatusChange}
                         projectId={projectId}
-                        onTaskChanged={updateTaskInLocalState}  //  Actualiza solo la tarea
+                        onTaskChanged={updateTaskInLocalState}
                     />
                 ) : (isMobile || forceMobileView) ? (
                     <TaskMobileCard
                         tasks={filteredTasks}
-                        userFullName={userFullName}
                         userEmail={userEmail}
                         onDuplicate={handleDuplicate}
                         onDelete={handleDelete}
@@ -246,7 +238,6 @@ const TaskList = ({ projectId, kanban = false, projectPermission = null }) => {
                     <div ref={tableContainerRef}>
                         <TaskTable
                             tasks={filteredTasks}
-                            userFullName={userFullName}
                             userEmail={userEmail}
                             onDuplicate={handleDuplicate}
                             onDelete={handleDelete}

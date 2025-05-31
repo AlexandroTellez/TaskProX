@@ -47,7 +47,7 @@ const predefinedStatuses = [
 
 function TaskCard({ task, onTaskChanged, onDuplicate, projectId }) {
     const navigate = useNavigate();
-    const isMobileOrTablet = useMediaQuery({ maxWidth: 1024 });
+    
 
     const [taskStatus, setTaskStatus] = useState(task.status);
     const user = JSON.parse(localStorage.getItem('user')) || {};
@@ -61,7 +61,7 @@ function TaskCard({ task, onTaskChanged, onDuplicate, projectId }) {
 
     const taskId = task._id || task.id;
 
-    const { message } = App.useApp(); // ✅ Acceder al contexto de Ant Design
+    const { message } = App.useApp();
 
     // ===================== Eliminar tarea =====================
     const handleDelete = async () => {

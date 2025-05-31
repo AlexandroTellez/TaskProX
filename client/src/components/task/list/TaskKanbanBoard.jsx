@@ -29,15 +29,8 @@ const TaskKanbanBoard = ({
         .filter(Boolean);
     const allStatuses = [...new Set([...predefinedStatuses, ...taskStatuses])];
 
-    const tasksWithPermissions = tasks.map((task) => ({
-        ...task,
-        effective_permission:
-            task.effective_permission ||
-            task.permission ||
-            task.project_permission ||
-            task.collaborators?.find((c) => c.email === userEmail)?.permission ||
-            'read',
-    }));
+    const tasksWithPermissions = tasks;
+
 
     const handleTaskChanged = async (updatedTask) => {
         if (!updatedTask) {

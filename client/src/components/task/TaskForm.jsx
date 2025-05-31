@@ -215,10 +215,16 @@ function TaskForm() {
         );
     }
 
+    // 🔽 Reemplaza el return principal por este actualizado:
     return (
         <ConfigProvider locale={esES}>
             <div className="flex items-start justify-center min-h-screen w-full bg-white dark:bg-[#1f1f1f] px-4 text-black dark:text-white">
                 <div className="w-full max-w-4xl py-10">
+                    {/* Mensaje de permiso actual */}
+                    <div className="mb-4 text-right text-sm text-gray-600 dark:text-gray-300 italic">
+                        Permiso actual sobre esta tarea: <span className="font-medium">{permission}</span>
+                    </div>
+
                     <form
                         className="bg-white dark:bg-[#2a2e33] border border-gray-200 dark:border-[#FFFFFF] p-8 rounded-xl shadow-md space-y-6"
                         onSubmit={handleSubmit}
@@ -274,6 +280,7 @@ function TaskForm() {
             </div>
         </ConfigProvider>
     );
+
 }
 
 export default TaskForm;

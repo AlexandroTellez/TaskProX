@@ -59,6 +59,9 @@ export const formatDate = (value) => {
 export const getPermission = (task, userEmail) => {
     if (!task || !userEmail) return 'none';
 
+    // 0. Si el backend ya calculó un permiso efectivo, se respeta.
+    if (task.effective_permission) return task.effective_permission;
+
     // 1. El creador de la tarea tiene acceso completo
     if (task.creator === userEmail) return 'admin';
 
@@ -66,8 +69,8 @@ export const getPermission = (task, userEmail) => {
     const direct = task.collaborators?.find((col) => col.email?.trim() === userEmail);
     if (direct?.permission) return direct.permission;
 
-    // 3. Permiso heredado del proyecto ya incluido en el backend
-    return task.project_permission || task.effective_permission || 'none'; //  añadida prioridad efectiva
+    // 3. Permiso heredado del proyecto
+    return task.project_permission || 'none';
 };
 
 // ==========================
@@ -75,3 +78,5 @@ export const getPermission = (task, userEmail) => {
 // ==========================
 const capitalize = (str) =>
     str.charAt(0).toUpperCase() + str.slice(1);
+
+

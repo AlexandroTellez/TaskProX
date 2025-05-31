@@ -13,9 +13,9 @@ const normalizeTask = (task) => ({
     ...task,
     id: task.id || task._id,
     permission:
+        task.effective_permission ||
         task.permission ||
         task.project_permission ||
-        task.effective_permission ||
         null,
 });
 

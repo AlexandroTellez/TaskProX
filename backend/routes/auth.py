@@ -48,7 +48,15 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
         user["last_name"] = payload.get("last_name", "")
         user["_id"] = str(user["_id"])  # Asegura que se conserve como string
 
-        return user
+        return {
+            "id": str(user["_id"]),  # Clave necesaria para proyectos
+            "email": user["email"],
+            "first_name": payload.get("first_name", ""),
+            "last_name": payload.get("last_name", ""),
+            "address": user.get("address", ""),
+            "postal_code": user.get("postal_code", ""),
+            "profile_image": user.get("profile_image", None),
+        }
 
     except Exception:
         raise HTTPException(
@@ -203,8 +211,9 @@ async def update_profile(
     if not update_fields:
         raise HTTPException(status_code=400, detail="No hay cambios para actualizar")
 
+    # Se ajusta para usar 'id' (string), ya que 'get_current_user' no devuelve '_id'
     await user_collection.update_one(
-        {"_id": ObjectId(current_user["_id"])}, {"$set": update_fields}
+        {"_id": ObjectId(current_user["id"])}, {"$set": update_fields}
     )
 
     return {"message": "Perfil actualizado correctamente"}

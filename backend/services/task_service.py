@@ -196,6 +196,10 @@ async def get_all_tasks(filters: dict):
 
     print(f"[get_all_tasks] Consulta Mongo final: {query}")
 
+    print(f"[GET /tasks] Usuario: {user_email} - Parámetros: {filters}")
+    print(f"[get_all_tasks] Filtros recibidos: {filters}")
+    print(f"[get_all_tasks] Consulta Mongo final: {query}")
+
     tasks = []
     cursor = collection.find(query)
     async for document in cursor:
@@ -204,25 +208,44 @@ async def get_all_tasks(filters: dict):
         project_id_str = str(project_oid) if project_oid else None
 
         permission = None
+        project_permission = None
 
+        # === Determinar permisos sobre la tarea ===
         if document.get("creator") == user_email:
             permission = "admin"
-        if not permission:
+            project_permission = "admin"
+            print(f"[get_all_tasks] Usuario es creador de la tarea {document['id']} → admin")
+        else:
+            # Permiso directo en la tarea
             for col in document.get("collaborators", []):
                 if col["email"] == user_email:
-                    permission = col.get("permission", "read")
+                    permission = col.get("permission", "read").strip().lower()
+                    print(f"[get_all_tasks] Permiso directo en tarea {document['id']}: {permission}")
                     break
-        if not permission and project_id_str in project_permissions:
-            permission = project_permissions[project_id_str]
 
-        if not permission:
-            print(f"[get_all_tasks] Sin permisos para la tarea: {document['id']}")
-            continue
+            # Permiso heredado desde el proyecto (si no hay permiso directo o es inferior)
+            if project_id_str in project_permissions:
+                inherited = project_permissions[project_id_str]
+                project_permission = inherited
+                hierarchy = {"read": 1, "write": 2, "admin": 3}
+                current_level = hierarchy.get(permission or "read", 1)
+                inherited_level = hierarchy.get(inherited, 0)
 
+                if not permission or inherited_level > current_level:
+                    print(f"[get_all_tasks] Permiso heredado sobrescribe permiso directo en tarea {document['id']}: {inherited}")
+                    permission = inherited
+                else:
+                    print(f"[get_all_tasks] Permiso directo ({permission}) prevalece sobre heredado ({inherited}) en tarea {document['id']}")
+            elif not permission:
+                print(f"[get_all_tasks] Usuario sin permisos en tarea {document['id']}")
+                continue
+
+        # === Asignar permisos al documento ===
         document["effective_permission"] = permission
-        print(
-            f"[get_all_tasks] Permiso efectivo para tarea {document['id']}: {permission}"
-        )
+        document["project_permission"] = project_permission
+
+        print(f"[get_all_tasks] Permiso efectivo para tarea {document['id']}: {permission} (proyecto: {project_permission})")
+
         tasks.append(document)
 
     print(f"[get_all_tasks] Total tareas encontradas: {len(tasks)}")
