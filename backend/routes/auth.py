@@ -19,6 +19,7 @@ from models.models import UserCreate, UserLogin, UserOut
 from config.database import user_collection
 from config.config import create_access_token, decode_access_token, FRONTEND_URL
 from config.email_utils import send_reset_email
+from typing import Annotated
 from services.auth_service import (
     create_user,
     get_user_by_email,
@@ -87,7 +88,6 @@ async def register(user: UserCreate):
 
 # ========== LOGIN ==========
 
-
 @router.post("/login")
 async def login(user: UserLogin, request: Request):
     authenticated_user = await authenticate_user(user.email, user.password)
@@ -115,13 +115,19 @@ async def login(user: UserLogin, request: Request):
 
 # ========== PERFIL DEL USUARIO ACTUAL ==========
 
-
 @router.get("/me", response_model=UserOut)
 async def get_me(current_user: dict = Depends(get_current_user)):
+    print("Solicitando datos del usuario:", current_user.get("email"))
+
+    # Verificar si hay imagen guardada
     if current_user.get("profile_image"):
+        print("Imagen encontrada, devolviendo base64.")
         current_user["profile_image"] = base64.b64encode(
             current_user["profile_image"]
         ).decode("utf-8")
+    else:
+        print("Sin imagen de perfil (None).")
+
     return current_user
 
 
@@ -131,7 +137,7 @@ async def get_me(current_user: dict = Depends(get_current_user)):
 class EmailRequest(BaseModel):
     email: EmailStr
 
-
+# ========== ENVIAR CORREO PARA RECUPERACIÓN DE CONTRASEÑA ==========
 @router.post("/forgot-password")
 async def forgot_password(data: EmailRequest):
     user = await get_user_by_email(data.email)
@@ -154,6 +160,7 @@ async def forgot_password(data: EmailRequest):
 
     return {"message": "Se ha enviado un correo para restablecer tu contraseña."}
 
+# ========== RESTABLECER CONTRASEÑA ==========
 
 @router.post("/reset-password")
 async def reset_password(token: str = Body(...), password: str = Body(...)):
@@ -175,52 +182,75 @@ async def reset_password(token: str = Body(...), password: str = Body(...)):
     except Exception:
         raise HTTPException(status_code=400, detail="Token inválido o expirado")
 
+# ===============================
+# Modelo para actualización de perfil
+# ===============================
+class ProfileUpdate(BaseModel):
+    first_name: str | None = None
+    last_name: str | None = None
+    address: str | None = None
+    postal_code: str | None = None
+    email: EmailStr | None = None
+    password: str | None = None
+    profile_image_base64: str | None = None
 
 # ========== ACTUALIZAR PERFIL ==========
 
-
 @router.put("/profile")
 async def update_profile(
-    first_name: str = Form(None),
-    last_name: str = Form(None),
-    address: str = Form(None),
-    postal_code: str = Form(None),
-    email: EmailStr = Form(None),
-    password: str = Form(None),
-    profileImage: UploadFile = File(None),
+    data: Annotated[ProfileUpdate, Body()],
     current_user: dict = Depends(get_current_user),
 ):
     update_fields = {}
 
-    if first_name:
-        update_fields["first_name"] = first_name
-    if last_name:
-        update_fields["last_name"] = last_name
-    if address:
-        update_fields["address"] = address
-    if postal_code:
-        update_fields["postal_code"] = postal_code
-    if email:
-        update_fields["email"] = email
-    if password:
-        update_fields["password"] = pwd_context.hash(password)
-    if profileImage:
-        image_content = await profileImage.read()
-        update_fields["profile_image"] = image_content
+    print("Datos recibidos del frontend:", data.model_dump())
+
+    if data.first_name:
+        update_fields["first_name"] = data.first_name
+    if data.last_name:
+        update_fields["last_name"] = data.last_name
+    if data.address:
+        update_fields["address"] = data.address
+    if data.postal_code:
+        update_fields["postal_code"] = data.postal_code
+    if data.email:
+        update_fields["email"] = data.email
+    if data.password:
+        update_fields["password"] = pwd_context.hash(data.password)
+
+    # =============================
+    # MANEJO DE IMAGEN DE PERFIL
+    # =============================
+    img = data.profile_image_base64
+    if img is not None:
+        if img == "":
+            print("🧹 Solicitud de eliminación de imagen de perfil.")
+            update_fields["profile_image"] = None
+        else:
+            try:
+                print("Nueva imagen recibida, decodificando...")
+                update_fields["profile_image"] = base64.b64decode(img)
+            except Exception as e:
+                print("Error al decodificar base64:", e)
+                raise HTTPException(status_code=400, detail="Imagen no válida (base64 malformado)")
 
     if not update_fields:
+        print("No hay cambios para actualizar.")
         raise HTTPException(status_code=400, detail="No hay cambios para actualizar")
 
-    # Se ajusta para usar 'id' (string), ya que 'get_current_user' no devuelve '_id'
+    print("Actualizando en MongoDB:", update_fields.keys())
+
     await user_collection.update_one(
         {"_id": ObjectId(current_user["id"])}, {"$set": update_fields}
     )
 
+    print("Perfil actualizado correctamente para:", current_user["email"])
+
     return {"message": "Perfil actualizado correctamente"}
 
 
-# ========== ELIMINAR CUENTA ==========
 
+# ========== ELIMINAR CUENTA ==========
 
 @router.delete("/delete")
 async def delete_account(current_user: dict = Depends(get_current_user)):

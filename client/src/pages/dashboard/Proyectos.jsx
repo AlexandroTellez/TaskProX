@@ -216,7 +216,7 @@ const Proyectos = () => {
                         </Paragraph>
                     )}
 
-                    <Paragraph className="text-sm text-black dark:text-white mb-4">
+                    <Paragraph className=" italic text-sm text-black dark:text-white mb-4">
                         <span className="underline font-medium">Colaboradores:</span>
                         {selectedProject.collaborators?.length > 0 ? (
                             <ul className="mt-1 list-disc list-inside">
@@ -229,7 +229,7 @@ const Proyectos = () => {
                                 ))}
                             </ul>
                         ) : (
-                            <> sin colaboradores </>
+                            <> sin colaboradores. </>
                         )}
                     </Paragraph>
 

@@ -3,12 +3,6 @@ import { Link } from 'react-router-dom';
 import { EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
 import logo from "@assets/images/Logo.png";
 
-/**
- * Formulario de inicio de sesión de usuario.
- * - Si "Recuérdame" está activado, guarda el correo en localStorage.
- * - El token de autenticación es gestionado desde `auth.js`.
- * - Requiere aceptar Términos y Política de Privacidad antes de enviar.
- */
 function LoginForm({ onSubmit }) {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -18,7 +12,6 @@ function LoginForm({ onSubmit }) {
     const [showPassword, setShowPassword] = useState(false);
     const [rememberMe, setRememberMe] = useState(false);
 
-    // Al montar el componente, recuperar el correo guardado si estaba activado "Recuérdame"
     useEffect(() => {
         const remember = localStorage.getItem("rememberMe") === "true";
         if (remember) {
@@ -28,7 +21,6 @@ function LoginForm({ onSubmit }) {
         }
     }, []);
 
-    // Manejador de envío del formulario
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -48,7 +40,6 @@ function LoginForm({ onSubmit }) {
                 localStorage.removeItem("savedEmail");
             }
 
-            // Pasar la opción rememberMe para que auth.js decida dónde guardar el token
             await onSubmit({ email, password, rememberMe });
 
         } catch (err) {
@@ -60,18 +51,18 @@ function LoginForm({ onSubmit }) {
     };
 
     return (
-        <div className="min-h-screen w-full flex flex-col lg:flex-row bg-[#1a1a1a] lg:bg-transparent">
-            {/* Branding lateral */}
-            <div className="lg:w-1/2 w-full bg-white text-black flex justify-center items-center px-4 sm:px-6 py-8 lg:py-16 relative">
+        <div className="min-h-screen h-full w-full flex flex-row lg:flex-row overflow-y-auto">
+            {/* Columna izquierda - Branding */}
+            <div className="w-1/2 lg:w-1/2 bg-white text-black flex justify-center items-center px-4 sm:px-6 py-8 lg:py-16 relative">
                 <div className="flex flex-col items-center text-center lg:text-left w-full max-w-md">
                     <div className="flex flex-col lg:flex-row items-center gap-3 mb-4 lg:mb-10">
-                        <img src={logo} alt="TaskProX Logo" className="w-14 h-14 lg:w-24 lg:h-24" />
-                        <h1 className="text-2xl sm:text-3xl lg:text-7xl font-extrabold text-dark">TaskProX</h1>
+                        <img src={logo} alt="TaskProX Logo" className="w-14 h-14 md:w-20 lg:w-24 md:h-20 lg:h-24" />
+                        <h1 className="text-2xl sm:text-3xl md:text-5xl lg:text-7xl font-extrabold text-dark">TaskProX</h1>
                     </div>
                     <div className="w-full">
-                        <h1 className="text-xl sm:text-2xl lg:text-7xl font-bold mb-1 lg:mb-4">Organiza.</h1>
-                        <h1 className="text-xl sm:text-2xl lg:text-7xl font-bold mb-1 lg:mb-4">Prioriza.</h1>
-                        <h1 className="text-xl sm:text-2xl lg:text-7xl font-bold mb-1 lg:mb-4">Colabora.</h1>
+                        <h1 className="text-xl sm:text-2xl md:text-4xl lg:text-7xl font-bold mb-1 lg:mb-4">Organiza.</h1>
+                        <h1 className="text-xl sm:text-2xl md:text-4xl lg:text-7xl font-bold mb-1 lg:mb-4">Prioriza.</h1>
+                        <h1 className="text-xl sm:text-2xl md:text-4xl lg:text-7xl font-bold mb-1 lg:mb-4">Colabora.</h1>
                     </div>
                 </div>
                 <p className="text-xs absolute bottom-2 left-2 lg:bottom-5 lg:left-5 text-gray-500">
@@ -79,9 +70,10 @@ function LoginForm({ onSubmit }) {
                 </p>
             </div>
 
-            {/* Formulario de login */}
-            <div className="lg:w-1/2 w-full bg-[#1a1a1a] text-white flex flex-col justify-center items-center px-4 sm:px-6 lg:px-16 py-8">
-                <div className="w-full max-w-xs sm:max-w-md lg:max-w-xl">
+
+            {/* Columna derecha - Formulario */}
+            <div className="w-1/2 lg:w-1/2 bg-[#1a1a1a] text-white flex flex-col justify-center items-center px-4 sm:px-6 lg:px-16 py-8">
+                <div className="w-full max-w-xs sm:max-w-md lg:max-w-xl max-h-screen overflow-y-auto">
                     <h2 className="text-xl sm:text-5xl font-bold mb-2">Inicia sesión</h2>
                     <p className="mb-4 sm:mb-6 text-xs sm:text-xl">Accede a tu espacio de productividad en TaskProX.</p>
 
@@ -113,61 +105,63 @@ function LoginForm({ onSubmit }) {
                                 {showPassword ? <EyeInvisibleOutlined /> : <EyeOutlined />}
                             </span>
                         </div>
+                        <div className="space-y-2 sm:space-y-3">
+                            <div className="flex items-center justify-between">
+                                <Link to="/forgot-password" className="text-yellow-400 underline text-xs sm:text-sm lg:text-base">
+                                    ¿Se te olvidó tu contraseña?
+                                </Link>
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <label className="flex items-center gap-2 text-xs sm:text-sm lg:text-base">
+                                    <input
+                                        type="checkbox"
+                                        checked={rememberMe}
+                                        onChange={() => setRememberMe(!rememberMe)}
+                                        className="mt-0.5"
+                                    />
+                                    Recuérdame.
+                                </label>
+                            </div>
 
-                        <div className="flex items-center justify-between">
-                            <label className="flex items-center gap-2 text-xs sm:text-sm lg:text-base">
+                            <div className="flex items-center gap-2">
                                 <input
                                     type="checkbox"
-                                    checked={rememberMe}
-                                    onChange={() => setRememberMe(!rememberMe)}
+                                    onChange={() => setAcceptedTerms(!acceptedTerms)}
                                     className="mt-0.5"
                                 />
-                                Recuérdame
-                            </label>
-                            <Link to="/forgot-password" className="text-yellow-400 underline text-xs sm:text-sm lg:text-base">
-                                ¿Se te olvidó tu contraseña?
-                            </Link>
-                        </div>
+                                <label className="text-xs sm:text-sm lg:text-base">
+                                    He leído y acepto los{" "}
+                                    <a href="/legal/terminos" target="_blank" className="text-yellow-400 underline">Términos y Condiciones.</a>
+                                </label>
+                            </div>
 
-                        <div className="flex items-start gap-2">
-                            <input
-                                type="checkbox"
-                                onChange={() => setAcceptedTerms(!acceptedTerms)}
-                                className="mt-0.5"
-                            />
-                            <label className="text-xs sm:text-sm lg:text-base">
-                                He leído y acepto los{" "}
-                                <a href="/legal/terminos" target="_blank" className="text-yellow-400 underline">Términos y Condiciones</a>
-                            </label>
-                        </div>
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    onChange={() => setAcceptedPrivacy(!acceptedPrivacy)}
+                                    className="mt-0.5"
+                                />
+                                <label className="text-xs sm:text-sm lg:text-base">
+                                    He leído y acepto la{" "}
+                                    <a href="/legal/privacidad" target="_blank" className="text-yellow-400 underline">Política de Privacidad.</a>
+                                </label>
+                            </div>
 
-                        <div className="flex items-start gap-2">
-                            <input
-                                type="checkbox"
-                                onChange={() => setAcceptedPrivacy(!acceptedPrivacy)}
-                                className="mt-0.5"
-                            />
-                            <label className="text-xs sm:text-sm lg:text-base">
-                                He leído y acepto la{" "}
-                                <a href="/legal/privacidad" target="_blank" className="text-yellow-400 underline">Política de Privacidad</a>
-                            </label>
-                        </div>
-
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="w-full py-3 sm:py-4 lg:py-5 text-sm sm:text-base lg:text-lg rounded bg-yellow-300 text-black font-medium"
-                        >
-                            {loading ? "Entrando..." : "Entrar"}
-                        </button>
-
-                        <div className="text-center text-xs sm:text-sm lg:text-base">
-                            <p className="mb-1">
-                                ¿Aún no tienes cuenta?{" "}
-                                <Link to="/register" className="text-yellow-300 font-semibold">
-                                    Crear nueva cuenta
-                                </Link>
-                            </p>
+                            <div className="text-center text-xs sm:text-sm lg:text-base">
+                                <button
+                                    type="submit"
+                                    disabled={loading}
+                                    className="w-full py-3 sm:py-4 lg:py-5 text-sm sm:text-base lg:text-lg rounded bg-yellow-300 text-black font-medium"
+                                >
+                                    {loading ? "Entrando..." : "Entrar"}
+                                </button>
+                                <p className="p-2 mb-4">
+                                    ¿Aún no tienes cuenta?{" "}
+                                    <Link to="/register" className="text-yellow-300 font-semibold">
+                                        Crear nueva cuenta
+                                    </Link>
+                                </p>
+                            </div>
                         </div>
                     </form>
                 </div>

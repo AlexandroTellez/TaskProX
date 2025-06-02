@@ -74,6 +74,7 @@ const TaskKanbanBoard = ({
                                                     onTaskChanged={handleTaskChanged}
                                                     onDuplicate={onDuplicate}
                                                     projectId={projectId}
+                                                    availableStatuses={allStatuses}
                                                 />
                                             </div>
                                         );

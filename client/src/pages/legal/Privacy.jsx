@@ -1,6 +1,6 @@
 function Privacy() {
     return (
-        <div className="max-w-4xl mx-auto px-4 py-10 text-sm sm:text-base lg:text-lg text-gray-700 dark:text-white max-h-screen overflow-y-auto">
+        <div className="w-full px-4 py-10 text-sm sm:text-base lg:text-lg text-gray-700 dark:text-white max-h-screen overflow-y-auto">
             <h1 className="text-3xl font-bold mb-8 text-[#1A1A1A]">Política de Privacidad de TaskProX</h1>
             <p className="mb-6">
                 <strong>Última actualización:</strong> {new Date().toLocaleDateString()}
@@ -124,7 +124,7 @@ function Privacy() {
                     Si tienes preguntas sobre esta Política de Privacidad, contáctanos en:
                 </p>
                 <p>
-                    <strong>Email:</strong>
+                    <strong>Email:</strong>&nbsp;
                     equipo.taskprox@gmail.com.<br />
                     <strong>Dirección:</strong> Toledo, España.
                 </p>

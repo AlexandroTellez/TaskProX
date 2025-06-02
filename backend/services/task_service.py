@@ -4,7 +4,7 @@ from models.models import Task
 from config.database import collection, project_collection
 from services.utils import normalize_status
 from bson.errors import InvalidId
-import json  # añadido para validar colaboradores
+import json  # Validar colaboradores
 
 
 # ========== Función auxiliar para convertir ObjectId y preparar el documento ==========
@@ -60,9 +60,13 @@ async def get_one_task_id(id: str, user_email: str, user_id: str):
 
             # Si no hay permiso directo, consultar permisos del proyecto
             if not permission and document.get("projectId"):
-                project = await project_collection.find_one(
-                    {"_id": ObjectId(document["projectId"])}
+                project_oid = (
+                    ObjectId(document["projectId"])
+                    if isinstance(document["projectId"], str)
+                    else document["projectId"]
                 )
+                project = await project_collection.find_one({"_id": project_oid})
+
                 if project:
                     if project.get("user_id") == user_id:
                         permission = "admin"
@@ -194,8 +198,6 @@ async def get_all_tasks(filters: dict):
     elif filters.get("has_recurso") == "no":
         query["recurso"] = None
 
-    print(f"[get_all_tasks] Consulta Mongo final: {query}")
-
     print(f"[GET /tasks] Usuario: {user_email} - Parámetros: {filters}")
     print(f"[get_all_tasks] Filtros recibidos: {filters}")
     print(f"[get_all_tasks] Consulta Mongo final: {query}")
@@ -214,13 +216,17 @@ async def get_all_tasks(filters: dict):
         if document.get("creator") == user_email:
             permission = "admin"
             project_permission = "admin"
-            print(f"[get_all_tasks] Usuario es creador de la tarea {document['id']} → admin")
+            print(
+                f"[get_all_tasks] Usuario es creador de la tarea {document['id']} → admin"
+            )
         else:
             # Permiso directo en la tarea
             for col in document.get("collaborators", []):
                 if col["email"] == user_email:
                     permission = col.get("permission", "read").strip().lower()
-                    print(f"[get_all_tasks] Permiso directo en tarea {document['id']}: {permission}")
+                    print(
+                        f"[get_all_tasks] Permiso directo en tarea {document['id']}: {permission}"
+                    )
                     break
 
             # Permiso heredado desde el proyecto (si no hay permiso directo o es inferior)
@@ -232,10 +238,14 @@ async def get_all_tasks(filters: dict):
                 inherited_level = hierarchy.get(inherited, 0)
 
                 if not permission or inherited_level > current_level:
-                    print(f"[get_all_tasks] Permiso heredado sobrescribe permiso directo en tarea {document['id']}: {inherited}")
+                    print(
+                        f"[get_all_tasks] Permiso heredado sobrescribe permiso directo en tarea {document['id']}: {inherited}"
+                    )
                     permission = inherited
                 else:
-                    print(f"[get_all_tasks] Permiso directo ({permission}) prevalece sobre heredado ({inherited}) en tarea {document['id']}")
+                    print(
+                        f"[get_all_tasks] Permiso directo ({permission}) prevalece sobre heredado ({inherited}) en tarea {document['id']}"
+                    )
             elif not permission:
                 print(f"[get_all_tasks] Usuario sin permisos en tarea {document['id']}")
                 continue
@@ -244,7 +254,9 @@ async def get_all_tasks(filters: dict):
         document["effective_permission"] = permission
         document["project_permission"] = project_permission
 
-        print(f"[get_all_tasks] Permiso efectivo para tarea {document['id']}: {permission} (proyecto: {project_permission})")
+        print(
+            f"[get_all_tasks] Permiso efectivo para tarea {document['id']}: {permission} (proyecto: {project_permission})"
+        )
 
         tasks.append(document)
 
@@ -255,16 +267,24 @@ async def get_all_tasks(filters: dict):
 # ================== Crear una nueva tarea ==================
 async def create_task(task: dict):
     print(f"[create_task] Datos recibidos: {task}")
-    if "projectId" in task and isinstance(task["projectId"], str):
+    task_data = task.copy()
+
+    # Validar título
+    if not task_data.get("title"):
+        raise ValueError("El título de la tarea es obligatorio.")
+
+    # Validar y convertir projectId si es string
+    if "projectId" in task_data and isinstance(task_data["projectId"], str):
         try:
-            task["projectId"] = ObjectId(task["projectId"])
+            task_data["projectId"] = ObjectId(task_data["projectId"])
         except:
             raise ValueError("projectId inválido")
 
-    task["status"] = normalize_status(task.get("status", "pendiente"))
+    # Normalizar estado
+    task_data["status"] = normalize_status(task_data.get("status", "pendiente"))
 
     # === Validar y limpiar colaboradores ===
-    collaborators = task.get("collaborators", [])
+    collaborators = task_data.get("collaborators", [])
     if isinstance(collaborators, str):
         try:
             collaborators = json.loads(collaborators)
@@ -273,16 +293,26 @@ async def create_task(task: dict):
     if not isinstance(collaborators, list):
         collaborators = []
 
-    task["collaborators"] = [
+    task_data["collaborators"] = [
         {"email": col.get("email", ""), "permission": col.get("permission", "read")}
         for col in collaborators
         if isinstance(col, dict)
     ]
 
-    task.setdefault("deadline", None)
-    task.setdefault("recurso", [])
+    # === Validación del recurso base64 ===
+    recurso = task_data.get("recurso", [])
+    if not isinstance(recurso, list):
+        raise ValueError("El campo 'recurso' debe ser una lista de recursos.")
+    for item in recurso:
+        if not isinstance(item, dict) or "data" not in item or "name" not in item:
+            raise ValueError("Formato inválido en 'recurso'")
 
-    new_task = await collection.insert_one(task)
+    # Asignar valores por defecto
+    task_data.setdefault("deadline", None)
+    task_data.setdefault("recurso", recurso)
+
+    # Crear en la base de datos
+    new_task = await collection.insert_one(task_data)
     created_task = await collection.find_one({"_id": new_task.inserted_id})
     print(f"[create_task] Tarea creada con ID: {new_task.inserted_id}")
     return serialize_task(created_task)
@@ -292,6 +322,9 @@ async def create_task(task: dict):
 async def update_task(id: str, data: dict):
     print(f"[update_task] ID: {id} | Datos: {data}")
     task_data = data.copy()
+
+    if not task_data.get("title"):
+        raise ValueError("El título de la tarea es obligatorio.")
 
     if "projectId" in task_data and isinstance(task_data["projectId"], str):
         try:
@@ -318,6 +351,15 @@ async def update_task(id: str, data: dict):
             for col in collaborators
             if isinstance(col, dict)
         ]
+    # Validación de archivos base64
+    if "recurso" in task_data:
+        recurso = task_data["recurso"]
+        if not isinstance(recurso, list):
+            raise ValueError("El campo 'recurso' debe ser una lista de recursos.")
+        # Validar cada archivo base64
+        for item in recurso:
+            if not isinstance(item, dict) or "data" not in item or "name" not in item:
+                raise ValueError("Formato invalido en 'recurso'")
 
     user_email = data.get("user_email")
     user_id = data.get("user_id")

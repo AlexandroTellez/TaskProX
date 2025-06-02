@@ -7,6 +7,7 @@ import {
 import { Button, Col, Input, message, Modal, Row, Upload } from "antd";
 import { useEffect, useState } from "react";
 import { deleteAccount, getCurrentUser, updateProfile } from "../../../api/auth";
+import heic2any from "heic2any";
 
 const ProfileForm = () => {
     // Estado del formulario
@@ -19,17 +20,23 @@ const ProfileForm = () => {
         password: "",
         confirmPassword: "",
         profileImage: null,
+        profileImageBase64: null,
     });
 
     const [originalData, setOriginalData] = useState(null);
     const [loading, setLoading] = useState(false);
     const [previewImage, setPreviewImage] = useState(null);
+    const handleChange = (field, value) => {
+        setFormData((prev) => ({ ...prev, [field]: value }));
+    };
+
 
     // Al montar el componente, obtener los datos actuales del usuario
     useEffect(() => {
         const fetchUser = async () => {
             try {
                 const user = await getCurrentUser();
+                console.log(" Usuario cargado:", user);
                 const initialState = {
                     ...user,
                     password: "",
@@ -48,45 +55,66 @@ const ProfileForm = () => {
     }, []);
 
     // Actualiza el estado del formulario cuando cambia un campo
-    const handleChange = (field, value) => {
-        setFormData((prev) => ({ ...prev, [field]: value }));
-    };
-
-    // Guarda los cambios realizados en el perfil
     const handleSave = async () => {
         const formDataCopy = { ...formData };
-        delete formDataCopy.profile_image;
-        delete formDataCopy.profileImage;
 
-        if (formDataCopy.password === "") delete formDataCopy.password;
-        if (formDataCopy.confirmPassword === "") delete formDataCopy.confirmPassword;
+        // Eliminamos confirmPassword para no enviarlo al backend
+        delete formDataCopy.confirmPassword;
 
+        // Eliminamos password si está vacío
+        if (formDataCopy.password === "") {
+            delete formDataCopy.password;
+        }
+
+        // ===================== CONVERSIÓN BASE64 DE IMAGEN =====================
+        console.log("Estado antes de conversión base64:", formData.profileImageBase64);
+
+        // Convertimos y añadimos profile_image_base64
+        formDataCopy.profile_image_base64 =
+            formData.profileImageBase64 === "" ? "" :
+                formData.profileImageBase64 ? formData.profileImageBase64 : null;
+
+        console.log("Valor enviado como profile_image_base64:", formDataCopy.profile_image_base64);
+
+
+        delete formDataCopy.profileImageBase64;
+
+        // Comprobamos cambios
         const originalCopy = { ...originalData };
-        const hasChanges = Object.keys(formDataCopy).some(
-            (key) => formDataCopy[key] !== originalCopy[key]
-        );
+        const hasChanges = Object.keys(formDataCopy).some((key) => {
+            if (key === "profile_image_base64") return true; // importante siempre enviar
+            return formDataCopy[key] !== originalCopy[key];
+        });
 
-        if (!hasChanges && !formData.profileImage) {
+        const eliminarImagen = formData.profileImageBase64 === "";
+
+        if (!hasChanges && !eliminarImagen) {
             message.info("No se detectaron cambios. Recargando...");
             window.location.reload();
             return;
         }
 
-        if (formData.password !== formData.confirmPassword) {
+        if (formData.password && formData.password !== formData.confirmPassword) {
             return message.error("Las contraseñas no coinciden");
         }
 
         try {
             setLoading(true);
-            await updateProfile(formData);
+            console.log("Enviando al backend:", formDataCopy);
+            await updateProfile(formDataCopy);
+            console.log("JSON final enviado al backend (como JSON):", JSON.stringify(formDataCopy, null, 2));
             message.success("Perfil actualizado correctamente");
             window.location.reload();
         } catch (err) {
+            console.error("Error al actualizar el perfil:", err);
             message.error("Error al actualizar el perfil");
         } finally {
             setLoading(false);
         }
     };
+
+
+
 
     // Confirma y elimina la cuenta del usuario
     const handleDelete = async () => {
@@ -109,12 +137,25 @@ const ProfileForm = () => {
 
     // Elimina la imagen de perfil cargada
     const handleRemoveImage = () => {
+        console.log("🗑️ Eliminando imagen de perfil...");
+
+        // Regenera avatar genérico basado en nombre
+        const avatarGenerico = `https://ui-avatars.com/api/?name=${encodeURIComponent(
+            `${formData.first_name || ''} ${formData.last_name || ''}`
+        )}&background=random`;
+
         setFormData((prev) => ({
             ...prev,
-            profileImage: null,
+            profileImage: null, // Limpiamos el archivo de imagen
+            profileImageBase64: "", // Enviar string vacío, no null
+            profile_image: null, //Limpia la imagen del backend (visual)
         }));
-        setPreviewImage(null);
+
+        setPreviewImage(avatarGenerico); //  Vuelve a mostrar el avatar por nombre
     };
+
+
+
 
     return (
         <div className="w-full bg-[#f5f5f6] dark:bg-[#2a2e33] text-black dark:text-white rounded-lg space-y-6 p-4 overflow-x-auto overflow-y-visible min-h-[400px]">
@@ -129,34 +170,76 @@ const ProfileForm = () => {
                     />
                 ) : null}
 
-                {/* Subida de nueva imagen de perfil */}
+                {/* Subida de nueva imagen de perfil - Base64 */}
                 <Upload
-                    beforeUpload={(file) => {
+                    beforeUpload={async (file) => {
                         const allowedTypes = [
-                            "image/jpeg",
-                            "image/png",
-                            "image/webp",
-                            "image/gif",
-                            "image/bmp",
-                            "image/svg+xml"
+                            "image/jpeg", "image/png", "image/webp", "image/gif", "image/bmp",
+                            "image/svg+xml", "image/svg", "image/svgz", "image/tiff"
                         ];
-                        const isAllowed = allowedTypes.includes(file.type);
-                        const isSmallEnough = file.size / 1024 / 1024 < 1;
+
+                        const isHeicFile = file.name?.toLowerCase().endsWith(".heic") || file.name?.toLowerCase().endsWith(".heif");
+
+                        const isAllowed = allowedTypes.includes(file.type) || isHeicFile;
+
+                        const MAX_IMAGE_SIZE_MB = 3;
+                        const isSmallEnough = file.size / 1024 / 1024 <= MAX_IMAGE_SIZE_MB;
 
                         if (!isAllowed) {
-                            message.error("Formato no permitido. Usa: JPG, PNG, GIF, WebP, BMP o SVG");
+                            message.error("Formato no permitido. Usa: JPG, PNG, WebP, GIF, BMP, SVG (HEIC será convertido)");
                             return false;
                         }
 
                         if (!isSmallEnough) {
-                            message.error("La imagen debe pesar menos de 1MB");
+                            message.error(`La imagen debe pesar menos de ${MAX_IMAGE_SIZE_MB}MB`);
                             return false;
                         }
 
-                        setFormData((prev) => ({ ...prev, profileImage: file }));
-                        setPreviewImage(URL.createObjectURL(file));
+                        let finalFile = file;
+
+                        // Conversión HEIC a JPEG
+                        if (isHeicFile) {
+                            try {
+                                const outputBlob = await heic2any({
+                                    blob: file,
+                                    toType: "image/jpeg",
+                                    quality: 0.95,
+                                });
+
+                                finalFile = new File([outputBlob], file.name.replace(/\.[^/.]+$/, ".jpg"), {
+                                    type: "image/jpeg",
+                                });
+
+                                message.info("Imagen HEIC convertida a JPG automáticamente.");
+                            } catch (err) {
+                                console.error("Error al convertir imagen HEIC:", err);
+                                message.error("No se pudo convertir la imagen HEIC");
+                                return false;
+                            }
+                        }
+
+                        const reader = new FileReader();
+                        reader.onload = () => {
+                            try {
+                                const result = reader.result;
+                                if (typeof result === "string") {
+                                    const base64 = result.split(",")[1];
+                                    setFormData((prev) => ({
+                                        ...prev,
+                                        profileImage: finalFile,
+                                        profileImageBase64: base64,
+                                    }));
+                                    setPreviewImage(URL.createObjectURL(finalFile));
+                                }
+                            } catch (err) {
+                                message.error("Error al procesar la imagen");
+                            }
+                        };
+                        reader.readAsDataURL(finalFile);
+
                         return false;
                     }}
+
                     showUploadList={false}
                 >
                     <Button icon={<UploadOutlined />} style={{ backgroundColor: "#F1F1F1", borderColor: "#DADADA" }}>
@@ -165,9 +248,9 @@ const ProfileForm = () => {
                 </Upload>
 
                 {/* Eliminar imagen cargada */}
-                {(previewImage || formData.profileImage) && (
+                {(previewImage || formData.profileImage || formData.profile_image) && (
                     <Button icon={<CloseCircleOutlined />} onClick={handleRemoveImage} danger size="small">
-                        Eliminar imagen
+                        Eliminar imagen de perfil
                     </Button>
                 )}
 
