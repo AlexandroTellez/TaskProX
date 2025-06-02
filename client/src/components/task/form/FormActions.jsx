@@ -4,13 +4,15 @@ import { Button, Popconfirm } from 'antd'
  * FormActions - Componente de acciones del formulario de tarea.
  * Incluye botones para crear/actualizar, cancelar y eliminar (solo si se edita y tiene permiso).
  */
-const FormActions = ({ isEditing, onCancel, onDelete, canDelete }) => {
+const FormActions = ({ isEditing, onCancel, onDelete, canDelete, loading }) => {
     return (
         <div className="flex flex-col sm:flex-row justify-between gap-4">
             {/* Botón de enviar: Crear o Actualizar */}
             <Button
                 htmlType="submit"
                 block
+                loading={loading} // activamos loader y desactivamos
+                disabled={loading} // desactiva mientras guarda
                 style={{
                     background: '#FFFFFF',
                     borderColor: '#FED36A',
@@ -22,7 +24,11 @@ const FormActions = ({ isEditing, onCancel, onDelete, canDelete }) => {
                     borderRadius: '6px',
                 }}
             >
-                {isEditing ? 'Actualizar Tarea' : 'Crear Tarea'}
+                {loading
+                    ? 'Guardando...'
+                    : isEditing
+                    ? 'Actualizar Tarea'
+                    : 'Crear Tarea'}
             </Button>
 
             {/* Botón de cancelar */}
@@ -30,6 +36,7 @@ const FormActions = ({ isEditing, onCancel, onDelete, canDelete }) => {
                 type="default"
                 onClick={onCancel}
                 block
+                disabled={loading} //bloquear mientras guarda
                 style={{
                     background: '#FFFFFF',
                     borderColor: '#3B82F6',
@@ -56,6 +63,7 @@ const FormActions = ({ isEditing, onCancel, onDelete, canDelete }) => {
                         danger
                         block
                         className="mt-6 sm:mt-0"
+                        disabled={loading} //Bloquear también mientras guarda
                         style={{
                             backgroundColor: '#FFFFFF',
                             borderColor: '#ff4d4f',

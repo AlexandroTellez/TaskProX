@@ -45,9 +45,9 @@ const predefinedStatuses = [
     'completado',
 ];
 
-function TaskCard({ task, onTaskChanged, onDuplicate, projectId }) {
+function TaskCard({ task, onTaskChanged, onDuplicate, projectId, availableStatuses = [] }) {
     const navigate = useNavigate();
-    
+
 
     const [taskStatus, setTaskStatus] = useState(task.status);
     const user = JSON.parse(localStorage.getItem('user')) || {};
@@ -145,28 +145,36 @@ function TaskCard({ task, onTaskChanged, onDuplicate, projectId }) {
                             // Cambiado dentro de menu.onClick del Dropdown
                             onClick: async ({ key }) => {
                                 try {
-                                    await updateTask(taskId, { status: key });
+                                    const updatedTask = {
+                                        title: task.title,
+                                        description: task.description || "",
+                                        status: key,
+                                        startDate: task.startDate,
+                                        deadline: task.deadline,
+                                        collaborators: task.collaborators || [],
+                                        recurso: task.recurso || [],
+                                    };
+
+                                    console.log("📤 Enviando actualización con cambio de estado:", updatedTask);
+                                    await updateTask(taskId, updatedTask);
                                     setTaskStatus(key);
                                     message.success(`Estado actualizado a "${key}"`);
+
                                     if (onTaskChanged) {
-                                        await onTaskChanged(); // Para sincronizar tareas si aplica
+                                        await onTaskChanged();
                                     }
 
-                                    // Recargar manteniendo la vista actual
+                                    // Recargar manteniendo vista actual (si aplica)
                                     const currentParams = new URLSearchParams(window.location.search);
                                     const view = currentParams.get("view");
                                     const baseUrl = window.location.pathname;
                                     window.location.href = `${baseUrl}${view ? `?view=${view}` : ''}`;
-                                    if (onTaskChanged) {
-                                        onTaskChanged(); // Llamar a la función de sincronización sin recargar
-                                    }
                                 } catch (err) {
-                                    console.error('Error al cambiar estado:', err);
+                                    console.error('❌ Error al cambiar estado:', err);
                                     message.error('No se pudo cambiar el estado');
                                 }
                             },
-
-                            items: predefinedStatuses.map((status) => ({
+                            items: (availableStatuses.length > 0 ? availableStatuses : predefinedStatuses).map((status) => ({
                                 key: status,
                                 label: getStatusTag(status),
                             })),

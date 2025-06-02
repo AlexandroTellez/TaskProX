@@ -49,42 +49,70 @@ function TaskForm() {
         setTaskData((prev) => ({ ...prev, [field]: value }));
     };
 
+    const [loading, setLoading] = useState(false);
+
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        // ===================== Validación: título obligatorio =====================
+        if (!taskData.title.trim()) {
+            message.warning("El título de la tarea es obligatorio.");
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            return;
+        }
+
+        // ===================== Validación: deadline posterior a startDate =====================
+        if (!noDeadline && taskData.deadline && dayjs(taskData.deadline).isBefore(taskData.startDate)) {
+            message.error("La fecha límite no puede ser anterior a la fecha de inicio.");
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            return;
+        }
+
+        // ===================== Validación: permisos de edición =====================
         if (params.id && permission !== 'write' && permission !== 'admin') {
             message.error('No tienes permiso para editar esta tarea.');
             return;
         }
 
+        // ===================== Conversión segura de fechas =====================
         const prepareDate = (date) => {
             if (!date) return null;
             const dayjsDate = dayjs.isDayjs(date) ? date : dayjs(date);
             return dayjsDate.format('YYYY-MM-DD');
         };
 
+        // ===================== Filtrar archivos nuevos y existentes =====================
         const nuevosArchivos = (taskData.recurso || []).filter(file => file instanceof File);
         const archivosExistentes = (taskData.recurso || []).filter(file => !(file instanceof File));
 
+        // ===================== Validación: archivos con nombres no permitidos =====================
         const archivosInvalidos = nuevosArchivos.filter(file => file.name.startsWith('.'));
         if (archivosInvalidos.length > 0) {
             message.warning('Algunos archivos tienen nombres que comienzan con "." y serán renombrados automáticamente al descargarlos.');
         }
 
+        // ===================== Defensa contra valores undefined o corruptos =====================
+        const safeDescription = typeof taskData.description === 'string' ? taskData.description : '';
+        const safeCollaborators = Array.isArray(taskData.collaborators) ? taskData.collaborators : [];
+        const safeRecurso = Array.isArray(archivosExistentes) ? archivosExistentes : [];
+
+
+        // ===================== Construcción del objeto base =====================
         const baseData = {
             title: taskData.title,
-            description: taskData.description,
+            description: safeDescription,
             status: taskData.status,
-            collaborators: taskData.collaborators,
+            collaborators: safeCollaborators,
             startDate: prepareDate(taskData.startDate),
             deadline: noDeadline ? null : prepareDate(taskData.deadline),
-            recurso: archivosExistentes,
+            recurso: safeRecurso,
         };
 
         const validId = params.id && params.id !== 'undefined' && params.id !== 'null' && params.id !== '';
         const id = validId ? params.id : taskData._id || taskData.id;
         const taskProjectId = taskData.projectId || projectId || null;
 
+        // ===================== Preparar datos completos para enviar =====================
         const dataToSend = id
             ? { ...baseData, projectId: taskProjectId }
             : {
@@ -94,8 +122,22 @@ function TaskForm() {
                 creator_name: userFullName,
             };
 
+        // ===================== DEBUG: Verificar estructura antes de enviar =====================
+        if (import.meta.env.DEV) {
+            console.log('[DEBUG] dataToSend:', dataToSend);
+            console.log('[DEBUG] nuevosArchivos:', nuevosArchivos);
+            try {
+                const testStringify = JSON.stringify(dataToSend);
+                console.log('[DEBUG] JSON.stringify(dataToSend) válido:', testStringify);
+            } catch (err) {
+                console.error('[ERROR serializando dataToSend]:', err);
+            }
+        }
 
+        // ===================== Envío de la tarea =====================
         try {
+            setLoading(true);
+
             await (id
                 ? updateTask(id, dataToSend, nuevosArchivos)
                 : createTask(dataToSend, nuevosArchivos)
@@ -106,10 +148,31 @@ function TaskForm() {
             message.success(id ? "Tarea actualizada correctamente" : "Tarea creada correctamente");
             navigate(`/proyectos?projectId=${projectId}`);
         } catch (err) {
-            console.error(err);
-            message.error('Error al guardar la tarea');
+            console.error('[ERROR AL GUARDAR TAREA]', err);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            const backendError = err?.response?.data?.detail;
+            if (typeof backendError === 'string') {
+                if (backendError.includes('excede los') || backendError.includes('supera los')) {
+                    message.error(`❌ Error: ${backendError}`);
+                } else if (backendError.includes('15MB')) {
+                    message.error('❌ El peso total de los archivos supera el límite de 15MB.');
+                } else {
+                    message.error(`⚠️ ${backendError}`);
+                }
+            } else if (err?.message?.includes('Network Error')) {
+                message.error('⚠️ Error de red al guardar la tarea.');
+            } else if (err?.code === 'ERR_NETWORK') {
+                message.error('❌ No se pudo conectar con el servidor.');
+            } else {
+                message.error(`❌ Error inesperado al guardar la tarea.`);
+            }
+        } finally {
+            setLoading(false);
         }
     };
+
+
 
     const handleDelete = async () => {
         if (permission !== 'admin') {
@@ -215,7 +278,6 @@ function TaskForm() {
         );
     }
 
-    // 🔽 Reemplaza el return principal por este actualizado:
     return (
         <ConfigProvider locale={esES}>
             <div className="flex items-start justify-center min-h-screen w-full bg-white dark:bg-[#1f1f1f] px-4 text-black dark:text-white">
@@ -276,6 +338,7 @@ function TaskForm() {
                             onCancel={() => navigate(`/proyectos?projectId=${projectId}`)}
                             onDelete={handleDelete}
                             canDelete={permission === 'admin'}
+                            loading={loading} // activamos loader y desactivamos
                         />
                     </form>
                 </div>

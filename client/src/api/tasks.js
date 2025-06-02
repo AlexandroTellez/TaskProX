@@ -67,32 +67,74 @@ export const fetchTask = async (id) => {
 
 /**
  * ===============================
- * Crear una nueva tarea con archivos adjuntos
+ * Convertir archivos (File) a base64 para envío
  * ===============================
  */
-export const createTask = (taskData, files = []) => {
-    const formData = new FormData();
-    formData.append('task', JSON.stringify(taskData));
-    files.forEach((file) => formData.append('files', file));
+const convertFilesToBase64 = async (files) => {
+    const result = [];
 
-    return api.post(endpoint, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    for (const file of files) {
+        const base64 = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = reject;
+        });
+
+        result.push({
+            name: file.name,
+            type: file.type,
+            data: base64,
+        });
+    }
+
+    return result;
 };
 
 /**
  * ===============================
- * Actualizar tarea con archivos adjuntos
+ * Crear una nueva tarea con archivos adjuntos (JSON con base64)
  * ===============================
  */
-export const updateTask = (id, taskData, files = []) => {
-    const formData = new FormData();
-    formData.append('task', JSON.stringify(taskData));
-    files.forEach((file) => formData.append('files', file));
+export const createTask = async (taskData, files = []) => {
+    // Conservar archivos antiguos que ya están en base64
+    const recursoExistente = (taskData.recurso || []).filter(file => !(file instanceof File));
+    const recursoNuevo = await convertFilesToBase64(files);
 
-    return api.put(`${endpoint}/${id}`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    const payload = {
+        ...taskData,
+        recurso: [...recursoExistente, ...recursoNuevo],
+    };
+
+    // Debug solo en entorno local
+    if (import.meta.env.DEV) {
+        console.log("📤 Creando nueva tarea (JSON):", payload);
+    }
+
+    return api.post(endpoint, payload);
+};
+
+/**
+ * ===============================
+ * Actualizar tarea con archivos adjuntos (JSON con base64)
+ * ===============================
+ */
+export const updateTask = async (id, taskData, files = []) => {
+    // Conservar archivos antiguos
+    const recursoExistente = (taskData.recurso || []).filter(file => !(file instanceof File));
+    const recursoNuevo = await convertFilesToBase64(files);
+
+    const payload = {
+        ...taskData,
+        recurso: [...recursoExistente, ...recursoNuevo],
+    };
+
+    // Logs de depuración en desarrollo
+    if (import.meta.env.DEV) {
+        console.log(`📤 Actualizando tarea ID ${id} (JSON):`, payload);
+    }
+
+    return api.post(`${endpoint}/${id}/update`, payload);
 };
 
 /**

@@ -25,38 +25,92 @@ from typing import List
 
 task = APIRouter()
 
-MAX_FILES = 3
-MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
+MAX_FILES = 2
+MAX_TOTAL_SIZE = 15 * 1024 * 1024  # 15 MB en total
+MAX_FILE_SIZE = 7.5 * 1024 * 1024  # 7.5 MB por archivo
 
 
 # ===================== CONVERSIÓN DE ARCHIVOS =====================
 def encode_files_to_base64(files: List[UploadFile]) -> List[dict]:
     base64_files = []
+    total_size = 0
     ALLOWED_TYPES = [
-        "application/pdf",
-        "application/msword",
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        "application/vnd.ms-excel",
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        "image/jpeg",
-        "image/png",
-        "image/gif",
-        "image/svg+xml",
+        # Documentos comunes
+        "application/pdf",  # PDF
+        "application/msword",  # Word (antiguo .doc)
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",  # Word (.docx)
+        "application/vnd.ms-powerpoint",  # PowerPoint (.ppt)
+        "application/vnd.openxmlformats-officedocument.presentationml.presentation",  # PowerPoint (.pptx)
+        "application/vnd.ms-excel",  # Excel (.xls)
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",  # Excel (.xlsx)
+        # Archivos comprimidos
+        "application/zip",  # ZIP
+        "application/x-zip-compressed",  # ZIP comprimido
+        "application/x-rar-compressed",  # RAR
+        "application/x-7z-compressed",  # 7Z
+        "application/x-gzip",  # GZIP
+        "application/x-bzip2",  # BZIP2
+        # Imágenes estándar
+        "image/jpeg",  # JPG/JPEG
+        "image/png",  # PNG
+        "image/gif",  # GIF
+        "image/webp",  # WebP
+        "image/tiff",  # TIFF
+        "image/bmp",  # BMP
+        # Imágenes vectoriales
+        "image/svg+xml",  # SVG (correcto)
+        "image/svg",  # SVG (algunos navegadores lo usan sin +xml)
+        "image/svgz",  # SVGZ (comprimido)
+        # Íconos
+        "image/x-icon",  # ICO
+        "image/vnd.microsoft.icon",  # ICO (alternativo)
+        # Imágenes modernas para móviles
+        "image/heic",  # HEIC (iOS, iPhone)
+        "image/heif",  # HEIF (High Efficiency Image File Format)
+        "image/jfif",  # JPEG File Interchange Format
+        # Formatos de imágenes portables
+        "image/x-portable-anymap",  # PNM
+        "image/x-portable-bitmap",  # PBM
+        "image/x-portable-graymap",  # PGM
+        "image/x-portable-pixmap",  # PPM
+        # Formatos de imágenes X (X11)
+        "image/x-xbitmap",  # XBM
+        "image/x-xpixmap",  # XPM
     ]
 
+    # Validar cantidad de archivos
     if len(files) > MAX_FILES:
         raise HTTPException(400, f"Máximo {MAX_FILES} archivos permitidos.")
-
+    # Validar tamaño total de archivos
     for file in files:
+        print(f"[VALIDACIÓN] Procesando archivo: {file.filename} ({file.content_type})")
+
+        file.file.seek(
+            0
+        )  # Asegurarse de que el cursor del archivo esté al principio y reinicia el puntero por seguridad
         contents = file.file.read()
-        if len(contents) > MAX_FILE_SIZE:
-            raise HTTPException(413, f"Archivo {file.filename} excede los 5MB")
+        if not contents:
+            raise HTTPException(400, f"Archivo {file.filename} está vacío.")
+
+        file_size = len(contents)
+        print(f"[VALIDACIÓN] Tamaño del archivo: {file_size} bytes")
+        total_size += file_size
+
+        if file_size > MAX_FILE_SIZE:
+            raise HTTPException(
+                413,
+                f"Archivo {file.filename} excede los {int(MAX_FILE_SIZE/1024/1024)}MB permitidos.",
+            )
+        if total_size > MAX_TOTAL_SIZE:
+            raise HTTPException(413, "El total combinado de archivos excede los 15MB.")
         if file.content_type not in ALLOWED_TYPES and not file.content_type.startswith(
             "image/"
         ):
             raise HTTPException(415, f"Tipo no permitido: {file.content_type}")
 
         encoded = base64.b64encode(contents).decode("utf-8")
+        file.file.close()
+
         base64_files.append(
             {
                 "name": file.filename,
@@ -64,6 +118,8 @@ def encode_files_to_base64(files: List[UploadFile]) -> List[dict]:
                 "data": f"data:{file.content_type};base64,{encoded}",
             }
         )
+
+    print(f"[VALIDACIÓN FINAL] Tamaño total combinado de archivos: {total_size} bytes")
     return base64_files
 
 
@@ -89,7 +145,7 @@ async def get_task(id: str, user: dict = Depends(get_current_user)):
         print(f"[GET /tasks/{id}] ID inválido recibido: {id}")
         raise HTTPException(status_code=400, detail="ID de tarea inválido")
 
-    # ✅ MODIFICADO: ahora pasamos email e id del usuario para que calcule el permiso heredado del proyecto
+    # Ahora pasamos email e id del usuario para que calcule el permiso heredado del proyecto
     tarea = await get_one_task_id(id, user_email=user["email"], user_id=user["id"])
     print(f"[GET /tasks/{id}] Tarea encontrada: {tarea}")
 
@@ -106,35 +162,116 @@ async def get_task(id: str, user: dict = Depends(get_current_user)):
     return tarea  # Ya está serializada
 
 
-# ===================== PUT =====================
+# ===================== PUT CON JSON =====================
 @task.put("/api/tasks/{id}")
-async def put_task(
+async def put_task_json(
     id: str,
-    task: str = Form(...),
-    files: List[UploadFile] = File(None),
+    task_data: dict = Body(...),
     user: dict = Depends(get_current_user),
 ):
     print(f"[PUT /tasks/{id}] Usuario: {user['email']}")
+    print(f"[PUT /tasks/{id}] Datos recibidos: {task_data.keys()}")
 
-    # Añadido user_email y user_id
+    # Verificar existencia de tarea
     existing_task = await get_one_task_id(
         id, user_email=user["email"], user_id=user["id"]
     )
-    print(f"[PUT /tasks/{id}] Tarea original: {existing_task}")
-
     if not existing_task:
         raise HTTPException(404, f"Tarea con id {id} no encontrada")
 
-    task_data = json.loads(task)
     task_data["user_email"] = user["email"]
     task_data["user_id"] = user["id"]
 
-    if files:
-        task_data["recurso"] = encode_files_to_base64(files)
+    # Validación de recurso base64
+    if "recurso" in task_data:
+        recurso = task_data["recurso"]
+        if not isinstance(recurso, list):
+            raise HTTPException(400, "El campo 'recurso' debe ser una lista")
+
+        total_size = 0
+        for item in recurso:
+            if not isinstance(item, dict) or "data" not in item or "name" not in item:
+                raise HTTPException(
+                    400, "Formato inválido en alguno de los archivos adjuntos"
+                )
+
+            base64_data = item["data"].split(",")[-1]
+            try:
+                size = len(base64.b64decode(base64_data))
+            except Exception:
+                raise HTTPException(400, "Archivo base64 inválido o malformado")
+
+            total_size += size
+            if size > MAX_FILE_SIZE:
+                raise HTTPException(
+                    413,
+                    f"Uno de los archivos excede los {int(MAX_FILE_SIZE / 1024 / 1024)}MB",
+                )
+            if total_size > MAX_TOTAL_SIZE:
+                raise HTTPException(
+                    413, "El total combinado de archivos supera los 15MB permitidos"
+                )
 
     updated = await update_task(id, task_data)
     print(f"[PUT /tasks/{id}] Tarea actualizada: {updated}")
-    return updated if updated else HTTPException(400, "No se pudo actualizar la tarea")
+
+    if not updated:
+        raise HTTPException(400, "No se pudo actualizar la tarea")
+
+    return updated
+
+
+# ===================== POST UPDATE CON JSON =====================
+@task.post("/api/tasks/{id}/update")
+async def post_update_task_json(
+    id: str,
+    task_data: dict = Body(...),
+    user: dict = Depends(get_current_user),
+):
+    print(f"[POST /tasks/{id}/update] Usuario: {user['email']}")
+    print(f"[POST /tasks/{id}/update] Datos recibidos: {task_data.keys()}")
+
+    task_data["user_email"] = user["email"]
+    task_data["user_id"] = user["id"]
+
+    # Validación de recurso base64
+    if "recurso" in task_data:
+        recurso = task_data["recurso"]
+        if not isinstance(recurso, list):
+            raise HTTPException(400, "El campo 'recurso' debe ser una lista")
+
+        total_size = 0
+        for item in recurso:
+            if not isinstance(item, dict) or "data" not in item or "name" not in item:
+                raise HTTPException(
+                    400, "Formato inválido en alguno de los archivos adjuntos"
+                )
+
+            # Validar tamaño aproximado del base64
+            base64_data = item["data"].split(",")[-1]
+            try:
+                size = len(base64.b64decode(base64_data))
+            except Exception:
+                raise HTTPException(400, "Archivo base64 inválido o malformado")
+
+            total_size += size
+            if size > MAX_FILE_SIZE:
+                raise HTTPException(
+                    413,
+                    f"Uno de los archivos excede los {int(MAX_FILE_SIZE / 1024 / 1024)}MB",
+                )
+            if total_size > MAX_TOTAL_SIZE:
+                raise HTTPException(
+                    413, "El total combinado de archivos supera los 15MB permitidos"
+                )
+
+    updated = await update_task(id, task_data)
+    print(f"[POST /tasks/{id}/update] Tarea actualizada: {updated}")
+
+    if not updated:
+        raise HTTPException(400, "No se pudo actualizar la tarea")
+
+    return updated
 
 
 # ===================== DELETE =====================
@@ -178,14 +315,16 @@ async def get_tasks(request: Request, user: dict = Depends(get_current_user)):
     return tareas  # Ya serializadas
 
 
-# ===================== POST =====================
-@task.post("/api/tasks")
-async def save_task(
-    task: str = Form(...),
-    files: List[UploadFile] = File(None),
+# ===================== POST (JSON con recurso base64) =====================
+@task.post("/api/tasks", tags=["tasks"], summary="Crear tarea con JSON (base64)")
+async def save_task_json(
+    task_data: dict = Body(...),
     user: dict = Depends(get_current_user),
 ):
-    task_data = json.loads(task)
+    print(f"[POST /tasks] Usuario: {user['email']}")
+    print(f"[POST /tasks] Datos recibidos: {task_data.keys()}")
+
+    # Enriquecer con datos del usuario autenticado
     task_data.update(
         {
             "user_id": user["id"],
@@ -196,17 +335,45 @@ async def save_task(
         }
     )
 
-    if files:
-        task_data["recurso"] = encode_files_to_base64(files)
+    # Validación del campo `recurso` (archivos en base64)
+    if "recurso" in task_data:
+        recurso = task_data["recurso"]
+        if not isinstance(recurso, list):
+            raise HTTPException(400, "El campo 'recurso' debe ser una lista")
 
-    print(f"[POST /tasks] Datos para nueva tarea: {task_data}")
+        total_size = 0
+        for item in recurso:
+            if not isinstance(item, dict) or "data" not in item or "name" not in item:
+                raise HTTPException(
+                    400, "Formato inválido en alguno de los archivos adjuntos"
+                )
+
+            # Extraer base64 limpio y verificar tamaño
+            base64_data = item["data"].split(",")[-1]
+            try:
+                size = len(base64.b64decode(base64_data))
+            except Exception:
+                raise HTTPException(400, "Archivo base64 inválido o malformado")
+
+            total_size += size
+            if size > MAX_FILE_SIZE:
+                raise HTTPException(
+                    413,
+                    f"Uno de los archivos excede los {int(MAX_FILE_SIZE / 1024 / 1024)}MB",
+                )
+            if total_size > MAX_TOTAL_SIZE:
+                raise HTTPException(
+                    413, "El total combinado de archivos supera los 15MB permitidos"
+                )
+
+    print(f"[POST /tasks] Validación de archivos completada.")
     nueva_tarea = await create_task(task_data)
     print(f"[POST /tasks] Tarea creada: {nueva_tarea}")
-    return (
-        nueva_tarea
-        if nueva_tarea
-        else HTTPException(400, "Algo salió mal al crear la tarea")
-    )
+
+    if not nueva_tarea:
+        raise HTTPException(400, "Algo salió mal al crear la tarea")
+
+    return nueva_tarea
 
 
 # ===================== PATCH STATUS =====================
@@ -218,7 +385,7 @@ async def patch_task_status(
 ):
     print(f"[PATCH /tasks/{id}/status] Usuario: {user['email']} - Datos: {status_data}")
 
-    # ✅ Añadido user_email y user_id
+    # Añadido user_email y user_id
     existing_task = await get_one_task_id(
         id, user_email=user["email"], user_id=user["id"]
     )

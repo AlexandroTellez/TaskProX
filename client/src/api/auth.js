@@ -79,24 +79,40 @@ export const resetPassword = async (token, password) => {
 };
 
 // ========== ACTUALIZAR PERFIL ==========
+
 export const updateProfile = async (data) => {
-    const formData = new FormData();
-
-    Object.entries(data).forEach(([key, value]) => {
-        if (key === 'profileImage' && value instanceof File) {
-            formData.append('profileImage', value);
-        } else if (value !== undefined && value !== null && value !== '') {
-            formData.append(key, value);
-        }
-    });
-
     try {
-        const res = await api.put('/auth/profile', formData);
+        let base64 = data.profileImageBase64 ?? "";
+
+        // Si hay imagen nueva en formato File, convertirla a base64
+        if (data.profileImage instanceof File) {
+            base64 = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result.split(',')[1]);
+                reader.onerror = reject;
+                reader.readAsDataURL(data.profileImage);
+            });
+        }
+
+        const payload = {
+            first_name: data.first_name || null,
+            last_name: data.last_name || null,
+            address: data.address || null,
+            postal_code: data.postal_code || null,
+            email: data.email || null,
+            password: data.password || null,
+            profile_image_base64: base64 === "" ? "" : base64 || null,
+        };
+
+
+        const res = await api.put('/auth/profile', payload);
         return res.data;
     } catch (error) {
         throw error.response?.data || { message: 'Error al actualizar el perfil.' };
     }
 };
+
+
 
 // ========== ELIMINAR CUENTA ==========
 export const deleteAccount = async () => {
