@@ -85,7 +85,7 @@ npm run dev
 
 ## 🌐 Deployment
 
-- Frontend: Vercel → [task-pro-x.vercel.app](https://task-pro-x.vercel.app).
+- **Frontend**: Vercel → [task-pro-x.vercel.app](https://task-pro-x.vercel.app).
 
 - **Backend**: Deployed on **Render** (in this project), but any FastAPI-compatible hosting with HTTPS will work.
   
