@@ -51,9 +51,9 @@ function LoginForm({ onSubmit }) {
     };
 
     return (
-        <div className="min-h-screen h-full w-full flex flex-row lg:flex-row overflow-y-auto">
-            {/* Columna izquierda - Branding */}
-            <div className="w-1/2 lg:w-1/2 bg-white text-black flex justify-center items-center px-4 sm:px-6 py-8 lg:py-16 relative">
+        <div className="min-h-screen h-full w-full flex flex-col lg:flex-row overflow-y-auto">
+            {/* ====== Columna izquierda (branding) ====== */}
+            <div className="hidden lg:flex w-full lg:w-1/2 bg-white text-black justify-center items-center px-4 sm:px-6 py-8 lg:py-16 relative">
                 <div className="flex flex-col items-center text-center lg:text-left w-full max-w-md">
                     <div className="flex flex-col lg:flex-row items-center gap-3 mb-4 lg:mb-10">
                         <img src={logo} alt="TaskProX Logo" className="w-14 h-14 md:w-20 lg:w-24 md:h-20 lg:h-24" />
@@ -70,10 +70,16 @@ function LoginForm({ onSubmit }) {
                 </p>
             </div>
 
-
             {/* Columna derecha - Formulario */}
-            <div className="w-1/2 lg:w-1/2 bg-[#1a1a1a] text-white flex flex-col justify-center items-center px-4 sm:px-6 lg:px-16 py-8">
-                <div className="w-full max-w-xs sm:max-w-md lg:max-w-xl max-h-screen overflow-y-auto">
+            <div className="w-full lg:w-1/2 bg-[#1a1a1a] text-white flex flex-col items-center px-4 sm:px-6 lg:px-16 py-10 overflow-y-auto h-screen">
+
+                {/* Logo superior visible solo en dispositivos menores a lg */}
+                <div className="lg:hidden flex flex-row items-center justify-start gap-3 mb-6 px-6 md:px-10">
+                    <img src={logo} alt="TaskProX Logo" className="w-16 h-16 md:w-20 md:h-20 dark:invert" />
+                    <h1 className="text-4xl md:text-5xl font-bold">TaskProX</h1>
+                </div>
+
+                <div className="w-full max-w-xs sm:max-w-md lg:max-w-xl h-full overflow-y-auto pb-10 overscroll-contain">
                     <h2 className="text-xl sm:text-5xl font-bold mb-2">Inicia sesión</h2>
                     <p className="mb-4 sm:mb-6 text-xs sm:text-xl">Accede a tu espacio de productividad en TaskProX.</p>
 
