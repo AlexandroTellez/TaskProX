@@ -76,4 +76,4 @@ $RECYCLE.BIN/
 *.sqlite3
 
 # ===== ENVIRONMENT SECRETS =====
-.env
+backend/.env
