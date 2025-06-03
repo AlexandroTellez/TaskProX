@@ -1,5 +1,5 @@
 
-# 🧠 TaskProX - Backend
+# ⚙️ TaskProX - Backend
 
 Bienvenido al backend de **TaskProX**, una herramienta de gestión de tareas y proyectos colaborativos desarrollada con **FastAPI** y **MongoDB**.
 
