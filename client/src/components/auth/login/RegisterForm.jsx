@@ -91,14 +91,15 @@ function RegisterForm({ onSubmit }) {
             {/* ====== Columna derecha (formulario) ====== */}
             <div className="w-full lg:w-1/2 bg-[#1a1a1a] text-white flex flex-col items-center px-4 sm:px-6 lg:px-16 py-10 overflow-y-auto h-full">
 
-                {/* Logo superior visible solo en dispositivos menores a lg */}
-                <div className="lg:hidden flex flex-row items-center justify-start gap-3 mb-6 px-6 md:px-10">
-                    <img src={logo} alt="TaskProX Logo" className="w-16 h-16 md:w-20 md:h-20 dark:invert" />
-                    <h1 className="text-4xl md:text-5xl font-bold">TaskProX</h1>
-                </div>
 
-                {/* Formulario */}
-                <div className="w-full max-w-xs sm:max-w-md lg:max-w-xl h-full overflow-y-auto pb-10 overscroll-contain">
+                <div className="w-full max-w-xs sm:max-w-md lg:max-w-xl flex flex-col justify-center my-auto pb-10">
+
+                    {/* Logo superior visible solo en dispositivos menores a lg */}
+                    <div className="lg:hidden flex flex-row items-center justify-start gap-3 mb-6 px-6 md:px-10">
+                        <img src={logo} alt="TaskProX Logo" className="w-16 h-16 md:w-20 md:h-20 dark:invert" />
+                        <h1 className="text-4xl md:text-5xl font-bold">TaskProX</h1>
+                    </div>
+
                     <h2 className="text-xl sm:text-5xl font-bold mb-2">Crear cuenta</h2>
                     <p className="mb-4 sm:mb-6 text-xs sm:text-xl">Bienvenido a TaskProX, completa tu registro.</p>
 
