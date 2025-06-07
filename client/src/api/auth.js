@@ -24,8 +24,8 @@ export const loginUser = async ({ email, password, rememberMe }) => {
         const { first_name, last_name, email: userEmail, address, postal_code } = meResponse.data;
 
         const user = {
-            nombre: first_name || '',
-            apellidos: last_name || '',
+            first_name: first_name || '',
+            last_name: last_name || '',
             email: userEmail,
             address: address || '',
             postal_code: postal_code || '',

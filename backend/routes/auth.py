@@ -45,15 +45,15 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
         if not user:
             raise HTTPException(status_code=404, detail="Usuario no encontrado")
 
-        user["first_name"] = payload.get("first_name", "")
-        user["last_name"] = payload.get("last_name", "")
+        user["first_name"] = user.get("first_name", "")
+        user["last_name"] = user.get("last_name", "")
         user["_id"] = str(user["_id"])  # Asegura que se conserve como string
 
         return {
-            "id": str(user["_id"]),  # Clave necesaria para proyectos
+            "id": user["_id"],  # Clave necesaria para proyectos
             "email": user["email"],
-            "first_name": payload.get("first_name", ""),
-            "last_name": payload.get("last_name", ""),
+            "first_name": user["first_name"],
+            "last_name": user["last_name"],
             "address": user.get("address", ""),
             "postal_code": user.get("postal_code", ""),
             "profile_image": user.get("profile_image", None),
@@ -207,14 +207,23 @@ async def update_profile(
 
     if data.first_name:
         update_fields["first_name"] = data.first_name
+
     if data.last_name:
         update_fields["last_name"] = data.last_name
+
     if data.address:
         update_fields["address"] = data.address
+
     if data.postal_code:
         update_fields["postal_code"] = data.postal_code
+
     if data.email:
+        if data.email != current_user["email"]:
+            existing_user = await get_user_by_email(data.email)
+            if existing_user:
+                raise HTTPException(status_code=400, detail="El correo electrónico ya está en uso por otro usuario.")
         update_fields["email"] = data.email
+
     if data.password:
         update_fields["password"] = pwd_context.hash(data.password)
 

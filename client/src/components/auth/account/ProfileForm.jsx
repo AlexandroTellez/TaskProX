@@ -5,9 +5,9 @@ import {
     UploadOutlined,
 } from "@ant-design/icons";
 import { Button, Col, Input, message, Modal, Row, Upload } from "antd";
+import heic2any from "heic2any";
 import { useEffect, useState } from "react";
 import { deleteAccount, getCurrentUser, updateProfile } from "../../../api/auth";
-import heic2any from "heic2any";
 
 const ProfileForm = () => {
     // Estado del formulario
@@ -37,6 +37,18 @@ const ProfileForm = () => {
             try {
                 const user = await getCurrentUser();
                 console.log(" Usuario cargado:", user);
+
+                // ACTUALIZAR localStorage al cargar los datos reales del backend
+                const updatedUser = {
+                    first_name: user.first_name || '',
+                    last_name: user.last_name || '',
+                    email: user.email || '',
+                    address: user.address || '',
+                    postal_code: user.postal_code || '',
+                };
+
+                localStorage.setItem("user", JSON.stringify(updatedUser));
+
                 const initialState = {
                     ...user,
                     password: "",
@@ -69,24 +81,26 @@ const ProfileForm = () => {
         // ===================== CONVERSIÓN BASE64 DE IMAGEN =====================
         console.log("Estado antes de conversión base64:", formData.profileImageBase64);
 
-        // Convertimos y añadimos profile_image_base64
         formDataCopy.profile_image_base64 =
             formData.profileImageBase64 === "" ? "" :
                 formData.profileImageBase64 ? formData.profileImageBase64 : null;
 
-        console.log("Valor enviado como profile_image_base64:", formDataCopy.profile_image_base64);
-
-
         delete formDataCopy.profileImageBase64;
 
-        // Comprobamos cambios
+        console.log("Valor enviado como profile_image_base64:", formDataCopy.profile_image_base64);
+
+        // Comprobamos cambios con logs
         const originalCopy = { ...originalData };
         const hasChanges = Object.keys(formDataCopy).some((key) => {
-            if (key === "profile_image_base64") return true; // importante siempre enviar
+            if (key === "profile_image_base64") return true;
             return formDataCopy[key] !== originalCopy[key];
         });
 
         const eliminarImagen = formData.profileImageBase64 === "";
+
+        console.log("Datos originales:", originalCopy);
+        console.log("Datos modificados:", formDataCopy);
+        console.log("¿Hay cambios detectados?:", hasChanges);
 
         if (!hasChanges && !eliminarImagen) {
             message.info("No se detectaron cambios. Recargando...");
@@ -104,17 +118,35 @@ const ProfileForm = () => {
             await updateProfile(formDataCopy);
             console.log("JSON final enviado al backend (como JSON):", JSON.stringify(formDataCopy, null, 2));
             message.success("Perfil actualizado correctamente");
-            window.location.reload();
+
+            // Actualizar localStorage con los nuevos datos del usuario
+            const updatedUser = {
+                first_name: formData.first_name?.trim() || '',
+                last_name: formData.last_name?.trim() || '',
+                email: formData.email || '',
+                address: formData.address || '',
+                postal_code: formData.postal_code || '',
+            };
+
+
+            localStorage.setItem("user", JSON.stringify(updatedUser));
+
+            // Actualizar estados internos
+            setOriginalData({ ...formData });
+            setFormData((prev) => ({
+                ...prev,
+                first_name: formData.first_name?.trim(),
+                last_name: formData.last_name?.trim(),
+            }));
+            
         } catch (err) {
             console.error("Error al actualizar el perfil:", err);
             message.error("Error al actualizar el perfil");
         } finally {
             setLoading(false);
+            window.location.reload();
         }
     };
-
-
-
 
     // Confirma y elimina la cuenta del usuario
     const handleDelete = async () => {
@@ -153,9 +185,6 @@ const ProfileForm = () => {
 
         setPreviewImage(avatarGenerico); //  Vuelve a mostrar el avatar por nombre
     };
-
-
-
 
     return (
         <div className="w-full bg-[#f5f5f6] dark:bg-[#2a2e33] text-black dark:text-white rounded-lg space-y-6 p-4 overflow-x-auto overflow-y-visible min-h-[400px]">

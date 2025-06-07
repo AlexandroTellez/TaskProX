@@ -13,34 +13,58 @@ const Topbar = ({ setSidebarOpen }) => {
 
     useEffect(() => {
         const token = getToken();
-        if (!token) return;
-
-        const localUser = getUser();
-        if (localUser) {
-            const avatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(localUser.nombre)}&background=random`;
-            setUsuario({ nombre: localUser.nombre, avatar });
+        if (!token) {
+            console.warn("⛔ No hay token, usuario no autenticado.");
+            return;
         }
+
+        console.log("🔄 Cargando usuario desde getCurrentUser...");
 
         getCurrentUser()
             .then(data => {
-                const fullName = `${data.first_name} ${data.last_name}`.trim();
+                console.log("✅ Datos del backend:", data);
+
+                const first = (data.first_name || "").trim();
+                const last = (data.last_name || "").trim();
+                const fullName = `${first} ${last}`.trim();
+
                 const avatar = data.profile_image
                     ? `data:image/jpeg;base64,${data.profile_image}`
                     : `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=random`;
 
-                setUsuario({ nombre: fullName, avatar });
+                const nuevoUsuario = {
+                    first_name: first,
+                    last_name: last,
+                    email: data.email,
+                    address: data.address || '',
+                    postal_code: data.postal_code || '',
+                };
 
-                localStorage.setItem(
-                    'user',
-                    JSON.stringify({ nombre: fullName, email: data.email })
-                );
+                // Actualiza localStorage y estado
+                localStorage.setItem("user", JSON.stringify(nuevoUsuario));
+                setUsuario({ first_name: first, last_name: last, avatar });
+
+                console.log("🧠 Estado del usuario actualizado en Topbar:", { first, last });
             })
-            .catch(() => { });
+            .catch(err => {
+                console.error("❌ Error al obtener el usuario:", err);
+            });
     }, []);
+
+
 
     const handleGoToAccount = () => {
         navigate('/cuenta');
     };
+
+    // ⏳ Mostrar mensaje mientras se carga el usuario
+    if (!usuario) {
+        return (
+            <header className="px-4 py-4 bg-white dark:bg-[#1f1f1f]">
+                <span className="text-gray-500 dark:text-gray-400">Cargando usuario...</span>
+            </header>
+        );
+    }
 
     return (
         <header className="flex flex-wrap justify-between items-center w-full min-w-0 px-4 sm:px-6 lg:px-8 py-4 bg-white dark:bg-[#1f1f1f] dark:text-white overflow-auto">
@@ -71,32 +95,31 @@ const Topbar = ({ setSidebarOpen }) => {
             </div>
 
             {/* Usuario */}
-            {usuario && (
-                <div className="flex items-center gap-4 ml-auto">
-                    <div
-                        className="flex items-center gap-2 cursor-pointer"
-                        role="button"
-                        tabIndex={0}
-                        onClick={handleGoToAccount}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter' || e.key === ' ') {
-                                handleGoToAccount();
-                            }
+            <div className="flex items-center gap-4 ml-auto">
+                <div
+                    className="flex items-center gap-2 cursor-pointer"
+                    role="button"
+                    tabIndex={0}
+                    onClick={handleGoToAccount}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            handleGoToAccount();
+                        }
+                    }}
+                >
+                    <span className="text-lg font-semibold text-gray-800 dark:text-white">
+                        {usuario.first_name} {usuario.last_name}
+                    </span>
+
+                    <Avatar
+                        src={usuario.avatar}
+                        style={{
+                            border: '2px solid #FFFFFF',
+                            backgroundColor: '#FFFFFF',
                         }}
-                    >
-                        <span className="text-lg font-semibold text-gray-800 dark:text-white">
-                            {usuario.nombre}
-                        </span>
-                        <Avatar
-                            src={usuario.avatar}
-                            style={{
-                                border: '2px solid #FFFFFF',
-                                backgroundColor: '#FFFFFF',
-                            }}
-                        />
-                    </div>
+                    />
                 </div>
-            )}
+            </div>
         </header>
     );
 };
