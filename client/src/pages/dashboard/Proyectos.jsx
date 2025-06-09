@@ -26,8 +26,13 @@ const Proyectos = () => {
 
     // Leer el modo de vista desde la URL (?view=kanban)
     const viewMode = searchParams.get("view");
-    const [isKanbanView, setIsKanbanView] = useState(viewMode === "kanban");
+    const [isKanbanView, setIsKanbanView] = useState(false);
 
+    useEffect(() => {
+        const viewMode = searchParams.get("view");
+        setIsKanbanView(viewMode === "kanban");
+    }, [searchParams]);
+    
     const user = JSON.parse(localStorage.getItem('user'));
     const userEmail = user?.email || '';
 
@@ -128,7 +133,7 @@ const Proyectos = () => {
 
     const handleDuplicate = async (record) => {
         try {
-            const userFullName = [user?.nombre, user?.apellidos].filter(Boolean).join(' ');
+            const userFullName = [user?.name, user?.last_name].filter(Boolean).join(' ');
 
             const prepareDate = (date) => {
                 if (!date) return null;

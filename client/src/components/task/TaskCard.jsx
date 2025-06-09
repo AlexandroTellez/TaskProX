@@ -164,11 +164,15 @@ function TaskCard({ task, onTaskChanged, onDuplicate, projectId, availableStatus
                                         await onTaskChanged();
                                     }
 
-                                    // Recargar manteniendo vista actual (si aplica)
-                                    const currentParams = new URLSearchParams(window.location.search);
-                                    const view = currentParams.get("view");
-                                    const baseUrl = window.location.pathname;
-                                    window.location.href = `${baseUrl}${view ? `?view=${view}` : ''}`;
+                                    // Construir nueva URL manteniendo projectId y vista actual (kanban o tabla)
+                                    const searchParams = new URLSearchParams(window.location.search);
+                                    if (projectId) {
+                                        searchParams.set("projectId", projectId);
+                                    }
+                                    const view = searchParams.get("view") || "tabla"; // fallback por si no existe
+                                    searchParams.set("view", view); // aseguramos mantenerla
+                                    window.location.href = `/proyectos?${searchParams.toString()}`;
+
                                 } catch (err) {
                                     console.error('❌ Error al cambiar estado:', err);
                                     message.error('No se pudo cambiar el estado');
