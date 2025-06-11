@@ -4,11 +4,12 @@ import {
     DownloadOutlined,
     EditOutlined,
 } from '@ant-design/icons';
-import { App, Button, Popconfirm, Tag } from 'antd';
+import { App, Button, Popconfirm, Tag, Select } from 'antd';
 import { useNavigate } from 'react-router-dom';
-import { deleteTask } from '../../api/tasks';
+import { deleteTask, updateTaskStatus } from '../../api/tasks';
 import { formatDate, getPermission, getStatusTag } from './list/utils';
 import { useDraggable } from '@dnd-kit/core';
+import { useMediaQuery } from 'react-responsive';
 
 function descargarArchivo(file) {
     try {
@@ -46,19 +47,51 @@ function TaskCard({ task, onTaskChanged, onDuplicate, projectId }) {
         task.project_permission ||
         null;
 
-    // Solo permitir arrastrar si el usuario tiene permisos write o admin
+    // Detectar si es móvil/tablet (<1280px)
+    const isMobile = useMediaQuery({ maxWidth: 1279 });
+
     const isDraggable = permission === 'write' || permission === 'admin';
     const { attributes, listeners, setNodeRef } = useDraggable({ id: taskId });
 
-    // Eliminar tarea
+    // Recoger estados personalizados
+    const predefinedStatuses = [
+        'pendiente',
+        'en espera',
+        'lista para comenzar',
+        'en progreso',
+        'en revisión',
+        'completado',
+    ];
+    const statusSet = new Set([
+        ...predefinedStatuses.map((s) => s.toLowerCase().trim()),
+        task.status?.toLowerCase().trim(),
+    ]);
+    const allStatuses = Array.from(statusSet);
+
+    const handleStatusChange = async (newStatus) => {
+        try {
+            if (newStatus === task.status) return; // Evitar llamada innecesaria
+
+            await updateTaskStatus(taskId, newStatus);
+
+            // 🔁 Forzar recarga para reflejar el cambio en columnas
+            window.location.reload();
+        } catch (err) {
+            console.error('Error al cambiar el estado:', err);
+            message.error('No se pudo cambiar el estado.');
+        }
+    };
+
     const handleDelete = async () => {
         try {
             await deleteTask(taskId);
             if (onTaskChanged) onTaskChanged();
         } catch (err) {
             console.error('Error al eliminar tarea:', err);
+            message.error('No se pudo eliminar la tarea.');
         }
     };
+
 
     return (
         <div
@@ -71,7 +104,8 @@ function TaskCard({ task, onTaskChanged, onDuplicate, projectId }) {
                 touchAction: 'manipulation',
                 transition: 'opacity 0.2s ease-in-out',
             }}
-            className="border dark:border-white p-4 rounded-md shadow bg-white text-black dark:bg-[#1f1f1f] dark:text-white max-w-screen-sm md:max-w-md lg:max-w-lg mx-auto"
+            className="border dark:border-white p-4 rounded-md shadow bg-white text-black dark:bg-[#1f1f1f] dark:text-white w-full sm:max-w-md mx-auto overflow-hidden box-border"
+
         >
             <p className="font-bold text-lg mb-2">{task.title}</p>
 
@@ -95,7 +129,24 @@ function TaskCard({ task, onTaskChanged, onDuplicate, projectId }) {
                 </p>
                 <p className="text-sm"><strong>Fecha de inicio:</strong> {formatDate(task.startDate)}</p>
                 <p className="text-sm"><strong>Fecha límite:</strong> {formatDate(task.deadline)}</p>
-                <p className="text-sm"><strong>Estado:</strong> {getStatusTag(task.status)}</p>
+
+                {/* Estado con desplegable solo en móvil y si tiene permisos */}
+                {isMobile && (permission === 'write' || permission === 'admin') ? (
+                    <div className="text-sm">
+                        <strong>Estado:</strong>{' '}
+                        <Select
+                            value={task.status}
+                            onChange={handleStatusChange}
+                            style={{ width: '100%', marginTop: '4px' }}
+                            options={allStatuses.map((s) => ({
+                                label: getStatusTag(s),
+                                value: s,
+                            }))}
+                        />
+                    </div>
+                ) : (
+                    <p className="text-sm"><strong>Estado:</strong> {getStatusTag(task.status)}</p>
+                )}
 
                 {task.recurso?.length > 0 && (
                     <div className="text-sm">
