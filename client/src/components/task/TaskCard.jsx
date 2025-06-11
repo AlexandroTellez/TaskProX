@@ -2,27 +2,24 @@ import {
     CopyOutlined,
     DeleteOutlined,
     DownloadOutlined,
-    DownOutlined,
     EditOutlined,
 } from '@ant-design/icons';
-import { App, Button, Dropdown, Popconfirm, Tag } from 'antd';
-import { useState } from 'react';
-import { useMediaQuery } from 'react-responsive';
+import { App, Button, Popconfirm, Tag } from 'antd';
 import { useNavigate } from 'react-router-dom';
-import { deleteTask, updateTask } from '../../api/tasks';
+import { deleteTask } from '../../api/tasks';
 import { formatDate, getPermission, getStatusTag } from './list/utils';
+import { useDraggable } from '@dnd-kit/core';
 
-// ===================== Función para descarga de archivos base64 =====================
 function descargarArchivo(file) {
     try {
-        if (!file || !file.data || typeof file.data !== "string") return;
+        if (!file || !file.data || typeof file.data !== 'string') return;
 
         let base64Data = file.data;
         const match = file.data.match(/^data:(.*);base64,(.*)$/);
         if (match) base64Data = match[2];
 
         const byteCharacters = atob(base64Data.trim());
-        const byteNumbers = Array.from(byteCharacters).map(c => c.charCodeAt(0));
+        const byteNumbers = Array.from(byteCharacters).map((c) => c.charCodeAt(0));
         const byteArray = new Uint8Array(byteNumbers);
         const blob = new Blob([byteArray], { type: file.type || 'application/octet-stream' });
 
@@ -35,23 +32,13 @@ function descargarArchivo(file) {
     }
 }
 
-// ===================== Estados predefinidos =====================
-const predefinedStatuses = [
-    'pendiente',
-    'en espera',
-    'lista para comenzar',
-    'en progreso',
-    'en revisión',
-    'completado',
-];
-
-function TaskCard({ task, onTaskChanged, onDuplicate, projectId, availableStatuses = [] }) {
+function TaskCard({ task, onTaskChanged, onDuplicate, projectId }) {
     const navigate = useNavigate();
-
-
-    const [taskStatus, setTaskStatus] = useState(task.status);
     const user = JSON.parse(localStorage.getItem('user')) || {};
     const userEmail = user.email || '';
+    const taskId = task._id || task.id;
+    const { message } = App.useApp();
+
     const permission =
         getPermission(task, userEmail) ||
         task.effective_permission ||
@@ -59,11 +46,11 @@ function TaskCard({ task, onTaskChanged, onDuplicate, projectId, availableStatus
         task.project_permission ||
         null;
 
-    const taskId = task._id || task.id;
+    // Solo permitir arrastrar si el usuario tiene permisos write o admin
+    const isDraggable = permission === 'write' || permission === 'admin';
+    const { attributes, listeners, setNodeRef } = useDraggable({ id: taskId });
 
-    const { message } = App.useApp();
-
-    // ===================== Eliminar tarea =====================
+    // Eliminar tarea
     const handleDelete = async () => {
         try {
             await deleteTask(taskId);
@@ -75,14 +62,21 @@ function TaskCard({ task, onTaskChanged, onDuplicate, projectId, availableStatus
 
     return (
         <div
-            className="border dark:border-white p-4 rounded-md shadow bg-white text-black dark:bg-[#1f1f1f] dark:text-white 
-                    max-w-screen-sm md:max-w-md lg:max-w-lg mx-auto"
+            ref={isDraggable ? setNodeRef : null}
+            {...(isDraggable ? attributes : {})}
+            {...(isDraggable ? listeners : {})}
+            style={{
+                cursor: isDraggable ? 'grab' : 'default',
+                userSelect: 'none',
+                touchAction: 'manipulation',
+                transition: 'opacity 0.2s ease-in-out',
+            }}
+            className="border dark:border-white p-4 rounded-md shadow bg-white text-black dark:bg-[#1f1f1f] dark:text-white max-w-screen-sm md:max-w-md lg:max-w-lg mx-auto"
         >
             <p className="font-bold text-lg mb-2">{task.title}</p>
 
             <div className="space-y-1">
                 <p className="text-sm"><strong>Creador:</strong> {task.creator_name || 'Desconocido'}</p>
-
                 <p className="text-sm">
                     <strong>Colaboradores:</strong>{' '}
                     {task.collaborators?.length > 0
@@ -99,10 +93,9 @@ function TaskCard({ task, onTaskChanged, onDuplicate, projectId, availableStatus
                         ))
                         : 'Ninguno'}
                 </p>
-
                 <p className="text-sm"><strong>Fecha de inicio:</strong> {formatDate(task.startDate)}</p>
                 <p className="text-sm"><strong>Fecha límite:</strong> {formatDate(task.deadline)}</p>
-                <p className="text-sm"><strong>Estado:</strong> {getStatusTag(taskStatus)}</p>
+                <p className="text-sm"><strong>Estado:</strong> {getStatusTag(task.status)}</p>
 
                 {task.recurso?.length > 0 && (
                     <div className="text-sm">
@@ -136,62 +129,6 @@ function TaskCard({ task, onTaskChanged, onDuplicate, projectId, availableStatus
                     </details>
                 )}
             </div>
-
-            {/* Botón para cambiar estado */}
-            {(permission === 'write' || permission === 'admin') && (
-                <div className="mt-4">
-                    <Dropdown
-                        menu={{
-                            // Cambiado dentro de menu.onClick del Dropdown
-                            onClick: async ({ key }) => {
-                                try {
-                                    const updatedTask = {
-                                        title: task.title,
-                                        description: task.description || "",
-                                        status: key,
-                                        startDate: task.startDate,
-                                        deadline: task.deadline,
-                                        collaborators: task.collaborators || [],
-                                        recurso: task.recurso || [],
-                                    };
-
-                                    console.log("📤 Enviando actualización con cambio de estado:", updatedTask);
-                                    await updateTask(taskId, updatedTask);
-                                    setTaskStatus(key);
-                                    message.success(`Estado actualizado a "${key}"`);
-
-                                    if (onTaskChanged) {
-                                        await onTaskChanged();
-                                    }
-
-                                    // Construir nueva URL manteniendo projectId y vista actual (kanban o tabla)
-                                    const searchParams = new URLSearchParams(window.location.search);
-                                    if (projectId) {
-                                        searchParams.set("projectId", projectId);
-                                    }
-                                    const view = searchParams.get("view") || "tabla"; // fallback por si no existe
-                                    searchParams.set("view", view); // aseguramos mantenerla
-                                    window.location.href = `/proyectos?${searchParams.toString()}`;
-
-                                } catch (err) {
-                                    console.error('❌ Error al cambiar estado:', err);
-                                    message.error('No se pudo cambiar el estado');
-                                }
-                            },
-                            items: (availableStatuses.length > 0 ? availableStatuses : predefinedStatuses).map((status) => ({
-                                key: status,
-                                label: getStatusTag(status),
-                            })),
-                        }}
-                        trigger={['click']}
-                    >
-                        <Button className="w-full flex justify-between items-center">
-                            Cambiar estado <DownOutlined />
-                        </Button>
-                    </Dropdown>
-                </div>
-            )
-            }
 
             <div className="flex flex-wrap gap-2 mt-3" onClick={(e) => e.stopPropagation()}>
                 {(permission === 'write' || permission === 'admin') && (
@@ -249,7 +186,7 @@ function TaskCard({ task, onTaskChanged, onDuplicate, projectId, availableStatus
                     </Popconfirm>
                 )}
             </div>
-        </div >
+        </div>
     );
 }
 

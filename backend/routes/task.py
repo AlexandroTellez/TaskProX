@@ -273,7 +273,6 @@ async def post_update_task_json(
 
     return updated
 
-
 # ===================== DELETE =====================
 @task.delete("/api/tasks/{id}")
 async def remove_task(id: str, user: dict = Depends(get_current_user)):
