@@ -134,8 +134,22 @@ export const updateTask = async (id, taskData, files = []) => {
         console.log(`📤 Actualizando tarea ID ${id} (JSON):`, payload);
     }
 
-    return api.post(`${endpoint}/${id}/update`, payload);
+    const res = await api.post(`${endpoint}/${id}/update`, payload);
+    return { data: normalizeTask(res.data) };
+
 };
+
+/**
+ * ===============================
+ * Actualizar estados de tareas
+ * ===============================
+ */
+
+export const updateTaskStatus = async (id, newStatus) => {
+    const res = await api.patch(`/api/tasks/${id}/status`, { status: newStatus });
+    return normalizeTask(res.data);
+};
+
 
 /**
  * ===============================

@@ -32,7 +32,7 @@ const Proyectos = () => {
         const viewMode = searchParams.get("view");
         setIsKanbanView(viewMode === "kanban");
     }, [searchParams]);
-    
+
     const user = JSON.parse(localStorage.getItem('user'));
     const userEmail = user?.email || '';
 
@@ -303,8 +303,9 @@ const Proyectos = () => {
                             />
                         ) : (
                             <TaskList
-                                tasks={tasks}
                                 projectId={selectedProjectId}
+                                kanban={isKanbanView}
+                                projectPermission={selectedProject?.permission || null}
                                 onTaskChanged={() => loadTasks(selectedProjectId)}
                             />
                         )}
