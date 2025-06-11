@@ -1,17 +1,18 @@
 import {
     DndContext,
-    closestCorners,
-    useSensor,
-    useSensors,
+    DragOverlay,
     PointerSensor,
     TouchSensor,
-    DragOverlay,
+    closestCorners,
     useDroppable,
+    useSensor,
+    useSensors,
 } from '@dnd-kit/core';
 import { useState } from 'react';
+import { updateTaskStatus } from '../../../api/tasks';
 import TaskCard from '../TaskCard';
 import { getStatusTag } from './utils';
-import { updateTaskStatus } from '../../../api/tasks';
+import { useMediaQuery } from 'react-responsive';
 
 const predefinedStatuses = [
     'pendiente',
@@ -46,18 +47,16 @@ const TaskKanbanBoard = ({
 }) => {
     const [activeTask, setActiveTask] = useState(null);
 
-    // Sensores para pointer y touch
+    // Detectar si es móvil o tablet
+    const isSmallScreen = useMediaQuery({ maxWidth: 1279 });
+
+    // Sensores para drag
     const sensors = useSensors(
         useSensor(PointerSensor, {
-            activationConstraint: {
-                distance: 5, // mejor experiencia en móvil
-            },
+            activationConstraint: { distance: 5 },
         }),
         useSensor(TouchSensor, {
-            activationConstraint: {
-                delay: 150,
-                tolerance: 10,
-            },
+            activationConstraint: { delay: 150, tolerance: 10 },
         })
     );
 
@@ -84,8 +83,6 @@ const TaskKanbanBoard = ({
 
         try {
             await updateTaskStatus(taskId, newStatus);
-
-            // 🔁 Fuerza recarga para reflejar la tarea en la nueva columna
             window.location.reload();
         } catch (err) {
             console.error('Error actualizando estado:', err);
@@ -94,6 +91,42 @@ const TaskKanbanBoard = ({
         }
     };
 
+    // ========= VISTA MÓVIL: sin drag, solo TaskCard con selector =========
+    if (isSmallScreen) {
+        return (
+            <div className="flex flex-col gap-6 px-2 w-full max-w-full overflow-x-hidden">
+                {allStatuses.map((status) => {
+                    const columnTasks = tasks.filter(
+                        (t) => t.status?.toLowerCase().trim() === status
+                    );
+
+                    return (
+                        <div
+                            key={status}
+                            className="w-full bg-gray-100 dark:bg-[#2a2e33] p-3 rounded overflow-hidden"
+                        >
+                            <div className="text-center mb-2">{getStatusTag(status)}</div>
+                            <div className="space-y-4">
+                                {columnTasks.map((task) => (
+                                    <TaskCard
+                                        key={task._id || task.id}
+                                        task={task}
+                                        onTaskChanged={onTaskChanged}
+                                        onDuplicate={onDuplicate}
+                                        projectId={projectId}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+
+        );
+    }
+
+
+    // =========VISTA ESCRITORIO: Kanban con drag =========
     return (
         <DndContext
             sensors={sensors}
