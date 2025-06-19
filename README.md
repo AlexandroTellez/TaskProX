@@ -127,9 +127,18 @@ npm run dev
 ## 📄 License
 - This project is licensed under the MIT License.
 ---
-### 6. Contact me 👨‍💻
+### 📬 **Get In Touch**  
+ **Alexandro Tellez** | **Junior Full Stack Developer**  
 
-* **Author**: Alexandro Tellez
-* **Email**: [alextellezyanes@gmail.com](mailto:alextellezyanes@gmail.com)
-* **LinkedIn**: [Alexandro Tellez](https://www.linkedin.com/in/alex-tellez-y/)
+`Angular` | `Spring Boot` | `MySQL`  
+
 ---
+
+🔗 **Connect with me**:  
+
+[![LinkedIn](https://img.shields.io/badge/-LinkedIn-0077B5?style=flat&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/alex-tellez-y)  
+[![GitHub](https://img.shields.io/badge/-GitHub-181717?style=flat&logo=github&logoColor=white)](https://github.com/AlexandroTellez)  
+[![Portfolio](https://img.shields.io/badge/-Portfolio-FF5722?style=flat&logo=google-chrome&logoColor=white)](https://www.alextellezy.com/)  
+
+✉ **Email**:  
+[alextellezyanes@gmail.com](mailto:alextellezyanes@gmail.com)  
