@@ -130,6 +130,6 @@ npm run dev
 ### 6. Contact me 👨‍💻
 
 * **Author**: Alexandro Tellez
-* **Email**: alextellezyanes@gmail.com
+* **Email**: [alextellezyanes@gmail.com](mailto:alextellezyanes@gmail.com)
 * **LinkedIn**: [Alexandro Tellez](https://www.linkedin.com/in/alex-tellez-y/)
 ---
